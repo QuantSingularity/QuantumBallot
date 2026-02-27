@@ -25,113 +25,84 @@ jobs:
         uses: actions/checkout@v4
 
       # -------------------------------
-      # Node setup (single step)
+      # Node + npm caching
       # -------------------------------
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: "npm"
+          cache-dependency-path: tools/package-lock.json # ← tells the action where the lock file lives
+
+      - name: Install Node dependencies
+        working-directory: tools # ← run npm ci from tools/
+        run: npm ci
 
       # -------------------------------
-      # Install deps per-project (if package.json exists)
-      # -------------------------------
-      - name: Install Node Dependencies (backend)
-        run: |
-          if [ -f "${BACKEND_DIR}/package.json" ]; then
-            echo "Installing node dependencies in ${BACKEND_DIR}"
-            cd "${BACKEND_DIR}"
-            npm ci
-          else
-            echo "No package.json in ${BACKEND_DIR}, skipping install"
-          fi
-
-      - name: Install Node Dependencies (web-frontend)
-        run: |
-          if [ -f "${WEB_FRONTEND_DIR}/package.json" ]; then
-            echo "Installing node dependencies in ${WEB_FRONTEND_DIR}"
-            cd "${WEB_FRONTEND_DIR}"
-            npm ci
-          else
-            echo "No package.json in ${WEB_FRONTEND_DIR}, skipping install"
-          fi
-
-      - name: Install Node Dependencies (mobile-frontend)
-        run: |
-          if [ -f "${MOBILE_FRONTEND_DIR}/package.json" ]; then
-            echo "Installing node dependencies in ${MOBILE_FRONTEND_DIR}"
-            cd "${MOBILE_FRONTEND_DIR}"
-            npm ci
-          else
-            echo "No package.json in ${MOBILE_FRONTEND_DIR}, skipping install"
-          fi
-
-      # -------------------------------
-      # Prettier: backend (with Solidity plugin from root)
+      # Prettier: backend
       # -------------------------------
       - name: Run Prettier Checks (backend)
+        if: ${{ env.BACKEND_DIR != '' }}
+        working-directory: tools # ← run npx from tools/
         run: |
-          if [ -f "${BACKEND_DIR}/package.json" ]; then
-            echo "=== Running Prettier (backend) ==="
-            cd "${BACKEND_DIR}"
-            npx prettier --plugin-search-dir=. --check "**/*.{js,jsx,ts,tsx,sol,json,html,css,md}"
-          else
-            echo "No package.json in ${BACKEND_DIR}, skipping Prettier check"
-          fi
+          echo "=== Running Prettier (backend) ==="
+          npx --no-install prettier --check "../${{ env.BACKEND_DIR }}/**/*.{js,jsx,ts,tsx,json,html,css,md}" --ignore-path ../.prettierignore || {
+            echo "Prettier issues found in ${BACKEND_DIR}."
+            exit 1
+          }
 
       # -------------------------------
       # Prettier: web-frontend
       # -------------------------------
       - name: Run Prettier Checks (web-frontend)
+        if: ${{ env.WEB_FRONTEND_DIR != '' }}
+        working-directory: tools
         run: |
-          if [ -f "${WEB_FRONTEND_DIR}/package.json" ]; then
-            echo "=== Running Prettier (web-frontend) ==="
-            cd "${WEB_FRONTEND_DIR}"
-            npx prettier --plugin-search-dir=. --check "**/*.{js,jsx,ts,tsx,json,html,css,md}"
-          else
-            echo "No package.json in ${WEB_FRONTEND_DIR}, skipping Prettier check"
-          fi
+          echo "=== Running Prettier (web-frontend) ==="
+          npx --no-install prettier --check "../${{ env.WEB_FRONTEND_DIR }}/**/*.{js,jsx,ts,tsx,json,html,css,md}" --ignore-path ../.prettierignore || {
+            echo "Prettier issues found in ${WEB_FRONTEND_DIR}."
+            exit 1
+          }
 
       # -------------------------------
       # Prettier: mobile-frontend
       # -------------------------------
       - name: Run Prettier Checks (mobile-frontend)
+        if: ${{ env.MOBILE_FRONTEND_DIR != '' }}
+        working-directory: tools
         run: |
-          if [ -f "${MOBILE_FRONTEND_DIR}/package.json" ]; then
-            echo "=== Running Prettier (mobile-frontend) ==="
-            cd "${MOBILE_FRONTEND_DIR}"
-            npx prettier --plugin-search-dir=. --check "**/*.{js,jsx,ts,tsx,json,html,css,md}"
-          else
-            echo "No package.json in ${MOBILE_FRONTEND_DIR}, skipping Prettier check"
-          fi
+          echo "=== Running Prettier (mobile-frontend) ==="
+          npx --no-install prettier --check "../${{ env.MOBILE_FRONTEND_DIR }}/**/*.{js,jsx,ts,tsx,json,html,css,md}" --ignore-path ../.prettierignore || {
+            echo "Prettier issues found in ${MOBILE_FRONTEND_DIR}."
+            exit 1
+          }
 
-      # -------------------------------
-      # New: Repository-wide Markdown check (ALL .md files)
-      # -------------------------------
+      # 3) Repository-wide Markdown check (ALL .md files)
       - name: Run Prettier Checks (all .md files in repo)
+        working-directory: tools
         run: |
           echo "=== Running Prettier (all .md files) ==="
-          npx prettier --plugin-search-dir=. --check "**/*.md" --ignore-path .prettierignore || {
+          npx --no-install prettier --check "../**/*.md" --ignore-path ../.prettierignore || {
             echo "Prettier formatting issues detected in markdown files across the repo."
             exit 1
           }
 
-      # -------------------------------
-      # New: Infrastructure directory YAML/YML check (infrastructure/*.yml, *.yaml)
-      # -------------------------------
-      - name: Run Prettier Checks (infrastructure YAML/YML files)
+      # 4) Infrastructure YAML/YML files only (uses env.INFRASTRUCTURE_DIR)
+      - name: Run Prettier Checks (infrastructure YAML)
+        working-directory: tools
         run: |
-          if [ -n "${INFRASTRUCTURE_DIR}" ] && [ -d "${INFRASTRUCTURE_DIR}" ]; then
+          if [ -n "${{ env.INFRASTRUCTURE_DIR }}" ] && [ -d "../${{ env.INFRASTRUCTURE_DIR }}" ]; then
             echo "=== Running Prettier (infrastructure YAML/YML files) in ${INFRASTRUCTURE_DIR} ==="
-            npx prettier --plugin-search-dir=. --check "${INFRASTRUCTURE_DIR}/**/*.{yml,yaml}" --ignore-path .prettierignore || {
+            npx --no-install prettier --check "../${{ env.INFRASTRUCTURE_DIR }}/**/*.{yml,yaml}" --ignore-path ../.prettierignore || {
               echo "Prettier formatting issues detected in ${INFRASTRUCTURE_DIR} YAML/YML files."
               exit 1
             }
           else
-            echo "No infrastructure directory '${INFRASTRUCTURE_DIR}' found — skipping infra YAML/YML checks."
+            echo "No infrastructure directory '${{ env.INFRASTRUCTURE_DIR }}' found or INFRASTRUCTURE_DIR unset — skipping infra YAML checks."
           fi
 
       # -------------------------------
-      # Done
+      # Finalize
       # -------------------------------
       - name: Finalize Check
-        run: echo "All formatting checks completed (or were skipped where no package.json was found)."
+        run: echo "All formatting checks completed successfully."
