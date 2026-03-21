@@ -1,420 +1,546 @@
 # QuantumBallot Mobile Frontend
 
-## Overview
+## Executive Summary
 
-React Native mobile application for QuantumBallot - a secure blockchain-based voting system for American elections. This mobile app allows voters to cast their votes securely on iOS and Android devices.
+The QuantumBallot Mobile Frontend is a secure, enterprise-grade mobile voting application built with React Native and Expo. Designed for American elections using blockchain technology, this application enables eligible voters to cast their votes securely on iOS and Android devices. The platform ensures vote integrity through cryptographic verification, two-factor authentication, and immutable blockchain recording while providing an intuitive and accessible user experience.
 
-## Features
+---
 
-- ✅ Secure voter authentication
-- ✅ Two-factor authentication (OTP)
-- ✅ Browse candidates and election information
-- ✅ Cast votes recorded on blockchain
-- ✅ Vote verification and confirmation
-- ✅ Real-time election updates
-- ✅ QR code scanning for verification
-- ✅ Responsive UI for all screen sizes
+## Table of Contents
+
+1. [System Architecture](#system-architecture)
+2. [Technology Stack](#technology-stack)
+3. [Project Structure](#project-structure)
+4. [Core Features](#core-features)
+5. [Installation and Setup](#installation-and-setup)
+6. [Development Guidelines](#development-guidelines)
+7. [Testing Framework](#testing-framework)
+8. [Build and Deployment](#build-and-deployment)
+9. [Security Considerations](#security-considerations)
+10. [Platform Compatibility](#platform-compatibility)
+11. [API Integration](#api-integration)
+12. [Support and Maintenance](#support-and-maintenance)
+
+---
+
+## System Architecture
+
+### Application Overview
+
+| Component          | Description             | Responsibility                                     |
+| ------------------ | ----------------------- | -------------------------------------------------- |
+| Presentation Layer | React Native Components | Mobile UI rendering and touch interaction handling |
+| Navigation Layer   | React Navigation        | Screen routing and navigation state management     |
+| State Management   | React Context API       | Global authentication and app state                |
+| Service Layer      | API Services, Firebase  | External communication and secure data persistence |
+| Storage Layer      | Expo Secure Store       | Encrypted local data storage                       |
+
+### Data Flow Architecture
+
+| Stage             | Process                         | Technology                      |
+| ----------------- | ------------------------------- | ------------------------------- |
+| User Input        | Form submission, button presses | React Native Event Handlers     |
+| Authentication    | JWT token management            | Expo Secure Store, Axios        |
+| API Communication | HTTP requests with credentials  | Axios Interceptors              |
+| Vote Submission   | Blockchain transaction          | Province-specific API endpoints |
+| State Update      | Local and auth state updates    | React Context API               |
+
+---
 
 ## Technology Stack
 
-- **Framework:** React Native (Expo)
-- **Language:** TypeScript
-- **Navigation:** React Navigation
-- **UI Library:** React Native Paper
-- **State Management:** React Context API
-- **HTTP Client:** Axios
-- **Authentication:** JWT + Expo Secure Store
+### Core Framework
 
-## Prerequisites
+| Technology   | Version | Purpose                                |
+| ------------ | ------- | -------------------------------------- |
+| React Native | 0.74.1  | Cross-Platform Mobile Framework        |
+| React        | 18.2.0  | UI Component Library                   |
+| TypeScript   | 5.1.3   | Type Safety and Development Experience |
+| Expo SDK     | 51.0.4  | Development Platform and Tooling       |
+| Node.js      | 16+     | Runtime Environment                    |
 
-- Node.js 16+ and npm/yarn
-- Expo CLI (`npm install -g expo-cli`)
-- iOS Simulator (macOS) or Android Emulator/Device
-- Running QuantumBallot backend server
+### Navigation and Routing
 
-## Installation
+| Technology                            | Version | Purpose               |
+| ------------------------------------- | ------- | --------------------- |
+| React Navigation Native               | 6.1.9   | Navigation Framework  |
+| React Navigation Stack                | 6.3.20  | Stack Navigator       |
+| React Navigation Material Bottom Tabs | 6.2.19  | Bottom Tab Navigation |
 
-### 1. Clone and Navigate
+### UI Components and Styling
 
-```bash
-cd mobile-frontend
-```
+| Technology                | Version | Purpose                    |
+| ------------------------- | ------- | -------------------------- |
+| React Native Paper        | 5.12.3  | Material Design Components |
+| Phosphor React Native     | 3.0.2   | Icon Library               |
+| React Native Vector Icons | 10.0.3  | Additional Icon Sets       |
+| React Native Progress     | 5.0.1   | Progress Indicators        |
 
-### 2. Install Dependencies
+### Device Integration
 
-```bash
-npm install
-```
+| Technology           | Version | Purpose                       |
+| -------------------- | ------- | ----------------------------- |
+| Expo Camera          | 15.0.5  | Camera Access for QR Scanning |
+| Expo Barcode Scanner | 13.0.1  | QR Code Scanning              |
+| Expo Secure Store    | 13.0.1  | Encrypted Storage             |
+| Expo File System     | 17.0.1  | File Operations               |
+| Expo Document Picker | 14.0.8  | Document Selection            |
+| Expo AV              | 16.0.8  | Audio/Video Playback          |
 
-### 3. Configure Environment
+### Animation and Gestures
 
-```bash
-cp .env.example .env
-```
+| Technology                   | Version | Purpose                |
+| ---------------------------- | ------- | ---------------------- |
+| React Native Reanimated      | 3.10.1  | Smooth Animations      |
+| React Native Gesture Handler | 2.16.1  | Touch Gesture Handling |
 
-Edit `.env` and update:
+### Backend Integration
 
-```env
-API_BASE_URL=http://YOUR_IP:3010/api  # Replace YOUR_IP with your backend IP
-API_TIMEOUT=30000
-NODE_ENV=development
-```
+| Technology | Version | Purpose               |
+| ---------- | ------- | --------------------- |
+| Axios      | 1.6.8   | HTTP Client           |
+| Firebase   | Latest  | Image Storage Service |
 
-**Important:** For testing on physical devices, use your computer's local IP address (not `localhost`). Find your IP:
+### Testing Framework
 
-- **macOS/Linux:** `ifconfig | grep inet`
-- **Windows:** `ipconfig`
+| Technology                   | Version | Purpose           |
+| ---------------------------- | ------- | ----------------- |
+| Jest                         | 29.7.0  | Test Runner       |
+| Jest Expo                    | 51.0.0  | Expo Jest Preset  |
+| React Native Testing Library | 12.4.3  | Component Testing |
+| Jest Native                  | 5.4.3   | Native Assertions |
+| MSW                          | 2.2.3   | API Mocking       |
 
-### 4. Start Development Server
+### Development Tools
 
-```bash
-npm start
-```
+| Technology | Version | Purpose                |
+| ---------- | ------- | ---------------------- |
+| ESLint     | 8.56.0  | Code Linting           |
+| Prettier   | 3.2.4   | Code Formatting        |
+| Babel      | 7.20.0  | JavaScript Compilation |
 
-This opens Expo Dev Tools in your browser. From here you can:
-
-- Press `a` to open in Android emulator
-- Press `i` to open in iOS simulator
-- Scan QR code with Expo Go app on physical device
-
-## Running on Devices
-
-### Android
-
-```bash
-npm run android
-```
-
-Requirements:
-
-- Android Studio with SDK installed
-- Android emulator running OR
-- Physical Android device with USB debugging enabled
-
-### iOS (macOS only)
-
-```bash
-npm run ios
-```
-
-Requirements:
-
-- Xcode installed
-- iOS Simulator OR
-- Physical iOS device with development profile
+---
 
 ## Project Structure
 
-```
-mobile-frontend/
-├── src/
-│   ├── @types/           # TypeScript type definitions
-│   ├── api/              # API client configuration
-│   ├── assets/           # Images, fonts, static files
-│   ├── components/       # Reusable UI components
-│   ├── constants/        # App configuration constants
-│   ├── context/          # React Context (Auth, etc.)
-│   ├── data_types/       # TypeScript interfaces
-│   ├── hooks/            # Custom React hooks
-│   ├── routes/           # Navigation configuration
-│   ├── screens/          # App screens
-│   ├── services/         # Business logic services
-│   └── theme/            # Styling and theme
-├── __tests__/            # Test files
-├── App.tsx               # App entry point
-├── app.json              # Expo configuration
-├── babel.config.js       # Babel configuration
-├── jest.config.js        # Jest test configuration
-├── package.json          # Dependencies
-├── tsconfig.json         # TypeScript configuration
-└── .env.example          # Environment template
-```
+### Directory Organization
 
-## Main Screens
+| Directory  | File Count | Description                      |
+| ---------- | ---------- | -------------------------------- |
+| src/       | 58 files   | Main source code directory       |
+| **tests**/ | 15 files   | Test files and testing utilities |
+| **mocks**/ | 2 files    | Mock implementations             |
+| assets/    | 14 files   | Static assets and images         |
 
-### 1. Login Screen
+### Source Code Structure
 
-- Enter Electoral ID and password
-- Secure authentication via JWT
-- Navigate to Registration if needed
+| Directory       | Purpose                | Key Contents                   |
+| --------------- | ---------------------- | ------------------------------ |
+| src/@types/     | Type Definitions       | TypeScript declaration files   |
+| src/api/        | API Configuration      | Axios instance setup           |
+| src/assets/     | Static Resources       | Images, fonts, candidate logos |
+| src/components/ | Reusable UI Components | 12 reusable components         |
+| src/constants/  | Configuration          | API endpoints, storage keys    |
+| src/context/    | State Management       | AuthContext provider           |
+| src/data_types/ | Type Definitions       | HashMap interface              |
+| src/hooks/      | Custom React Hooks     | useImage hook                  |
+| src/routes/     | Navigation             | AppRoutes configuration        |
+| src/screens/    | Application Screens    | 10 feature screens             |
+| src/service/    | Firebase Service       | Image loading utilities        |
+| src/services/   | Business Logic         | votingService                  |
+| src/theme/      | Styling                | Colors, fonts, sizes           |
 
-### 2. Registration Screen
+### Screen Components
 
-- Register new voters
-- Collect: Electoral ID, name, email, password, address, state
-- Form validation
-- Email verification
+| Screen            | File                       | Purpose                               |
+| ----------------- | -------------------------- | ------------------------------------- |
+| Login             | Login/index.tsx            | User authentication with Electoral ID |
+| Registration      | Registration/index.tsx     | New voter registration                |
+| Candidates        | Candidates/index.tsx       | Browse election candidates            |
+| Candidate Details | CandidateDetails/index.tsx | Detailed candidate information        |
+| Groups            | Groups/index.tsx           | Cast votes (voting screen)            |
+| Two Factor        | TwoFactor/index.tsx        | OTP verification for vote submission  |
+| Thank Vote        | ThankVote/index.tsx        | Vote confirmation screen              |
+| News              | News/index.tsx             | Election news and updates             |
+| Credentials       | Credentials/index.tsx      | User credentials and data             |
 
-### 3. Candidates Screen
+### Component Library
 
-- View all election candidates
-- See candidate details (name, party, code)
-- View candidate photos
-- Access candidate details
+| Component        | Location                   | Purpose                   |
+| ---------------- | -------------------------- | ------------------------- |
+| BottomNavigation | BottomNavigation/index.tsx | Main app tab navigation   |
+| CandidateItem    | CandidateItem/index.tsx    | Candidate display card    |
+| CandidatesList   | CandidatesList/index.tsx   | Scrollable candidate list |
+| CameraQR         | CameraQR/index.tsx         | QR code scanner           |
+| Header           | Header/index.tsx           | App header component      |
+| HeaderElection   | HeaderElection/index.tsx   | Election-specific header  |
+| LiveProjection   | LiveProjection/index.tsx   | Live election countdown   |
+| Loading          | Loading/index.tsx          | Loading spinner           |
+| NewsItem         | NewsItem/index.tsx         | News article card         |
+| NumberItem       | NumberItem/index.tsx       | PIN display item          |
+| PinItem          | PinItem/index.tsx          | PIN pad button            |
+| ProgressHeader   | ProgressHeader/index.tsx   | Progress indicator header |
 
-### 4. Groups/Voting Screen
+---
 
-- Select candidate to vote for
-- Radio button selection
-- Submit vote to blockchain
-- Confirmation dialog
+## Core Features
 
-### 5. Two-Factor Authentication
+### Voter Authentication
 
-- Enter 6-digit OTP code
-- Visual PIN pad
-- Code verification
-- Vote submission after OTP
+| Feature              | Description                                 | Component   |
+| -------------------- | ------------------------------------------- | ----------- |
+| Electoral ID Login   | Secure login with Electoral ID and password | Login       |
+| JWT Token Management | Automatic token refresh and storage         | AuthContext |
+| Session Persistence  | Maintains login across app restarts         | AuthContext |
+| Logout               | Secure session termination                  | AuthContext |
 
-### 6. Thank You Screen
+### Registration
 
-- Vote confirmation
-- Transaction hash display
-- Success message
+| Feature                | Description                        | Component    |
+| ---------------------- | ---------------------------------- | ------------ |
+| New Voter Registration | Collect voter information          | Registration |
+| Form Validation        | Input validation before submission | Registration |
+| Email Verification     | Verify email address               | Registration |
 
-## Configuration
+### Voting Process
 
-### API Endpoints
+| Feature                   | Description                           | Component             |
+| ------------------------- | ------------------------------------- | --------------------- |
+| Candidate Browsing        | View all candidates and parties       | Candidates            |
+| Vote Selection            | Radio button candidate selection      | Groups                |
+| Vote Confirmation         | Confirmation dialog before submission | Groups                |
+| Two-Factor Authentication | OTP verification for security         | TwoFactor             |
+| Vote Submission           | Blockchain transaction recording      | Groups, votingService |
+| Transaction Receipt       | Display transaction hash              | ThankVote             |
 
-Defined in `src/constants/config.ts`:
+### Election Information
 
-```typescript
-ENDPOINTS: {
-  LOGIN: "/api/committee/auth-mobile",
-  REGISTER: "/api/committee/register-voter",
-  CANDIDATES: "/api/committee/candidates",
-  ANNOUNCEMENT: "/api/committee/announcement",
-  VERIFY_OTP: "/api/committee/verify-otp",
-  // ... more endpoints
-}
-```
+| Feature             | Description                    | Component        |
+| ------------------- | ------------------------------ | ---------------- |
+| Live Countdown      | Real-time election timer       | LiveProjection   |
+| News Feed           | Election-related news          | News             |
+| Candidate Details   | Detailed candidate information | CandidateDetails |
+| Voting Status Check | Verify if already voted        | Groups           |
 
-### Storage Keys
+### Security Features
 
-```typescript
-STORAGE_KEYS: {
-  JWT_TOKEN: "my-jwt",
-  EMAIL: "my-email",
-  ELECTORAL_ID: "my-electoral-id",
-  PORT: "my-port",
-}
-```
+| Feature                   | Description                  | Implementation    |
+| ------------------------- | ---------------------------- | ----------------- |
+| Encrypted Storage         | JWT tokens in secure storage | Expo Secure Store |
+| Two-Factor Authentication | OTP code verification        | TwoFactor screen  |
+| QR Code Scanning          | Certificate verification     | CameraQR          |
+| Province-Specific Ports   | State-based blockchain nodes | votingService     |
+| Vote Integrity Check      | Prevent duplicate voting     | Groups            |
 
-## Testing
+---
 
-### Run All Tests
+## Installation and Setup
 
-```bash
-npm test
-```
+### Prerequisites
 
-### Run Tests in Watch Mode
+| Requirement | Minimum Version | Recommended Version |
+| ----------- | --------------- | ------------------- |
+| Node.js     | 16.0.0          | 18.x LTS            |
+| npm         | 8.0.0           | 9.x                 |
+| Expo CLI    | Latest          | Latest              |
+| Git         | 2.30.0          | Latest              |
 
-```bash
-npm test:watch
-```
+### Platform Requirements
 
-### Generate Coverage Report
+| Platform        | Requirement                |
+| --------------- | -------------------------- |
+| iOS             | macOS with Xcode installed |
+| Android         | Android Studio with SDK    |
+| Physical Device | Expo Go app installed      |
 
-```bash
-npm test:coverage
-```
+### Installation Steps
 
-### Test Files
+| Step | Command                | Description                   |
+| ---- | ---------------------- | ----------------------------- |
+| 1    | `cd mobile-frontend`   | Navigate to project directory |
+| 2    | `npm install`          | Install dependencies          |
+| 3    | `cp .env.example .env` | Create environment file       |
+| 4    | Configure API_BASE_URL | Set backend IP address        |
+| 5    | `npm start`            | Start Expo development server |
 
-- `__tests__/api/` - API client tests
-- `__tests__/components/` - Component unit tests
-- `__tests__/context/` - Context provider tests
-- `__tests__/screens/` - Screen component tests
-- `__tests__/integration/` - Integration tests
-- `__tests__/e2e/` - End-to-end tests
+### Environment Configuration
 
-## Development
+| Variable     | Description      | Example                  |
+| ------------ | ---------------- | ------------------------ |
+| API_BASE_URL | Backend API URL  | http://192.168.0.38:3010 |
+| API_TIMEOUT  | Request timeout  | 30000                    |
+| NODE_ENV     | Environment mode | development              |
 
-### Linting
+### Running the Application
 
-```bash
-npm run lint
-```
+| Command           | Platform | Description                       |
+| ----------------- | -------- | --------------------------------- |
+| `npm start`       | All      | Start Expo dev server             |
+| `npm run android` | Android  | Run on Android emulator/device    |
+| `npm run ios`     | iOS      | Run on iOS simulator (macOS only) |
+| `npm run web`     | Web      | Run in web browser                |
 
-### Code Formatting
+---
 
-```bash
-npm run format
-```
+## Development Guidelines
 
-### Hot Reload
+### Code Organization
 
-Expo supports hot reloading. Save your files and changes appear instantly on the device/emulator.
+| Principle           | Implementation                        |
+| ------------------- | ------------------------------------- |
+| Component Structure | Functional components with TypeScript |
+| State Management    | React Context for global state        |
+| Navigation          | Centralized in routes/ directory      |
+| API Calls           | Centralized in api/ and services/     |
+| Styling             | StyleSheet for component styles       |
 
-### Debugging
+### Naming Conventions
 
-- Shake device to open developer menu
-- Use React Native Debugger
-- Check Expo Dev Tools console
-- View logs: `npx expo start --dev-client`
+| Element    | Convention                | Example           |
+| ---------- | ------------------------- | ----------------- |
+| Components | PascalCase                | CandidateItem.tsx |
+| Screens    | PascalCase with index.tsx | Login/index.tsx   |
+| Hooks      | camelCase with use prefix | useImage.ts       |
+| Utilities  | camelCase                 | votingService.ts  |
+| Constants  | UPPER_SNAKE_CASE          | STORAGE_KEYS      |
 
-## Building for Production
+### Path Aliases
 
-### Android APK
+| Alias       | Maps To          |
+| ----------- | ---------------- |
+| @assets     | ./src/assets     |
+| @components | ./src/components |
+| @screens    | ./src/screens    |
+| @routes     | ./src/routes     |
+| @utils      | ./src/utils      |
+| src         | ./src            |
 
-```bash
-eas build --platform android
-```
+---
 
-### iOS IPA
+## Testing Framework
 
-```bash
-eas build --platform ios
-```
+### Test Structure
 
-Requires Expo Application Services (EAS) account. See [Expo EAS Build](https://docs.expo.dev/build/introduction/) for setup.
+| Category          | Location               | Count   |
+| ----------------- | ---------------------- | ------- |
+| Screen Tests      | **tests**/screens/     | 7 files |
+| Component Tests   | **tests**/components/  | 2 files |
+| API Tests         | **tests**/api/         | 1 file  |
+| Context Tests     | **tests**/context/     | 1 file  |
+| Navigation Tests  | **tests**/navigation/  | 1 file  |
+| Integration Tests | **tests**/integration/ | 1 file  |
+| E2E Tests         | **tests**/e2e/         | 1 file  |
 
-## Common Issues & Solutions
+### Test Commands
 
-### Issue: "Cannot connect to backend"
+| Command                 | Purpose                  |
+| ----------------------- | ------------------------ |
+| `npm test`              | Run all tests            |
+| `npm run test:watch`    | Run tests in watch mode  |
+| `npm run test:coverage` | Generate coverage report |
 
-**Solution:**
+### Coverage Thresholds
 
-- Verify backend is running: `cd backend && npm run dev`
-- Check `.env` API_BASE_URL is correct
-- Use local IP, not `localhost` for physical devices
-- Ensure device and computer are on same network
+| Metric     | Threshold |
+| ---------- | --------- |
+| Branches   | 70%       |
+| Functions  | 70%       |
+| Lines      | 70%       |
+| Statements | 70%       |
 
-### Issue: "Module not found" errors
+---
 
-**Solution:**
+## Build and Deployment
 
-```bash
-rm -rf node_modules package-lock.json
-npm install
-```
+### Build Configuration
 
-### Issue: "Expo app crashes on startup"
+| Setting         | Value                    | Description           |
+| --------------- | ------------------------ | --------------------- |
+| iOS Bundle ID   | com.quantumballot.mobile | App Store identifier  |
+| Android Package | com.quantumballot.mobile | Play Store identifier |
+| Orientation     | Portrait                 | Screen orientation    |
+| SDK Version     | 51.0.4                   | Expo SDK version      |
 
-**Solution:**
+### EAS Build Profiles
 
-- Clear Expo cache: `expo start -c`
-- Reinstall Expo Go app on device
-- Check for compatibility issues in `package.json`
+| Profile     | Platform    | Distribution   |
+| ----------- | ----------- | -------------- |
+| development | iOS/Android | Internal       |
+| preview     | Android     | APK            |
+| preview2    | Android     | Release APK    |
+| production  | iOS/Android | Store          |
+| web         | Web         | Web deployment |
 
-### Issue: "Cannot run on iOS simulator"
+### Build Commands
 
-**Solution:**
+| Command                        | Output     | Description   |
+| ------------------------------ | ---------- | ------------- |
+| `eas build --platform android` | APK/AAB    | Android build |
+| `eas build --platform ios`     | IPA        | iOS build     |
+| `eas build --platform web`     | Web bundle | Web build     |
 
-- Ensure Xcode is installed
-- Open Xcode and install additional components
-- Select simulator: Xcode → Open Developer Tool → Simulator
-- Run: `npm run ios`
+---
 
 ## Security Considerations
 
-### Secure Storage
+### Authentication Security
 
-- JWTs stored in Expo Secure Store (encrypted)
-- Never store sensitive data in AsyncStorage
-- Clear auth data on logout
+| Feature            | Implementation                |
+| ------------------ | ----------------------------- |
+| Token Storage      | Expo Secure Store (encrypted) |
+| Session Management | JWT with automatic refresh    |
+| Logout             | Complete token deletion       |
+| Credentials        | Never stored in plain text    |
 
-### API Communication
+### API Security
 
-- All requests use HTTPS in production
-- JWT tokens in Authorization headers
-- Cookie-based session management
-- Request/response logging in development only
+| Feature               | Implementation            |
+| --------------------- | ------------------------- |
+| Request Authorization | Bearer token in headers   |
+| Cookie Management     | JWT cookie for session    |
+| HTTPS                 | Required in production    |
+| Timeout Protection    | 30-second request timeout |
 
-### Input Validation
+### Vote Security
 
-- All forms validate before submission
-- XSS prevention via React's default escaping
-- SQL injection prevention (backend responsibility)
+| Feature                   | Implementation                  |
+| ------------------------- | ------------------------------- |
+| Two-Factor Authentication | OTP verification                |
+| Duplicate Vote Prevention | Blockchain-level check          |
+| Province Isolation        | State-specific blockchain nodes |
+| Transaction Verification  | Hash confirmation               |
 
-## Performance Optimization
+### Data Protection
 
-### Image Loading
+| Feature              | Implementation         |
+| -------------------- | ---------------------- |
+| Certificate Export   | Encrypted file export  |
+| QR Code Verification | Certificate validation |
+| Input Validation     | Form-level validation  |
+| Error Handling       | Secure error messages  |
 
-- Lazy load candidate images
-- Cache network images
-- Use appropriate image sizes
+---
 
-### API Calls
+## Platform Compatibility
 
-- Minimize redundant network requests
-- Cache candidate and announcement data
-- Implement retry logic for failed requests
+### iOS Support
 
-### State Management
+| Version | Status    | Notes                |
+| ------- | --------- | -------------------- |
+| iOS 15+ | Supported | Full feature support |
+| iOS 14  | Limited   | Basic functionality  |
+| iPad    | Supported | Tablet optimized     |
 
-- Use Context sparingly (avoid re-renders)
-- Memoize expensive computations
-- Optimize list rendering with `FlatList`
+### Android Support
 
-## Accessibility
+| Version     | Status    | Notes                |
+| ----------- | --------- | -------------------- |
+| Android 13+ | Supported | Full feature support |
+| Android 12  | Supported | Full feature support |
+| Android 11  | Supported | Full feature support |
+| Android 10  | Limited   | Basic functionality  |
 
-- Semantic labels on all inputs
-- Screen reader support
-- Sufficient color contrast
-- Touch target sizes ≥ 44x44 pts
-- Keyboard navigation support
+### Required Permissions
 
-## Contributing
+| Permission             | Purpose            | Platform |
+| ---------------------- | ------------------ | -------- |
+| CAMERA                 | QR code scanning   | Android  |
+| READ_EXTERNAL_STORAGE  | File access        | Android  |
+| WRITE_EXTERNAL_STORAGE | Certificate export | Android  |
+| Camera                 | QR code scanning   | iOS      |
 
-1. Create a feature branch
-2. Make your changes
-3. Write/update tests
-4. Run linter and tests
-5. Submit a pull request
+---
 
-## Backend Integration
+## API Integration
 
-### Required Backend Endpoints
+### API Client Configuration
 
-The mobile app expects these endpoints to exist:
+| Property       | Value                             |
+| -------------- | --------------------------------- |
+| Base URL       | Configured in constants/config.ts |
+| Timeout        | 30000ms                           |
+| Content-Type   | application/json                  |
+| Authentication | Bearer Token                      |
 
-**Authentication:**
+### Authentication Endpoints
 
-- `POST /api/committee/auth-mobile` - Login
-- `POST /api/committee/register-voter` - Register
-- `GET /api/committee/refresh-token` - Refresh JWT
-- `POST /api/committee/verify-otp` - Verify OTP
+| Endpoint                      | Method | Purpose            |
+| ----------------------------- | ------ | ------------------ |
+| /api/committee/auth-mobile    | POST   | User login         |
+| /api/committee/register-voter | POST   | Voter registration |
+| /api/committee/refresh-token  | GET    | Token refresh      |
+| /api/committee/log-out        | POST   | User logout        |
+| /api/committee/verify-otp     | POST   | OTP verification   |
+| /api/committee/send-email     | POST   | Email notification |
 
-**Data:**
+### Data Endpoints
 
-- `GET /api/committee/candidates` - Get candidates
-- `GET /api/committee/announcement` - Get election info
+| Endpoint                    | Method | Purpose              |
+| --------------------------- | ------ | -------------------- |
+| /api/committee/candidates   | GET    | Fetch candidates     |
+| /api/committee/announcement | GET    | Election information |
+| /api/committee/registers    | GET    | Registration data    |
 
-**Blockchain:**
+### Blockchain Endpoints
 
-- `POST /api/blockchain/make-transaction` - Submit vote (on province-specific port)
-- `GET /api/blockchain/voting-status?electoralId=X` - Check if voted (recommended)
+| Endpoint                         | Method | Purpose             |
+| -------------------------------- | ------ | ------------------- |
+| /api/blockchain/make-transaction | POST   | Submit vote         |
+| /api/blockchain/voting-status    | GET    | Check voting status |
 
 ### Dynamic Port Configuration
 
-The backend uses province-specific ports for blockchain nodes:
+| State             | Port Range     | Description                            |
+| ----------------- | -------------- | -------------------------------------- |
+| Province-specific | 3010+          | Each state has dedicated port          |
+| Port Assignment   | Login response | Assigned based on voter location       |
+| Request Routing   | Automatic      | All blockchain calls use assigned port |
 
-- Each state has a dedicated port (e.g., 3010, 3011, 3012...)
-- Port is returned during login and stored in auth state
-- All blockchain requests use the user's assigned port
+---
+
+## Support and Maintenance
+
+### Development Team
+
+| Role               | Responsibility                |
+| ------------------ | ----------------------------- |
+| Mobile Developers  | iOS/Android implementation    |
+| Backend Developers | API integration               |
+| QA Engineers       | Testing and quality assurance |
+| DevOps Engineers   | Build and deployment          |
+
+### Maintenance Schedule
+
+| Activity           | Frequency |
+| ------------------ | --------- |
+| Dependency Updates | Monthly   |
+| Security Patches   | As needed |
+| Performance Review | Quarterly |
+| Code Review        | Per PR    |
+
+### Troubleshooting
+
+| Issue                     | Solution                                   |
+| ------------------------- | ------------------------------------------ |
+| Cannot connect to backend | Verify backend running, check API_BASE_URL |
+| Module not found errors   | Clear node_modules, reinstall              |
+| App crashes on startup    | Clear Expo cache, reinstall Expo Go        |
+| iOS simulator issues      | Ensure Xcode is installed and updated      |
+| QR scanning not working   | Check camera permissions                   |
+
+### Common Error Codes
+
+| Code | Description              | Solution                      |
+| ---- | ------------------------ | ----------------------------- |
+| 401  | Unauthorized             | Re-authenticate               |
+| 409  | Conflict (already voted) | Display already voted message |
+| 404  | Endpoint not found       | Check backend availability    |
+| 500  | Server error             | Contact support               |
+
+---
 
 ## License
 
-MIT License - See LICENSE file for details
-
-## Support
-
-For issues or questions:
-
-- GitHub Issues: [Create an issue](https://github.com/quantsingularity/QuantumBallot/issues)
-- Documentation: See `/docs` directory
-- Backend API: See `backend/README.md`
-
-## Version History
-
-- **v1.0.0** (Current) - Production-ready mobile frontend
-  - All placeholders implemented
-  - Voting status check implemented
-  - Two-factor authentication fixed
-  - Image loading service implemented
-  - Comprehensive error handling
-  - Full TypeScript support
+This project is licensed under the terms specified in the root LICENSE file.
 
 ---

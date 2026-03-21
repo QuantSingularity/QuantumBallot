@@ -1,181 +1,451 @@
 # QuantumBallot Web Frontend
 
-This directory contains the web application frontend for the QuantumBallot project, a full-stack Web and Mobile application for American elections using Blockchain Technology. The web frontend is built using modern web technologies including React, TypeScript, Tailwind CSS, and Vite, providing a responsive and interactive user interface for committee members and administrators.
+## Executive Summary
 
-## Overview
+The QuantumBallot Web Frontend is a secure, enterprise-grade administrative interface for blockchain-based election management. Built with React, TypeScript, and modern web technologies, this application provides election committee members and system administrators with comprehensive tools for election monitoring, blockchain transaction tracking, and administrative control. The platform ensures transparency, security, and real-time data visualization for electoral processes.
 
-The QuantumBallot web application serves as the primary interface for election committee members and system administrators. It provides a comprehensive dashboard with features for election management, real-time data visualization, blockchain monitoring, and administrative controls. The web interface is designed to be intuitive yet powerful, offering advanced functionality while maintaining accessibility and ease of use.
+---
 
-## Directory Structure
+## Table of Contents
 
-The web frontend is organized as follows:
+1. [System Architecture](#system-architecture)
+2. [Technology Stack](#technology-stack)
+3. [Project Structure](#project-structure)
+4. [Core Features](#core-features)
+5. [Installation and Setup](#installation-and-setup)
+6. [Development Guidelines](#development-guidelines)
+7. [Testing Framework](#testing-framework)
+8. [Build and Deployment](#build-and-deployment)
+9. [Security Considerations](#security-considerations)
+10. [Browser Compatibility](#browser-compatibility)
+11. [API Integration](#api-integration)
+12. [Support and Maintenance](#support-and-maintenance)
 
-- `src/`: Main source code directory
-  - `assets/`: Static assets including images, icons, and other resources
-  - `components/`: Reusable UI components
-  - `context/`: React context providers for state management
-  - `data_types/`: TypeScript interfaces and type definitions
-  - `geomap/`: Geographic mapping components and utilities
-  - `global/`: Global constants and configuration
-  - `hooks/`: Custom React hooks
-  - `lib/`: Utility libraries and helper functions
-  - `pages/`: Page components for routing
-  - `screens/`: Main application screens and views
-  - `services/`: Service layer for API communication
-  - `sounds/`: Audio assets and sound effects
-  - `styles/`: Global styles and CSS modules
-  - `tables/`: Table components and data grid implementations
-  - `tests/`: Unit and integration tests
-  - `App.tsx`: Main application component
-  - `main.tsx`: Application entry point
-  - `index.css`: Global CSS styles
-- `__tests__/`: Test files and testing utilities
-- `app/`: Application-specific configurations
-- `html/`: Static HTML templates
-- `public/`: Publicly accessible static files
-- Configuration files:
-  - `.eslintrc.cjs`: ESLint configuration
-  - `components.json`: UI component configuration
-  - `index.html`: HTML entry point
-  - `package.json`: NPM package configuration
-  - `postcss.config.js`: PostCSS configuration
-  - `tailwind.config.js`: Tailwind CSS configuration
-  - `tsconfig.json`: TypeScript configuration
-  - `vite.config.ts`: Vite bundler configuration
-  - `vitest.config.ts`: Vitest testing configuration
+---
 
-## Setup and Installation
+## System Architecture
+
+### Application Overview
+
+| Component          | Description                        | Responsibility                                           |
+| ------------------ | ---------------------------------- | -------------------------------------------------------- |
+| Presentation Layer | React Components, UI Library       | User interface rendering and interaction handling        |
+| State Management   | React Context, TanStack Query      | Global state management and server state synchronization |
+| Service Layer      | API Services, Firebase Integration | External communication and data persistence              |
+| Validation Layer   | Zod Schemas                        | Input validation and type safety                         |
+| Utility Layer      | Helper Functions, Custom Hooks     | Reusable logic and cross-cutting concerns                |
+
+### Data Flow Architecture
+
+| Stage        | Process                              | Technology                      |
+| ------------ | ------------------------------------ | ------------------------------- |
+| User Input   | Form submission, button clicks       | React Hook Form, Event Handlers |
+| Validation   | Schema-based validation              | Zod Validation Library          |
+| API Request  | HTTP requests with authentication    | Axios, JWT Tokens               |
+| State Update | Local and server state updates       | TanStack Query, React Context   |
+| UI Rendering | Component re-rendering with new data | React Virtual DOM               |
+
+---
+
+## Technology Stack
+
+### Core Framework
+
+| Technology | Version | Purpose                                |
+| ---------- | ------- | -------------------------------------- |
+| React      | 18.2.0  | UI Component Library                   |
+| TypeScript | 5.2.2   | Type Safety and Development Experience |
+| Vite       | 5.2.0   | Build Tool and Development Server      |
+| Node.js    | 16+     | Runtime Environment                    |
+
+### UI and Styling
+
+| Technology    | Version | Purpose                     |
+| ------------- | ------- | --------------------------- |
+| Tailwind CSS  | 3.4.3   | Utility-First CSS Framework |
+| Radix UI      | Latest  | Headless UI Components      |
+| Material UI   | 5.15.15 | Component Library           |
+| Chakra UI     | 2.8.2   | Component Library           |
+| Framer Motion | 11.0.25 | Animation Library           |
+| Lucide React  | 0.364.0 | Icon Library                |
+
+### State Management and Data Fetching
+
+| Technology      | Version | Purpose                 |
+| --------------- | ------- | ----------------------- |
+| TanStack Query  | 5.32.0  | Server State Management |
+| TanStack Table  | 8.15.3  | Data Table Components   |
+| React Hook Form | 7.51.3  | Form State Management   |
+| Zod             | 3.22.5  | Schema Validation       |
+
+### Backend Integration
+
+| Technology  | Version | Purpose                    |
+| ----------- | ------- | -------------------------- |
+| Axios       | 1.6.8   | HTTP Client                |
+| Firebase    | 10.11.1 | Authentication and Storage |
+| Auth0 React | 2.2.4   | Authentication Provider    |
+
+### Testing Framework
+
+| Technology            | Version | Purpose                        |
+| --------------------- | ------- | ------------------------------ |
+| Vitest                | 1.6.0   | Test Runner                    |
+| React Testing Library | 15.0.7  | Component Testing              |
+| Jest DOM              | 6.4.5   | DOM Assertions                 |
+| jsdom                 | 24.0.0  | Browser Environment Simulation |
+
+### Visualization and Maps
+
+| Technology        | Version | Purpose                    |
+| ----------------- | ------- | -------------------------- |
+| Recharts          | 2.12.4  | Chart Components           |
+| MUI X Charts      | 7.1.0   | Data Visualization         |
+| D3 Geo            | 3.1.1   | Geographic Data Processing |
+| Google Maps React | 0.8.2   | Map Integration            |
+
+---
+
+## Project Structure
+
+### Directory Organization
+
+| Directory  | File Count | Description                      |
+| ---------- | ---------- | -------------------------------- |
+| src/       | 302 files  | Main source code directory       |
+| **tests**/ | 25 files   | Test files and testing utilities |
+| public/    | 14 files   | Static assets and public files   |
+
+### Source Code Structure
+
+| Directory       | Purpose                  | Key Contents                                   |
+| --------------- | ------------------------ | ---------------------------------------------- |
+| src/assets/     | Static Resources         | Images, icons, SVG files                       |
+| src/components/ | Reusable UI Components   | 30+ components including forms, tables, charts |
+| src/context/    | State Management         | AuthContext, SecureStore                       |
+| src/data_types/ | Type Definitions         | TypeScript interfaces and enums                |
+| src/geomap/     | Geographic Components    | Map components, GeoJSON data                   |
+| src/global/     | Global Configuration     | Constants, environment variables               |
+| src/hooks/      | Custom React Hooks       | useMediaQuery and other custom hooks           |
+| src/lib/        | Utility Libraries        | Logger, validations, utilities                 |
+| src/pages/      | Page Components          | Route-level page components                    |
+| src/screens/    | Main Application Screens | 15+ feature screens                            |
+| src/services/   | API Services             | API clients, Firebase integration              |
+| src/sounds/     | Audio Assets             | Sound effects and audio files                  |
+| src/styles/     | Global Styles            | CSS modules, global stylesheets                |
+| src/tables/     | Data Table Components    | 10 table implementations                       |
+
+### Screen Components
+
+| Screen             | File                   | Purpose                              |
+| ------------------ | ---------------------- | ------------------------------------ |
+| Dashboard          | Dashboard.tsx          | Election monitoring and analytics    |
+| Login              | Login.tsx              | User authentication                  |
+| Entrance           | Entrance.tsx           | Application entry point with routing |
+| Blockchain         | Blockchain.tsx         | Blockchain overview and monitoring   |
+| BlockchainDetails  | BlockchainDetails.tsx  | Detailed block information           |
+| Candidates         | Candidates.tsx         | Candidate management                 |
+| Voters             | Voters.tsx             | Voter registry management            |
+| ElectionResults    | ElectionResults.tsx    | Real-time election results           |
+| AnnounceElection   | AnnounceElection.tsx   | Election announcement creation       |
+| PublicAnnouncement | PublicAnnouncement.tsx | Public election information          |
+| PopulationData     | PopulationData.tsx     | Demographic data management          |
+| Users              | Users.tsx              | User administration                  |
+| EditAccount        | EditAccount.tsx        | Account settings                     |
+| NoPage             | NoPage.tsx             | 404 error page                       |
+
+### Data Table Components
+
+| Table                      | Location                    | Purpose                     |
+| -------------------------- | --------------------------- | --------------------------- |
+| Users Table                | users_table/                | User management interface   |
+| Voters Table               | voters_table/               | Voter registry interface    |
+| Candidates Table           | candidates_table/           | Candidate listing           |
+| Election Results Table     | election_results_table/     | Results display with audio  |
+| Blockchain Blocks Table    | blocks_table/               | Block chain visualization   |
+| Transactions Table         | transactions_table/         | Transaction history         |
+| Pending Transactions Table | pending_transactions_table/ | Pending transaction queue   |
+| Population Table           | population_table/           | Citizen demographic data    |
+| Block Details Transactions | transactions_block_details/ | Block-specific transactions |
+
+---
+
+## Core Features
+
+### Administrative Dashboard
+
+| Feature                  | Description                                  | Component |
+| ------------------------ | -------------------------------------------- | --------- |
+| Vote Statistics          | Real-time vote counting and percentages      | Dashboard |
+| Geographic Visualization | Interactive map showing regional voting data | GoogleMap |
+| Party Rankings           | Top performing parties with vote counts      | Dashboard |
+| Provincial Analysis      | Vote distribution by province                | Dashboard |
+| Time Analytics           | Average voting time metrics                  | Dashboard |
+
+### Election Management
+
+| Feature               | Description                          | Access Level |
+| --------------------- | ------------------------------------ | ------------ |
+| Election Announcement | Create and manage election schedules | Admin        |
+| Candidate Management  | Add, edit, remove candidates         | Admin        |
+| Voter Verification    | Verify and manage voter registration | Admin        |
+| Population Data       | Manage citizen demographic records   | Admin        |
+| Public Announcements  | Publish election information         | Admin        |
+
+### Blockchain Integration
+
+| Feature             | Description                             | Component                  |
+| ------------------- | --------------------------------------- | -------------------------- |
+| Block Explorer      | View blockchain blocks and transactions | Blockchain                 |
+| Transaction Monitor | Real-time transaction tracking          | BlockchainDetails          |
+| Hash Verification   | Verify block integrity                  | BlockchainDetails          |
+| Pending Queue       | Monitor pending transactions            | pending_transactions_table |
+
+### User Management
+
+| Feature               | Description                       | Component   |
+| --------------------- | --------------------------------- | ----------- |
+| Role-Based Access     | Admin and normal user roles       | AuthContext |
+| Profile Management    | User profile and settings         | EditAccount |
+| Secure Authentication | JWT-based authentication          | AuthContext |
+| Session Management    | Login/logout and session handling | Entrance    |
+
+---
+
+## Installation and Setup
 
 ### Prerequisites
 
-- Node.js (v16 or later)
-- npm, yarn, or pnpm package manager
-- Modern web browser (Google Chrome 124.0.6367.93 or later recommended)
+| Requirement | Minimum Version | Recommended Version |
+| ----------- | --------------- | ------------------- |
+| Node.js     | 16.0.0          | 18.x LTS            |
+| npm         | 8.0.0           | 9.x                 |
+| Git         | 2.30.0          | Latest              |
+| Browser     | Chrome 124      | Latest Chrome       |
 
 ### Installation Steps
 
-1. Install dependencies:
+| Step | Command                      | Description                    |
+| ---- | ---------------------------- | ------------------------------ |
+| 1    | `git clone <repository-url>` | Clone the repository           |
+| 2    | `cd web-frontend`            | Navigate to frontend directory |
+| 3    | `npm install`                | Install dependencies           |
+| 4    | `npm run dev`                | Start development server       |
+| 5    | Open http://localhost:5173   | Access application             |
 
-   ```
-   npm install
-   ```
+### Environment Configuration
 
-   or
+| Variable          | Description          | Default               |
+| ----------------- | -------------------- | --------------------- |
+| VITE_API_BASE_URL | Backend API URL      | http://localhost:3010 |
+| VITE_API_TIMEOUT  | API request timeout  | 30000ms               |
+| VITE_DEBUG_MODE   | Enable debug logging | false                 |
 
-   ```
-   yarn install
-   ```
-
-   or
-
-   ```
-   pnpm install
-   ```
-
-2. Start the development server:
-
-   ```
-   npm run dev
-   ```
-
-   or
-
-   ```
-   yarn dev
-   ```
-
-   or
-
-   ```
-   pnpm dev
-   ```
-
-3. Access the application at http://localhost:5173 (or the port specified in your terminal)
+---
 
 ## Development Guidelines
 
-### Code Structure
+### Code Organization
 
-- Follow the established directory structure
-- Create reusable components in the `components/` directory
-- Implement screens in the `screens/` or `pages/` directory
-- Use TypeScript for type safety
-- Leverage React hooks for state management and side effects
-- Follow the component-driven development approach
+| Principle           | Implementation                               |
+| ------------------- | -------------------------------------------- |
+| Component Structure | Functional components with TypeScript        |
+| State Management    | React Context for global, useState for local |
+| API Calls           | Centralized in services/ directory           |
+| Type Safety         | TypeScript interfaces in data_types/         |
+| Styling             | Tailwind CSS with consistent class naming    |
 
-### Styling
+### Naming Conventions
 
-- Use Tailwind CSS for styling components
-- Follow the design system defined in the project
-- Ensure responsive layouts for different screen sizes
-- Support both light and dark mode where applicable
-- Use CSS modules for component-specific styles
+| Element    | Convention                | Example            |
+| ---------- | ------------------------- | ------------------ |
+| Components | PascalCase                | UserManagement.tsx |
+| Hooks      | camelCase with use prefix | useMediaQuery.tsx  |
+| Utilities  | camelCase                 | formatDate.ts      |
+| Constants  | UPPER_SNAKE_CASE          | GLOBAL_VARIABLES   |
+| Types      | PascalCase                | User, Candidate    |
 
-### Testing
+### File Organization
 
-- Write unit tests for components and services
-- Place test files in the `__tests__/` directory
-- Use Vitest and React Testing Library for testing
-- Run tests with `npm test` or `yarn test`
+| Pattern    | Location           | Example              |
+| ---------- | ------------------ | -------------------- |
+| Screens    | src/screens/       | Dashboard.tsx        |
+| Components | src/components/    | SidebarComponent.tsx |
+| Tables     | src/tables/[name]/ | users_table/page.tsx |
+| Services   | src/services/      | api.ts, firebase.ts  |
+| Hooks      | src/hooks/         | use-media-query.tsx  |
 
-## Building for Production
+---
 
-To build the application for production:
+## Testing Framework
 
-1. Run the build command:
+### Test Structure
 
-   ```
-   npm run build
-   ```
+| Category          | Location               | Count    |
+| ----------------- | ---------------------- | -------- |
+| Component Tests   | **tests**/components/  | 2 files  |
+| Screen Tests      | **tests**/screens/     | 12 files |
+| Context Tests     | **tests**/context/     | 1 file   |
+| Integration Tests | **tests**/integration/ | 3 files  |
+| Library Tests     | **tests**/lib/         | 2 files  |
 
-   or
+### Test Commands
 
-   ```
-   yarn build
-   ```
+| Command                  | Purpose                  |
+| ------------------------ | ------------------------ |
+| `npm test`               | Run all tests            |
+| `npm test -- --ui`       | Run tests with UI        |
+| `npm test -- --coverage` | Generate coverage report |
+| `npm test -- --watch`    | Run tests in watch mode  |
 
-   or
+### Coverage Areas
 
-   ```
-   pnpm build
-   ```
+| Area                | Coverage Type        |
+| ------------------- | -------------------- |
+| Component Rendering | Unit Tests           |
+| User Interactions   | Integration Tests    |
+| State Management    | Context Tests        |
+| API Integration     | Mocked Service Tests |
+| Error Handling      | Boundary Tests       |
 
-2. The built files will be available in the `dist/` directory
+---
 
-## Deployment
+## Build and Deployment
 
-### Static Hosting
+### Build Configuration
 
-The built application can be deployed to any static hosting service:
+| Setting            | Value    | Description               |
+| ------------------ | -------- | ------------------------- |
+| Target             | ES2015   | JavaScript target version |
+| Output Directory   | dist/    | Build output location     |
+| Minification       | Disabled | For reduced memory usage  |
+| Source Maps        | Disabled | For reduced memory usage  |
+| Chunk Size Warning | 1000KB   | Bundle size threshold     |
 
-1. Build the application as described above
-2. Upload the contents of the `dist/` directory to your hosting provider
-3. Configure the server to handle client-side routing (if applicable)
+### Build Commands
 
-### Docker Deployment
+| Command                    | Output       | Purpose                  |
+| -------------------------- | ------------ | ------------------------ |
+| `npm run build`            | dist/        | Production build         |
+| `npm run build:with-types` | dist/        | Build with type checking |
+| `npm run preview`          | Local server | Preview production build |
 
-For containerized deployment:
+### Deployment Options
 
-1. Use the provided Dockerfile in the `infrastructure/docker/` directory
-2. Build and run the Docker container as specified in the infrastructure documentation
+| Method         | Configuration              | Use Case                 |
+| -------------- | -------------------------- | ------------------------ |
+| Static Hosting | Upload dist/ contents      | Netlify, Vercel, AWS S3  |
+| Docker         | Use infrastructure/docker/ | Containerized deployment |
+| Self-Hosted    | Configure web server       | On-premises deployment   |
 
-## Features
+---
 
-The web frontend includes several key features:
+## Security Considerations
 
-- Interactive dashboard for election monitoring
-- Geographic visualization of election data
-- Real-time blockchain transaction monitoring
-- Administrative controls for system management
-- Data tables for detailed information display
-- Authentication and role-based access control
-- Responsive design for desktop and tablet use
+### Authentication
+
+| Feature            | Implementation          |
+| ------------------ | ----------------------- |
+| Primary Auth       | Firebase Authentication |
+| Secondary Auth     | Auth0 Integration       |
+| Token Storage      | SecureStore (encrypted) |
+| Session Management | JWT with refresh tokens |
+
+### API Security
+
+| Feature               | Implementation             |
+| --------------------- | -------------------------- |
+| Request Interceptors  | Automatic token attachment |
+| Response Interceptors | 401 error handling         |
+| Timeout Protection    | 30-second request timeout  |
+| CORS Configuration    | Server-side CORS policies  |
+
+### Data Validation
+
+| Layer           | Technology            |
+| --------------- | --------------------- |
+| Client-Side     | Zod Schemas           |
+| Form Validation | React Hook Form + Zod |
+| Type Safety     | TypeScript            |
+
+---
 
 ## Browser Compatibility
 
-The web application is optimized for:
+| Browser         | Minimum Version | Recommended Version | Status          |
+| --------------- | --------------- | ------------------- | --------------- |
+| Google Chrome   | 124.0.6367.93   | Latest              | Fully Supported |
+| Mozilla Firefox | 115.0           | Latest              | Supported       |
+| Apple Safari    | 16.0            | Latest              | Supported       |
+| Microsoft Edge  | 110.0           | Latest              | Supported       |
 
-- Google Chrome 124.0.6367.93 or later (recommended)
-- Firefox 115 or later
-- Safari 16 or later
-- Edge 110 or later
+---
+
+## API Integration
+
+### API Client Configuration
+
+| Property       | Value                     |
+| -------------- | ------------------------- |
+| Base URL       | http://localhost:3010/api |
+| Timeout        | 30000ms                   |
+| Content-Type   | application/json          |
+| Authentication | Bearer Token              |
+
+### API Services
+
+| Service     | File                 | Purpose                      |
+| ----------- | -------------------- | ---------------------------- |
+| Public API  | api.ts               | Unauthenticated requests     |
+| Private API | api.ts (api_private) | Authenticated requests       |
+| Firebase    | firebase.ts          | Storage and authentication   |
+| Speeches    | speeches.ts          | Text-to-speech functionality |
+
+### Key API Endpoints
+
+| Endpoint                             | Method   | Purpose                |
+| ------------------------------------ | -------- | ---------------------- |
+| /api/blockchain/get-results-computed | GET      | Fetch election results |
+| /api/auth/login                      | POST     | User authentication    |
+| /api/candidates                      | GET/POST | Candidate management   |
+| /api/voters                          | GET/POST | Voter management       |
+| /api/blocks                          | GET      | Blockchain data        |
+
+---
+
+## Support and Maintenance
+
+### Development Team
+
+| Role                | Responsibility                |
+| ------------------- | ----------------------------- |
+| Frontend Developers | UI/UX implementation          |
+| Backend Developers  | API integration               |
+| QA Engineers        | Testing and quality assurance |
+| DevOps Engineers    | Deployment and infrastructure |
+
+### Maintenance Schedule
+
+| Activity           | Frequency |
+| ------------------ | --------- |
+| Dependency Updates | Monthly   |
+| Security Patches   | As needed |
+| Performance Review | Quarterly |
+| Code Review        | Per PR    |
+
+### Troubleshooting
+
+| Issue          | Solution                                  |
+| -------------- | ----------------------------------------- |
+| Build failures | Check Node.js version, clear node_modules |
+| API errors     | Verify backend is running, check CORS     |
+| Test failures  | Update snapshots, check mocks             |
+| Memory issues  | Disable sourcemaps, reduce concurrency    |
+
+---
+
+## License
+
+This project is licensed under the terms specified in the root LICENSE file.
+
+---
