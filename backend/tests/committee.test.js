@@ -49,7 +49,7 @@ jest.mock("speakeasy", () => ({
 }));
 
 jest.mock("qrcode", () => ({
-  toDataURL: jest.fn((url, callback) =>
+  toDataURL: jest.fn((_url, callback) =>
     callback(null, "data:image/png;base64,test-qr-code"),
   ),
 }));
@@ -419,7 +419,7 @@ describe("Committee", () => {
 
     test("should handle errors during QR code generation", async () => {
       const consoleSpy = jest.spyOn(console, "error").mockImplementation();
-      qrcode.toDataURL.mockImplementationOnce((url, callback) =>
+      qrcode.toDataURL.mockImplementationOnce((_url, callback) =>
         callback(new Error("QR code error"), null),
       );
 

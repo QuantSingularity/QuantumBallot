@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from "react";
 import { createMaterialBottomTabNavigator } from "@react-navigation/material-bottom-tabs";
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { Candidates } from "@screens/Candidates";
+import { Credentials } from "@screens/Credentials";
+import { News } from "@screens/News";
+import { useEffect, useState } from "react";
 import {
   MD3LightTheme as DefaultTheme,
   Provider as PaperProvider,
 } from "react-native-paper";
-import { News } from "@screens/News";
-import { Candidates } from "@screens/Candidates";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useAuth } from "src/context/AuthContext";
-import { Credentials } from "@screens/Credentials";
 import { loadImages } from "src/service/firebase";
 
 const Tab = createMaterialBottomTabNavigator();
@@ -26,7 +26,7 @@ export declare type Theme_ = {
   };
 };
 
-const theme_: Theme_ = {
+const _theme_: Theme_ = {
   ...DefaultTheme,
   dark: false,
   colors: {
@@ -43,17 +43,17 @@ const theme_: Theme_ = {
 
 export function BottomNavigation({ navigation }: any) {
   const { authState, onLogOut, isLoggedIn } = useAuth();
-  const [activeScreen, setActiveScreen] = useState("Login");
+  const [_activeScreen, setActiveScreen] = useState("Login");
   const { imageList, setImageList } = useAuth();
 
   useEffect(() => {
-    isLoggedIn!();
+    isLoggedIn?.();
     if (!authState?.authenticated) {
       setActiveScreen("Login");
     }
 
     loadImages(setImageList);
-  }, []);
+  }, [authState?.authenticated, isLoggedIn, setImageList]);
 
   return (
     <PaperProvider>

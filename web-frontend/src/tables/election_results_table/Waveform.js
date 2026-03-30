@@ -1,14 +1,15 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useEffect, useRef } from "react";
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { FaPauseCircle, FaPlayCircle } from "react-icons/fa";
 import WaveSurfer from "wavesurfer.js";
-import { FaPlayCircle, FaPauseCircle } from "react-icons/fa";
+
 const Waveform = ({ audio, isPlaying, soundSpeech, setIsPlaying }) => {
-  let containerRef = useRef();
-  let waveSurferRef = useRef({
+  const containerRef = useRef();
+  const waveSurferRef = useRef({
     isPlaying: () => false,
   });
   useEffect(() => {
-    let waveSurfer = WaveSurfer.create({
+    const waveSurfer = WaveSurfer.create({
       container: containerRef.current,
       responsive: true,
       barWidth: 1.5,
@@ -26,7 +27,7 @@ const Waveform = ({ audio, isPlaying, soundSpeech, setIsPlaying }) => {
       setIsPlaying(soundSpeech.playing());
       waveSurfer.destroy();
     };
-  }, [audio]);
+  }, [audio, setIsPlaying, soundSpeech.playing]);
   const togglePlayPause = () => {
     waveSurferRef.current.playPause();
     setIsPlaying(true);

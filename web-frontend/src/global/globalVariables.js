@@ -1,6 +1,6 @@
 const PORT = "3010";
 export const GLOBAL_VARIABLES = {
-  LOCALHOST: "localhost:" + PORT,
+  LOCALHOST: `localhost:${PORT}`,
 };
 export const TOKEN_KEY = "my-jwt";
 export const REFRESH_TOKEN_KEY = "my-jwt-refresh";

@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Button } from "@/components/ui/button";
 
+import axios from "axios";
+import { MoreHorizontal } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,13 +12,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-import { MoreHorizontal } from "lucide-react";
-import axios from "axios";
-import { useState } from "react";
+import type { Citizen } from "@/data_types";
 import { GLOBAL_VARIABLES } from "@/global/globalVariables";
 import { EditCitizenModal } from "./edit-citizen";
-import { Citizen } from "@/data_types";
 
 type CustomDropMenuProps = {
   citizen: Citizen;

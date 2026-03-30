@@ -1,10 +1,10 @@
 /**
  * Tests for Candidates screen
  */
-import React from "react";
-import { render, fireEvent, waitFor } from "@testing-library/react-native";
-import Candidates from "src/screens/Candidates";
+
+import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { AuthProvider } from "src/context/AuthContext";
+import Candidates from "src/screens/Candidates";
 import { mockAxios } from "../fixtures/mockAxios";
 
 // Mock navigation

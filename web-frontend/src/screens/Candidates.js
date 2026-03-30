@@ -1,13 +1,16 @@
+import axios from "axios";
+import { useEffect, useState } from "react";
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { Toaster } from "@/components/toast/toaster";
+import { useToast } from "@/components/toast/use-toast";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
+import { GLOBAL_VARIABLES } from "@/global/globalVariables";
+import { CandidadeModal } from "@/tables/candidates_table/operation-candidate";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import TableCandidates from "@/tables/candidates_table/page";
-import { useToast } from "@/components/toast/use-toast";
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { GLOBAL_VARIABLES } from "@/global/globalVariables";
-import axios from "axios";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,9 +22,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../components/ui/alert-dialog";
-import { useAuth } from "@/context/AuthContext";
-import { CandidadeModal } from "@/tables/candidates_table/operation-candidate";
-import { Toaster } from "@/components/toast/toaster";
+
 function Candidates() {
   const { toast } = useToast();
   const [data, setData] = useState([]);
@@ -30,13 +31,11 @@ function Candidates() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   useEffect(() => {
     onPressLoadCandidates();
-  }, []);
+  }, [onPressLoadCandidates]);
   const onPressLoadCandidates = () => {
     if (!imageList) return;
     axios
-      .get(
-        "http://" + GLOBAL_VARIABLES.LOCALHOST + "/api/blockchain/candidates",
-      )
+      .get(`http://${GLOBAL_VARIABLES.LOCALHOST}/api/blockchain/candidates`)
       .then((response) => {
         const candidates = response.data.candidates;
         if (candidates) {
@@ -66,11 +65,11 @@ function Candidates() {
           setData(newData);
         }
       })
-      .catch((error) => {});
+      .catch((_error) => {});
   };
   const onPressLoadCandidatesNotDeployed = () => {
     axios
-      .get("http://" + GLOBAL_VARIABLES.LOCALHOST + "/api/committee/candidates")
+      .get(`http://${GLOBAL_VARIABLES.LOCALHOST}/api/committee/candidates`)
       .then((response) => {
         const candidates = response.data.candidates;
         if (candidates) {
@@ -100,7 +99,7 @@ function Candidates() {
           setData(newData);
         }
       })
-      .catch((error) => {});
+      .catch((_error) => {});
   };
   const onPressDeployBlockchain = () => {
     axios
@@ -142,7 +141,7 @@ function Candidates() {
           });
         }
       })
-      .catch((error) => {
+      .catch((_error) => {
         toast({
           title: "Feedback",
           description: "Error! Something went wrong.",
@@ -167,7 +166,7 @@ function Candidates() {
           });
         }
       })
-      .catch((error) => {
+      .catch((_error) => {
         toast({
           title: "Feedback",
           description: "Error! Something went wrong.",

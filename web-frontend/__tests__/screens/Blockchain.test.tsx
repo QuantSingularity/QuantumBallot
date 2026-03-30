@@ -1,8 +1,8 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { vi } from "vitest";
-import Blockchain from "@/screens/Blockchain";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import axios from "axios";
 import { BrowserRouter } from "react-router-dom";
+import { vi } from "vitest";
+import Blockchain from "@/screens/Blockchain";
 
 // Mock the components that are used in Blockchain component
 vi.mock("@/components/blockchain-list/BlockList", () => ({

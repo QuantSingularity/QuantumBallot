@@ -1,15 +1,16 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useAuth } from "@/context/AuthContext";
+
 import { useEffect, useState } from "react";
 import {
-  BarChart,
   Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
 } from "recharts";
+import { useAuth } from "@/context/AuthContext";
 
 export default function VerticalBars() {
   const { topVotesPerProvinces } = useAuth();
@@ -109,7 +110,7 @@ export default function VerticalBars() {
           (u) => u.province === x.province,
         );
         const numberOfVotes = topVotesProvince
-          ? parseInt(topVotesProvince.number)
+          ? parseInt(topVotesProvince.number, 10)
           : 0;
 
         return {
@@ -121,7 +122,7 @@ export default function VerticalBars() {
 
       setDataset(val);
     }
-  }, [topVotesPerProvinces]);
+  }, [topVotesPerProvinces, dataset.map]);
 
   if (topVotesPerProvinces === undefined) return <div>Loading ...</div>;
 

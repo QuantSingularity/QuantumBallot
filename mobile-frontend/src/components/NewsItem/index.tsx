@@ -1,9 +1,7 @@
-import { CaretLeft, UsersFour, WarningCircle } from "phosphor-react-native";
-import logoImg from "@assets/flag.png";
-import profileImg from "@assets/abrar_party_60.png";
-import theme from "src/theme";
-import { Image, StyleSheet, View, Text } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { UsersFour } from "phosphor-react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
+import theme from "src/theme";
 
 type ItemProps = {
   title: string;

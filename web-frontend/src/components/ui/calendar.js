@@ -1,8 +1,9 @@
-import { jsx as _jsx } from "react/jsx-runtime";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { jsx as _jsx } from "react/jsx-runtime";
 import { DayPicker } from "react-day-picker";
-import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
 function Calendar({ className, classNames, showOutsideDays = true, ...props }) {
   return _jsx(DayPicker, {
     showOutsideDays: showOutsideDays,
@@ -49,4 +50,5 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }) {
   });
 }
 Calendar.displayName = "Calendar";
+
 export { Calendar };

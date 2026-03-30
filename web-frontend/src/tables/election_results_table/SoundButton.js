@@ -1,15 +1,16 @@
-import { jsx as _jsx } from "react/jsx-runtime";
-import { useState } from "react";
 import { Howl } from "howler";
-import { MdVoiceOverOff, MdRecordVoiceOver } from "react-icons/md";
+import { useState } from "react";
+import { jsx as _jsx } from "react/jsx-runtime";
+import { MdRecordVoiceOver, MdVoiceOverOff } from "react-icons/md";
 import msncElection2022 from "../../sounds/msnbc_election_2022.wav";
+
 // Define sound outside of component function
 const sound = new Howl({
   src: [msncElection2022],
   autoplay: false,
   loop: true,
   volume: 0.3,
-  onend: function () {
+  onend: () => {
     console.log("Finished!");
   },
 });

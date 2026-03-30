@@ -1,5 +1,5 @@
 "use client";
-import { jsxs as _jsxs, jsx as _jsx } from "react/jsx-runtime";
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { Link } from "react-router-dom";
 export const columns = [
   {
@@ -36,7 +36,7 @@ export const columns = [
     accessorKey: "dateAndTime",
     header: "Date and Time",
     cell: ({ row }) => {
-      const x = parseInt(row.getValue("dateAndTime"));
+      const x = parseInt(row.getValue("dateAndTime"), 10);
       return new Date(x).toUTCString();
     },
   },

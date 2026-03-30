@@ -1,7 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { z } from "zod";
+
 import { zodResolver } from "@hookform/resolvers/zod";
+import { type SubmitHandler, useForm } from "react-hook-form";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -10,27 +18,17 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-
-import { SubmitHandler, useForm } from "react-hook-form";
 import { Input } from "@/components/ui/input";
-
 import {
   Select,
-  SelectTrigger,
-  SelectValue,
   SelectContent,
   SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-
-import { api } from "../../services/api";
 // import { useToast } from "@/components/toast/use-toast";
-import { Citizen } from "@/data_types";
+import type { Citizen } from "@/data_types";
+import { api } from "../../services/api";
 
 const provinces = [
   "Bengo",
@@ -264,7 +262,7 @@ export const EditCitizenModal = ({
 
         onOpenChange(false);
       }
-    } catch (error) {
+    } catch (_error) {
       // console.error(error);
       toast({
         title: "Feedback",

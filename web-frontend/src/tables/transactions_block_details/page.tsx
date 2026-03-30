@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useEffect, useState } from "react";
+import type { Transaction } from "@/data_types";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
-import { Transaction } from "@/data_types";
 
 export default function TableTransactionsBlockDetails({ detail }: any) {
   const getTransactionsDetails = (transactions: any) => {
@@ -23,13 +23,13 @@ export default function TableTransactionsBlockDetails({ detail }: any) {
   };
 
   const [data, setData] = useState<Transaction[]>(
-    getTransactionsDetails(detail["transactions"]),
+    getTransactionsDetails(detail.transactions),
   );
 
   useEffect(() => {
     // console.log("Data -> ", detail['transactions']);
-    setData(getTransactionsDetails(detail["transactions"]));
-  }, [detail]);
+    setData(getTransactionsDetails(detail.transactions));
+  }, [detail, getTransactionsDetails]);
 
   return (
     <section>

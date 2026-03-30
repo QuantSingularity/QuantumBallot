@@ -1,10 +1,10 @@
 /**
  * Tests for ThankVote screen
  */
-import React from "react";
-import { render, fireEvent, waitFor } from "@testing-library/react-native";
-import ThankVote from "src/screens/ThankVote";
+
+import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { AuthProvider } from "src/context/AuthContext";
+import ThankVote from "src/screens/ThankVote";
 
 // Mock navigation
 const mockNavigate = jest.fn();

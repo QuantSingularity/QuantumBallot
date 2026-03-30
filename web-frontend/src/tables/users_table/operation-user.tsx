@@ -1,18 +1,19 @@
-import React, { useState, useEffect } from "react";
-import { uploadImage } from "@/services/firebase";
-import { User } from "@/data_types";
-import { useAuth } from "@/context/AuthContext";
-import { useToast } from "@/components/ui/use-toast";
+import type React from "react";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/context/AuthContext";
+import type { User } from "@/data_types";
+import { uploadImage } from "@/services/firebase";
 
 // Mock function to handle image list updates since it's missing from AuthContext
 const mockUpdateImageList = (newImage: string) => {
@@ -120,7 +121,7 @@ const UserOperations = () => {
   const { toast } = useToast();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
+    if (e.target.files?.[0]) {
       setSelectedFile(e.target.files[0]);
     }
   };
@@ -146,7 +147,7 @@ const UserOperations = () => {
         title: "Success",
         description: "Profile photo uploaded successfully",
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: "Error",
         description: "Failed to upload profile photo",

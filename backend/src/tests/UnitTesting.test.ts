@@ -1,8 +1,8 @@
-import BlockChain from "../blockchain/blockchain";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
+import fs from "node:fs";
 import { jest } from "@jest/globals";
+import BlockChain from "../blockchain/blockchain";
 import CryptoBlockchain from "../crypto/cryptoBlockchain";
-import fs from "fs";
 
 describe("BlockChain", () => {
   let blockchain;

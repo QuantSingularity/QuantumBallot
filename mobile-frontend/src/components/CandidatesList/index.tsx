@@ -1,15 +1,15 @@
-import React, { useEffect, useState } from "react";
+import { CandidateItem } from "@components/CandidateItem";
+import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   FlatList,
   StyleSheet,
   Text,
   View,
-  ActivityIndicator,
-  Alert,
 } from "react-native";
-import { CandidateItem } from "@components/CandidateItem";
-import { useAuth } from "src/context/AuthContext";
 import axios from "src/api/axios";
+import { useAuth } from "src/context/AuthContext";
 import { Config } from "../../constants/config";
 
 interface Candidate {
@@ -79,7 +79,7 @@ export function CandidatesList({ navigation }: any) {
 
   useEffect(() => {
     onPressLoadCandidates();
-  }, []);
+  }, [onPressLoadCandidates]);
 
   if (loading) {
     return (

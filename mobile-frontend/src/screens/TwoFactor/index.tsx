@@ -1,23 +1,23 @@
+import { CandidateItem } from "@components/CandidateItem";
+import { NumberItem } from "@components/NumberItem";
+import { PinItem } from "@components/PinItem";
+import * as FileSystem from "expo-file-system";
+import * as SecureStore from "expo-secure-store";
 import { CaretLeft } from "phosphor-react-native";
+import { useEffect, useState } from "react";
 import {
-  StyleSheet,
-  View,
-  Text,
+  Alert,
   FlatList,
   Platform,
+  StatusBar,
+  StyleSheet,
+  Text,
   TouchableOpacity,
-  Alert,
+  View,
 } from "react-native";
-import { useEffect, useState } from "react";
-import { StatusBar } from "react-native";
-import { NumberItem } from "@components/NumberItem";
-import { CandidateItem } from "@components/CandidateItem";
-import { PinItem } from "@components/PinItem";
-import { useAuth } from "src/context/AuthContext";
-import * as FileSystem from "expo-file-system";
 import axios from "src/api/axios";
+import { useAuth } from "src/context/AuthContext";
 import { Config } from "../../constants/config";
-import * as SecureStore from "expo-secure-store";
 
 const TRANSACTION_URL = "/blockchain/make-transaction";
 const VERIFY_OTP_URL = Config.ENDPOINTS.VERIFY_OTP;
@@ -98,11 +98,16 @@ export function TwoFactor({ navigation, route }: TwoFactorProps) {
     // Check authentication on component mount
     if (!authState?.authenticated || !authState?.electoralId) {
       Alert.alert("Authentication Required", "Please log in to continue.", [
-        { text: "OK", onPress: () => onLogOut!() },
+        { text: "OK", onPress: () => onLogOut?.() },
       ]);
       navigation.navigate("Login");
     }
-  }, []);
+  }, [
+    authState?.authenticated,
+    authState?.electoralId,
+    navigation.navigate,
+    onLogOut,
+  ]);
 
   const onPressBack = () => {
     navigation.navigate("Candidates");
@@ -127,7 +132,7 @@ export function TwoFactor({ navigation, route }: TwoFactorProps) {
 
       const body = {
         identifier: authState?.electoralId,
-        choiceCode: parseInt(id) + 1, // Ensure it's a number
+        choiceCode: parseInt(id, 10) + 1, // Ensure it's a number
         secret: authState?.token,
       };
 
@@ -163,11 +168,11 @@ export function TwoFactor({ navigation, route }: TwoFactorProps) {
     setIsProcessing(true);
     try {
       // Ensure we have the auth token in headers
-      if (!axios.defaults.headers.common["Authorization"]) {
+      if (!axios.defaults.headers.common.Authorization) {
         const token = await SecureStore.getItemAsync(TOKEN_KEY);
         if (token) {
-          axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-          axios.defaults.headers.common["Cookie"] = `jwt=${token}`;
+          axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+          axios.defaults.headers.common.Cookie = `jwt=${token}`;
         }
       }
 
@@ -226,7 +231,7 @@ export function TwoFactor({ navigation, route }: TwoFactorProps) {
       setIsRefreshing(true);
       verifyToken();
     }
-  }, [otpCode]);
+  }, [otpCode, isProcessing, verifyToken]);
 
   return (
     <View style={styles.container}>

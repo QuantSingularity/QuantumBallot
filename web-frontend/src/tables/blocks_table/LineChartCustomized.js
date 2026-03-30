@@ -1,17 +1,18 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { PureComponent } from "react";
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import {
-  LineChart,
+  Area,
+  AreaChart,
+  Brush,
+  CartesianGrid,
   Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Brush,
-  AreaChart,
-  Area,
-  ResponsiveContainer,
 } from "recharts";
+
 const data = [
   {
     name: "Day 1",

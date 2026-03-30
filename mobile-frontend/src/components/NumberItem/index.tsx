@@ -1,17 +1,4 @@
-import {
-  CaretLeft,
-  CheckCircle,
-  UsersFour,
-  WarningCircle,
-} from "phosphor-react-native";
-import logoImg from "@assets/flag.png";
-import profileImg from "@assets/abrar_party_75.png";
-import fcBarca from "@assets/FC_Barcelona.png";
-import theme from "src/theme";
-import { Image, StyleSheet, View, Text, TouchableOpacity } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { Checkbox } from "react-native-paper";
-import { useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 type ItemPropsNumber = { number: number };

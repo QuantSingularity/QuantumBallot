@@ -2,18 +2,25 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import CardCandidates from "@/components/card-candidates/page";
-import SoundButton from "@/tables/election_results_table/SoundButton";
+import axios from "axios";
 import { useEffect } from "react";
+import CardCandidates from "@/components/card-candidates/page";
 import { Button } from "@/components/ui/button";
 import { GLOBAL_VARIABLES, TOKEN_KEY } from "@/global/globalVariables";
-import axios from "axios";
+import SoundButton from "@/tables/election_results_table/SoundButton";
 import "../style.css";
+import { Howl } from "howler";
 import { useState } from "react";
+import { GiSoundWaves } from "react-icons/gi";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/components/ui/use-toast";
-import { getItemAsync } from "@/context/SecureStore";
 import { useAuth } from "@/context/AuthContext";
+import { getItemAsync } from "@/context/SecureStore";
+import type { CandidateResults, Results } from "@/data_types";
+import { UltimateSpeech } from "@/services/speeches";
+import speech from "@/sounds/speech.mp3";
+import TableElectionResultsPublic from "@/tables/election_results_table/page-public";
+import Waveform from "@/tables/election_results_table/Waveform";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,22 +32,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../components/ui/alert-dialog";
-import { Howl } from "howler";
-import { GiSoundWaves } from "react-icons/gi";
-
-import speech from "@/sounds/speech.mp3";
-import Waveform from "@/tables/election_results_table/Waveform";
-import textToSpeech from "@/services/textToSpeech";
-import { UltimateSpeech } from "@/services/speeches";
-import { CandidateResults, Results } from "@/data_types";
-import TableElectionResultsPublic from "@/tables/election_results_table/page-public";
 
 const soundSpeech = new Howl({
   src: [speech],
   autoplay: false,
   loop: false,
   volume: 1,
-  onend: function () {
+  onend: () => {
     // console.log('Finished!');
   },
 });
@@ -53,7 +51,7 @@ function PublicAnnouncement() {
 
   useEffect(() => {
     onPressLoadResultsComputed();
-  }, []);
+  }, [onPressLoadResultsComputed]);
 
   const [data, setData] = useState<CandidateResults[]>();
   const [results, setResults] = useState<Results>();
@@ -68,7 +66,7 @@ function PublicAnnouncement() {
       .then((response) => {
         const results = response.data;
 
-        if (results !== undefined && results.candidatesResult) {
+        if (results?.candidatesResult) {
           let newData = results.candidatesResult.map((x: any, index: any) => {
             const candidatePhotoName = x.candidate.name
               .toLowerCase()
@@ -111,17 +109,16 @@ function PublicAnnouncement() {
   const onPressLoadResults = async () => {
     const token = await getItemAsync(TOKEN_KEY);
     axios.defaults.withCredentials = true;
-    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    axios.defaults.headers.common.Authorization = `Bearer ${token}`;
 
     axios
-      .get(
-        "http://" + GLOBAL_VARIABLES.LOCALHOST + "/api/blockchain/get-results",
-        { withCredentials: true },
-      )
+      .get(`http://${GLOBAL_VARIABLES.LOCALHOST}/api/blockchain/get-results`, {
+        withCredentials: true,
+      })
       .then((response) => {
         const results = response.data;
 
-        if (results !== undefined && results.candidatesResult) {
+        if (results?.candidatesResult) {
           let newData = results.candidatesResult.map((x: any, index: any) => {
             const candidatePhotoName = x.candidate.name
               .toLowerCase()

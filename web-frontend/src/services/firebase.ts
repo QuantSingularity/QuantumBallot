@@ -1,10 +1,10 @@
 import {
-  getStorage,
-  ref,
-  listAll,
-  StorageReference,
-  uploadBytes,
   getDownloadURL,
+  getStorage,
+  listAll,
+  ref,
+  type StorageReference,
+  uploadBytes,
 } from "firebase/storage";
 import { app } from "./firebase-config";
 

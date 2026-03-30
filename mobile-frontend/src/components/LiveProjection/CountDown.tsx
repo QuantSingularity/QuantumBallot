@@ -1,20 +1,12 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Text, View } from "react-native";
-import {
-  useFonts,
-  Roboto_400Regular,
-  Roboto_700Bold,
-} from "@expo-google-fonts/roboto";
-// import Entypo from '@expo/vector-icons/Entypo';
-import * as Font from "expo-font";
-import { StyleSheet } from "react-native";
-import * as SplashScreen from "expo-splash-screen";
+import { useFonts } from "@expo-google-fonts/roboto";
 import {
   SpaceMono_400Regular,
   SpaceMono_400Regular_Italic,
   SpaceMono_700Bold,
   SpaceMono_700Bold_Italic,
 } from "@expo-google-fonts/space-mono";
+import { useEffect, useState } from "react";
+import { Text, View } from "react-native";
 
 // SplashScreen.preventAutoHideAsync();
 
@@ -66,12 +58,12 @@ const Countdown = ({ remainingTime }: CountDownProps) => {
     return () => clearInterval(timer);
   }, []); // Run effect only once on component mount
 
-  const days: number = parseInt(Math.floor(sec / (3600 * 24)));
-  const hours: number = parseInt(Math.floor((sec % (3600 * 24)) / 3600));
-  const minutes: number = parseInt(Math.floor((sec % 3600) / 60));
-  const seconds: number = parseInt(sec % 60);
+  const days: number = parseInt(Math.floor(sec / (3600 * 24)), 10);
+  const hours: number = parseInt(Math.floor((sec % (3600 * 24)) / 3600), 10);
+  const minutes: number = parseInt(Math.floor((sec % 3600) / 60), 10);
+  const seconds: number = parseInt(sec % 60, 10);
 
-  const dec = (x: number) => (x < 10 ? "0" + x : x);
+  const dec = (x: number) => (x < 10 ? `0${x}` : x);
 
   const fontSize = 28;
 

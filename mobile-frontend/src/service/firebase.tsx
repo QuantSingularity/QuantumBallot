@@ -16,7 +16,7 @@ export async function loadImages(): Promise<Record<string, any>> {
     // Attempt to fetch candidate images from the backend
     const response = await axios.get(Config.ENDPOINTS.CANDIDATES);
 
-    if (response.data && response.data.candidates) {
+    if (response.data?.candidates) {
       const imageMap: Record<string, any> = {};
 
       // Map candidates to their image URIs

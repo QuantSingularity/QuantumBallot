@@ -1,11 +1,12 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { User } from "@/data_types";
 import {
+  signOut as firebaseSignOut,
   getAuth,
   onAuthStateChanged,
   signInWithEmailAndPassword,
-  signOut as firebaseSignOut,
 } from "firebase/auth";
+import type React from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import type { User } from "@/data_types";
 import { app } from "@/services/firebase-config";
 
 interface AuthContextType {

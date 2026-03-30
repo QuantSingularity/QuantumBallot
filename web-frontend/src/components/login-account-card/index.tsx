@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -8,10 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
 import { useAuth } from "@/context/AuthContext";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 interface ErrorHash {
   username: string;
@@ -54,8 +53,8 @@ export function LoginAccountCard() {
     if (formValidation()) {
       resetValues();
 
-      const result = await onLogin!(username, password);
-      if (result && result.error) {
+      const result = await onLogin?.(username, password);
+      if (result?.error) {
         navigate("/", { replace: true });
       } else if (authState?.authenticated) {
         navigate("/dashboard");

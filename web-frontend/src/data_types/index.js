@@ -8,7 +8,7 @@ export const nodeAddresses = () => {
   return nodes;
 };
 export var Role;
-(function (Role) {
-  Role[(Role["ADMIN"] = 0)] = "ADMIN";
-  Role[(Role["NORMAL"] = 1)] = "NORMAL";
+((Role) => {
+  Role[(Role.ADMIN = 0)] = "ADMIN";
+  Role[(Role.NORMAL = 1)] = "NORMAL";
 })(Role || (Role = {}));

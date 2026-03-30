@@ -1,18 +1,19 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { Route, Routes } from "react-router-dom";
-import Dashboard from "../screens/Dashboard";
-import Blockchain from "../screens/Blockchain";
-import BlockchainDetails from "../screens/BlockchainDetails";
-import UserManagement from "../screens/Users";
-import ElectionResults from "../screens/ElectionResults";
-import PopulationData from "../screens/PopulationData";
-import Candidates from "../screens/Candidates";
-import AnnounceElection from "../screens/AnnounceElection";
+import EditAccount from "@/screens/EditAccount";
 import PublicAnnouncement from "@/screens/PublicAnnouncement";
 import Voters from "@/screens/Voters";
-import EditAccount from "@/screens/EditAccount";
 import VerificationDialog from "@/tables/voters_table/verification-modal";
+import AnnounceElection from "../screens/AnnounceElection";
+import Blockchain from "../screens/Blockchain";
+import BlockchainDetails from "../screens/BlockchainDetails";
+import Candidates from "../screens/Candidates";
+import Dashboard from "../screens/Dashboard";
+import ElectionResults from "../screens/ElectionResults";
 import NoPage from "../screens/NoPage";
+import PopulationData from "../screens/PopulationData";
+import UserManagement from "../screens/Users";
+
 function Container() {
   return _jsx("div", {
     children: _jsxs(Routes, {

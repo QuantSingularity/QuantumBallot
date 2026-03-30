@@ -1,6 +1,6 @@
-import { jsx as _jsx } from "react/jsx-runtime";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
+import { jsx as _jsx } from "react/jsx-runtime";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
 export default function TableTransactionsBlockDetails({ detail }) {
@@ -17,13 +17,11 @@ export default function TableTransactionsBlockDetails({ detail }) {
     });
     return res;
   };
-  const [data, setData] = useState(
-    getTransactionsDetails(detail["transactions"]),
-  );
+  const [data, setData] = useState(getTransactionsDetails(detail.transactions));
   useEffect(() => {
     // console.log("Data -> ", detail['transactions']);
-    setData(getTransactionsDetails(detail["transactions"]));
-  }, [detail]);
+    setData(getTransactionsDetails(detail.transactions));
+  }, [detail, getTransactionsDetails]);
   return _jsx("section", {
     children: _jsx(DataTable, { columns: columns, data: data }),
   });

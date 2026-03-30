@@ -1,5 +1,5 @@
-import { useRef } from "react";
 import { Editor } from "@monaco-editor/react";
+import { useRef } from "react";
 
 type JsonProp = {
   data: Record<string, unknown>;

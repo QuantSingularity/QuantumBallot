@@ -1,9 +1,10 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { useRef, useState } from "react";
 import { Editor } from "@monaco-editor/react";
+import { useRef, useState } from "react";
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+
 const JsonEditor = ({ data }) => {
   const editorRef = useRef();
-  const [value, setValue] = useState("");
+  const [_value, _setValue] = useState("");
   const language = "";
   const onMount = (editor) => {
     editorRef.current = editor;

@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
-import { CandidateResults } from "@/data_types";
+import {
+  Cell,
+  Legend,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+} from "recharts";
 import {
   Card,
   CardContent,
@@ -8,15 +15,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
+import type { CandidateResults } from "@/data_types";
 import { columns } from "@/tables/election_results_table/columns";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Legend,
-  Tooltip,
-} from "recharts";
 
 const ElectionResults = () => {
   const [results, setResults] = useState<CandidateResults[]>([]);
@@ -120,7 +120,7 @@ const ElectionResults = () => {
                       `${name}: ${percentage?.toFixed(1)}%`
                     }
                   >
-                    {results.map((entry, index) => (
+                    {results.map((_entry, index) => (
                       <Cell
                         key={`cell-${index}`}
                         fill={COLORS[index % COLORS.length]}

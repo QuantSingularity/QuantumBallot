@@ -1,11 +1,11 @@
-import React, { PureComponent } from "react";
+import { PureComponent } from "react";
 import {
-  LineChart,
+  CartesianGrid,
   Line,
+  LineChart,
+  ResponsiveContainer,
   XAxis,
   YAxis,
-  CartesianGrid,
-  ResponsiveContainer,
 } from "recharts";
 
 const data = [

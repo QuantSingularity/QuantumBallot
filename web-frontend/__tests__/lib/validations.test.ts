@@ -1,12 +1,12 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  loginSchema,
-  registerUserSchema,
   candidateSchema,
   citizenSchema,
   electionAnnouncementSchema,
-  voteSchema,
   formatValidationErrors,
+  loginSchema,
+  registerUserSchema,
+  voteSchema,
 } from "@/lib/validations";
 
 describe("Validation Schemas", () => {

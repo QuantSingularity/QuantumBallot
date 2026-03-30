@@ -1,9 +1,10 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { GLOBAL_VARIABLES } from "@/global/globalVariables";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { Link } from "react-router-dom";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { GLOBAL_VARIABLES } from "@/global/globalVariables";
+
 function getData(start, count) {
   const blocks = [];
   for (let id = start; id <= count; id++) {
@@ -144,7 +145,7 @@ const CardItem = ({ id, hashBlock, index, len, blockSize }) => {
   );
 };
 export default function BlockList() {
-  const URI = "http://" + GLOBAL_VARIABLES.LOCALHOST + "/api/blockchain/blocks";
+  const URI = `http://${GLOBAL_VARIABLES.LOCALHOST}/api/blockchain/blocks`;
   const { isLoading, error, data, refetch } = useQuery({
     queryKey: ["block-list"],
     queryFn: () => fetch(URI).then((res) => res.json()),
@@ -156,7 +157,7 @@ export default function BlockList() {
     return () => clearInterval(intervalId);
   }, [refetch]);
   if (isLoading) return "Loading...";
-  if (error) return "An error has occurred: " + error.message;
+  if (error) return `An error has occurred: ${error.message}`;
   return _jsx("div", {
     className: "flex",
     children: _jsx("ul", {

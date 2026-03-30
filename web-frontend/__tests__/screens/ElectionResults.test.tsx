@@ -1,6 +1,6 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { vi } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
+import { vi } from "vitest";
 import ElectionResults from "@/screens/ElectionResults";
 
 // Mock components used in ElectionResults

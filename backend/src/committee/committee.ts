@@ -1,4 +1,5 @@
-import { Announcement, Citizen, Otp, Role, User } from "./data_types";
+import type { Candidate, Voter } from "../blockchain/data_types";
+import CryptoBlockchain from "../crypto/cryptoBlockchain";
 import {
   clearCandidates,
   clearCandidatesTemp,
@@ -6,7 +7,6 @@ import {
   clearUsers,
   clearVotersGenerated,
   readAnnouncement,
-  readCandidates,
   readCandidatesTemp,
   readCitizen,
   readCitizens,
@@ -19,11 +19,16 @@ import {
   writeCandidateTemp,
   writeCitizen,
   writeUser,
-  writeVoterCitizenRelation,
   writeVoterGenerated,
 } from "../leveldb";
-import CryptoBlockchain from "../crypto/cryptoBlockchain";
-import { Candidate, Voter } from "../blockchain/data_types";
+import {
+  type Announcement,
+  type Citizen,
+  type Otp,
+  Role,
+  type User,
+} from "./data_types";
+
 const bcrypt = require("bcrypt");
 const speakeasy = require("speakeasy");
 const qrcode = require("qrcode");
@@ -32,7 +37,7 @@ const CryptoBlockIdentifier = new CryptoBlockchain(
   process.env.SECRET_KEY_IDENTIFIER,
   process.env.SECRET_IV_IDENTIFIER,
 );
-const CryptoBlockVote = new CryptoBlockchain(
+const _CryptoBlockVote = new CryptoBlockchain(
   process.env.SECRET_KEY_VOTES,
   process.env.SECRET_IV_VOTES,
 );
@@ -56,7 +61,7 @@ class Committee {
   public async loadCitizens() {
     try {
       this.citizens = await readCitizens();
-    } catch (error: any) {
+    } catch (_error: any) {
       // console.error('Error loading citizens:', error);
     }
   }
@@ -64,11 +69,11 @@ class Committee {
   public async loadUsers() {
     try {
       this.users = await readUsers();
-    } catch (error: any) {}
+    } catch (_error: any) {}
   }
 
   public async generateIdentifiers() {
-    let voters: Voter[] = [];
+    const voters: Voter[] = [];
 
     try {
       await clearVotersGenerated();
@@ -96,7 +101,7 @@ class Committee {
 
       this.votersGenerated = voters;
       return voters;
-    } catch (e: any) {}
+    } catch (_e: any) {}
 
     return [];
   }
@@ -107,7 +112,7 @@ class Committee {
       await clearCandidates();
       this.candidates = [];
       return this.candidates;
-    } catch (e: any) {}
+    } catch (_e: any) {}
 
     return [];
   }
@@ -131,7 +136,7 @@ class Committee {
 
       await writeCandidateTemp(code, obj);
       this.candidates = await readCandidatesTemp();
-    } catch (e: any) {}
+    } catch (_e: any) {}
 
     return this.candidates;
   }
@@ -151,7 +156,7 @@ class Committee {
 
         return output;
       }
-    } catch (error: any) {}
+    } catch (_error: any) {}
 
     return null;
   }
@@ -170,7 +175,7 @@ class Committee {
 
         return output;
       }
-    } catch (error: any) {}
+    } catch (_error: any) {}
     return null;
   }
 
@@ -178,14 +183,14 @@ class Committee {
     try {
       await clearCitizens();
       await this.loadCitizens();
-    } catch (error: any) {}
+    } catch (_error: any) {}
   }
 
   public async eraseUsers() {
     try {
       await clearUsers();
       await this.loadUsers();
-    } catch (error: any) {}
+    } catch (_error: any) {}
 
     return this.users;
   }
@@ -194,7 +199,7 @@ class Committee {
     try {
       await removeUser(key);
       await this.loadUsers();
-    } catch (error: any) {}
+    } catch (_error: any) {}
 
     return this.users;
   }
@@ -203,7 +208,7 @@ class Committee {
     try {
       await removeCitizen(key);
       await this.loadCitizens();
-    } catch (error: any) {}
+    } catch (_error: any) {}
 
     return this.citizens;
   }
@@ -211,24 +216,24 @@ class Committee {
   private async saveCitizen(citzen: Citizen) {
     try {
       await writeCitizen(citzen.electoralId, citzen);
-    } catch (e: any) {}
+    } catch (_e: any) {}
   }
 
   private async saveUser(user: User) {
     try {
       await writeUser(user.username, user);
-    } catch (e: any) {}
+    } catch (_e: any) {}
   }
 
   public async updateTokenCitzen(electoralId: string, refreshToken: string) {
-    let citizen = this.citizens.find(
+    const citizen = this.citizens.find(
       (x) => x.electoralId.localeCompare(electoralId) === 0,
     );
     citizen.refreshToken = refreshToken;
 
     try {
       await this.saveCitizen(citizen);
-    } catch (e: any) {}
+    } catch (_e: any) {}
 
     const tmp = this.citizens.filter(
       (x) => x.electoralId.localeCompare(citizen.electoralId) !== 0,
@@ -237,12 +242,14 @@ class Committee {
   }
 
   public async updateTokenUser(username: string, refreshToken: string) {
-    let user = this.users.find((x) => x.username.localeCompare(username) === 0);
+    const user = this.users.find(
+      (x) => x.username.localeCompare(username) === 0,
+    );
     user.refreshToken = refreshToken;
 
     try {
       await this.saveUser(user);
-    } catch (e: any) {}
+    } catch (_e: any) {}
 
     const tmp = this.users.filter(
       (x) => x.username.localeCompare(user.username) !== 0,
@@ -256,7 +263,7 @@ class Committee {
 
     const hashedPwd = await bcrypt.hash(data.password, 10);
 
-    let citzen: Citizen = {
+    const citzen: Citizen = {
       electoralId: data.electoralId,
       name: data.name,
       email: data.email,
@@ -282,7 +289,7 @@ class Committee {
   public async updateCitizen(data: any) {
     try {
       await this.loadCitizens();
-      let oldCitizen = this.citizens.find(
+      const oldCitizen = this.citizens.find(
         (x) => x.electoralId === data.electoralId,
       );
 
@@ -298,7 +305,7 @@ class Committee {
         await this.saveCitizen(oldCitizen);
         return true;
       }
-    } catch (e: any) {}
+    } catch (_e: any) {}
 
     return false;
   }
@@ -306,7 +313,7 @@ class Committee {
   public async updateUser(data: any) {
     try {
       await this.loadUsers();
-      let oldUser = this.users.find((x) => x.username === data.username);
+      const oldUser = this.users.find((x) => x.username === data.username);
 
       const hashedPwd = await bcrypt.hash(data.password, 10);
 
@@ -321,7 +328,7 @@ class Committee {
         await this.saveUser(oldUser);
         return true;
       }
-    } catch (e: any) {}
+    } catch (_e: any) {}
 
     return false;
   }
@@ -329,7 +336,7 @@ class Committee {
   public async addUser(data: any) {
     const hashedPwd = await bcrypt.hash(data.password, 10);
 
-    let user: User = {
+    const user: User = {
       name: data.name,
       username: data.username,
       password: hashedPwd,
@@ -349,12 +356,12 @@ class Committee {
   }
 
   public async deployAnnouncement(data: any) {
-    let announcement: Announcement = {
+    const announcement: Announcement = {
       startTimeVoting: data.startTimeVoting,
       endTimeVoting: data.endTimeVoting,
       dateResults: data.dateResults,
-      numOfCandidates: parseInt(data.numOfCandidates),
-      numOfVoters: parseInt(data.numOfVoters),
+      numOfCandidates: parseInt(data.numOfCandidates, 10),
+      numOfVoters: parseInt(data.numOfVoters, 10),
       dateCreated: Date.now(),
     };
 
@@ -362,7 +369,7 @@ class Committee {
       await writeAnnouncement(announcement);
       this.announcement = announcement;
       return this.announcement;
-    } catch (e: any) {}
+    } catch (_e: any) {}
 
     return null;
   }
@@ -370,7 +377,7 @@ class Committee {
   public async getAnnouncement() {
     try {
       this.announcement = await readAnnouncement();
-    } catch (error: any) {}
+    } catch (_error: any) {}
 
     return this.announcement;
   }
@@ -397,7 +404,7 @@ class Committee {
       step: 300, // Time step in seconds (5 minutes = 300 seconds)
     });
 
-    let otp: Otp = {
+    const otp: Otp = {
       ascii: secret.ascii,
       hex: secret.hex,
       base32: secret.base32,
@@ -433,7 +440,7 @@ class Committee {
       });
 
       return qrCodeData;
-    } catch (error: any) {
+    } catch (_error: any) {
       // console.error(error);
       return null;
     }
@@ -446,7 +453,7 @@ class Committee {
   public async getVotersGenerated() {
     try {
       this.votersGenerated = await readVoterGenerated();
-    } catch (error: any) {}
+    } catch (_error: any) {}
 
     return this.votersGenerated;
   }
@@ -454,7 +461,7 @@ class Committee {
   public async getCandidates() {
     try {
       this.candidates = await readCandidatesTemp();
-    } catch (error: any) {}
+    } catch (_error: any) {}
 
     return this.candidates;
   }

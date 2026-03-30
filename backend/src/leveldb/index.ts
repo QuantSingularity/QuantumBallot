@@ -1,7 +1,7 @@
-import { Block, Candidate, Voter } from "../blockchain/data_types";
-import { Citizen, User } from "../committee/data_types";
-import * as path from "path";
-import * as fs from "fs";
+import * as fs from "node:fs";
+import * as path from "node:path";
+import type { Block, Candidate, Voter } from "../blockchain/data_types";
+import type { Citizen, User } from "../committee/data_types";
 
 const NODE_ADDRESS = process.argv[2] || "3000";
 const getBlockAddress = (str: string) => str + NODE_ADDRESS;
@@ -103,7 +103,7 @@ export async function writeTransaction(key: string, value: any) {
 export async function writeChain(value: Block[]) {
   await chaindb.put(CHAIN, value);
 
-  let chain: Block[] = value;
+  const chain: Block[] = value;
   chain.forEach((x: any) => {
     writeBlock(x.blockHeader.blockHash, x);
   });
@@ -161,7 +161,7 @@ export async function deployCandidates() {
 }
 
 export async function readVoters() {
-  let voters: Voter[] = [];
+  const voters: Voter[] = [];
 
   for await (const [_, value] of votersdb.iterator()) {
     if (value !== undefined) {
@@ -173,7 +173,7 @@ export async function readVoters() {
 }
 
 export async function readCandidatesTemp() {
-  let candidates: Candidate[] = [];
+  const candidates: Candidate[] = [];
 
   for await (const [_, value] of candidatesTempDb.iterator()) {
     if (value !== undefined) {
@@ -185,7 +185,7 @@ export async function readCandidatesTemp() {
 }
 
 export async function readCandidates() {
-  let candidates: Candidate[] = [];
+  const candidates: Candidate[] = [];
 
   for await (const [_, value] of candidatesdb.iterator()) {
     if (value !== undefined) {
@@ -197,7 +197,7 @@ export async function readCandidates() {
 }
 
 export async function readUsers() {
-  let users: User[] = [];
+  const users: User[] = [];
 
   for await (const [_, value] of userdb.iterator()) {
     if (value !== undefined) {
@@ -209,7 +209,7 @@ export async function readUsers() {
 }
 
 export async function readVoterGenerated() {
-  let votersGenerated: Voter[] = [];
+  const votersGenerated: Voter[] = [];
 
   for await (const [_, value] of votersgenerateddb.iterator()) {
     votersGenerated.push(value);
@@ -270,7 +270,7 @@ export async function readResults() {
 }
 
 export async function readTransactions() {
-  let transactions = [];
+  const transactions = [];
 
   for await (const [_, value] of transactiondb.iterator()) {
     transactions.push(value);
@@ -290,7 +290,7 @@ export async function readUser(key: string) {
 }
 
 export async function readCitizens() {
-  let citizens: Citizen[] = [];
+  const citizens: Citizen[] = [];
   for await (const [_, value] of citizensdb.iterator()) {
     citizens.push(value);
   }
@@ -340,9 +340,9 @@ export async function clearVoters() {
 }
 
 export async function readBlocks() {
-  let blocks: any[] = [];
-  let stream = blockdb.createReadStream();
-  stream.on("data", function (block: any) {
+  const blocks: any[] = [];
+  const stream = blockdb.createReadStream();
+  stream.on("data", (block: any) => {
     blocks.push(block);
   });
 

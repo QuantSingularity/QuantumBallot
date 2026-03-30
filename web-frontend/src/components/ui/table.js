@@ -1,6 +1,7 @@
-import { jsx as _jsx } from "react/jsx-runtime";
 import * as React from "react";
+import { jsx as _jsx } from "react/jsx-runtime";
 import { cn } from "@/lib/utils";
+
 const Table = React.forwardRef(({ className, ...props }, ref) =>
   _jsx("div", {
     className: "relative w-full overflow-auto",
@@ -77,13 +78,14 @@ const TableCaption = React.forwardRef(({ className, ...props }, ref) =>
   }),
 );
 TableCaption.displayName = "TableCaption";
+
 export {
   Table,
-  TableHeader,
   TableBody,
+  TableCaption,
+  TableCell,
   TableFooter,
   TableHead,
+  TableHeader,
   TableRow,
-  TableCell,
-  TableCaption,
 };

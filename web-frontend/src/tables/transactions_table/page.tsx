@@ -1,12 +1,11 @@
+import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { GLOBAL_VARIABLES } from "@/global/globalVariables";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
-import { useQuery } from "@tanstack/react-query";
-import { GLOBAL_VARIABLES } from "@/global/globalVariables";
 
 export default function TableTransactions() {
-  const URI =
-    "http://" + GLOBAL_VARIABLES.LOCALHOST + "/api/blockchain/transactions";
+  const URI = `http://${GLOBAL_VARIABLES.LOCALHOST}/api/blockchain/transactions`;
 
   const { isLoading, error, data, refetch } = useQuery({
     queryKey: ["transactions"],
@@ -23,7 +22,7 @@ export default function TableTransactions() {
 
   if (isLoading) return "Loading...";
 
-  if (error) return "An error has occurred: " + error.message;
+  if (error) return `An error has occurred: ${error.message}`;
 
   return (
     <section>

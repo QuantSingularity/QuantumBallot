@@ -1,9 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import axios from "axios";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import Dashboard from "@/screens/Dashboard";
-import { AuthProvider } from "@/context/AuthContext";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // Mock axios
 vi.mock("axios");

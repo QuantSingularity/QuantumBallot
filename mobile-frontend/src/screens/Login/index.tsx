@@ -1,17 +1,17 @@
-import React, { useState } from "react";
+import { useNavigation } from "@react-navigation/native";
+import { useState } from "react";
 import {
-  View,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { TextInput } from "react-native-paper";
-import { useNavigation } from "@react-navigation/native";
 import { useAuth } from "../../context/AuthContext";
 
 export function Login() {
@@ -31,7 +31,7 @@ export function Login() {
 
     setLoading(true);
     try {
-      const result = await onLogin!(electoralId.trim(), password);
+      const result = await onLogin?.(electoralId.trim(), password);
 
       if (result.success) {
         // Navigation will be handled by the auth state change

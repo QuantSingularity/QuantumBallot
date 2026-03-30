@@ -1,7 +1,10 @@
+import axios from "axios";
+import { MoreHorizontal } from "lucide-react";
+import { useState } from "react";
 import {
+  Fragment as _Fragment,
   jsx as _jsx,
   jsxs as _jsxs,
-  Fragment as _Fragment,
 } from "react/jsx-runtime";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Button } from "@/components/ui/button";
@@ -13,9 +16,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal } from "lucide-react";
-import axios from "axios";
-import { useState } from "react";
 import { GLOBAL_VARIABLES } from "@/global/globalVariables";
 import { EditCitizenModal } from "./edit-citizen";
 export default function CustomDropMenuPopulation({ citizen, setData, toast }) {
@@ -66,7 +66,7 @@ export default function CustomDropMenuPopulation({ citizen, setData, toast }) {
                     )
                     .then((response) => {
                       if (response.status === 200) {
-                        const data = response.data;
+                        const _data = response.data;
                         // console.log("Success response:", data);
                         toast({
                           title: "Feedback",

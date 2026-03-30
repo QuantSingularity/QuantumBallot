@@ -1,16 +1,13 @@
-import { SignOut, UserFocus, WarningCircle } from "phosphor-react-native";
 import logoImg from "@assets/logo.png";
-import profileImg from "@assets/abrar_party_50.png";
-import theme from "src/theme";
-import { Image, StyleSheet, View, Text, TouchableOpacity } from "react-native";
+import { SignOut, UserFocus, WarningCircle } from "phosphor-react-native";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useAuth } from "src/context/AuthContext";
-import { useState } from "react";
 
 export function Header({ navigation }: any) {
   const { onLogOut } = useAuth();
 
   const onPressLogOut = () => {
-    onLogOut!();
+    onLogOut?.();
     navigation.navigate("Login");
   };
 

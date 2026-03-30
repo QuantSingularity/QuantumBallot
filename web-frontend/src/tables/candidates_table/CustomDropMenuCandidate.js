@@ -1,7 +1,9 @@
+import { MoreHorizontal } from "lucide-react";
+import { useState } from "react";
 import {
+  Fragment as _Fragment,
   jsx as _jsx,
   jsxs as _jsxs,
-  Fragment as _Fragment,
 } from "react/jsx-runtime";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Button } from "@/components/ui/button";
@@ -13,8 +15,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal } from "lucide-react";
-import { useState } from "react";
 import { CandidadeModal } from "./operation-candidate";
 export default function CustomDropMenuCandidate({ candidate }) {
   const [isModalOpen, setIsModalOpen] = useState(false);

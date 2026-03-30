@@ -34,15 +34,15 @@ const blockchain = {
 };
 
 // Routes for blockchain operations
-router.get("/blocks", (req, res) => {
+router.get("/blocks", (_req, res) => {
   res.json(blockchain.getBlocks());
 });
 
-router.get("/transactions", (req, res) => {
+router.get("/transactions", (_req, res) => {
   res.json(blockchain.getTransactions());
 });
 
-router.get("/pending-transactions", (req, res) => {
+router.get("/pending-transactions", (_req, res) => {
   res.json(blockchain.getPendingTransactions());
 });
 
@@ -56,7 +56,7 @@ router.get("/block/:blockHash", (req, res) => {
   res.json(block);
 });
 
-router.post("/mine", (req, res) => {
+router.post("/mine", (_req, res) => {
   const block = blockchain.mineBlock();
 
   if (!block) {
@@ -103,27 +103,27 @@ router.post("/add-transaction", (req, res) => {
   res.status(201).json(transaction);
 });
 
-router.get("/smart-contract/voters", async (req, res) => {
+router.get("/smart-contract/voters", async (_req, res) => {
   const voters = await blockchain.getSmartContractVoters();
   res.json(voters);
 });
 
-router.get("/smart-contract/candidates", async (req, res) => {
+router.get("/smart-contract/candidates", async (_req, res) => {
   const candidates = await blockchain.getSmartContractCandidates();
   res.json(candidates);
 });
 
-router.post("/deploy-voters", async (req, res) => {
+router.post("/deploy-voters", async (_req, res) => {
   const voters = await blockchain.deployVoters();
   res.json(voters);
 });
 
-router.post("/deploy-candidates", async (req, res) => {
+router.post("/deploy-candidates", async (_req, res) => {
   const candidates = await blockchain.deployCandidatesBlockchain();
   res.json(candidates);
 });
 
-router.delete("/clear-chains", async (req, res) => {
+router.delete("/clear-chains", async (_req, res) => {
   const result = await blockchain.clearChainsFromStorage();
   res.json(result);
 });

@@ -1,14 +1,15 @@
 "use client";
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import * as React from "react";
 import {
   flexRender,
-  getSortedRowModel,
   getCoreRowModel,
-  getPaginationRowModel,
-  useReactTable,
   getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
 } from "@tanstack/react-table";
+import * as React from "react";
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { DataTablePagination } from "@/components/ui/DataTablePagination";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -18,7 +19,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { DataTablePagination } from "@/components/ui/DataTablePagination";
 export function DataTable({ columns, data }) {
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);

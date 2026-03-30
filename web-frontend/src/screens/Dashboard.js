@@ -1,18 +1,19 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import GoogleMap from "@/geomap/GoogleMap";
 import CircularProgress from "@mui/joy/CircularProgress";
 import LinearProgress from "@mui/material/LinearProgress";
 import Stack from "@mui/material/Stack";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { FaUserClock } from "react-icons/fa";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { useAuth } from "@/context/AuthContext";
-import { GLOBAL_VARIABLES } from "@/global/globalVariables";
-import VerticalBars from "@/components/dashboard-components/vertical-bar";
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { FaUserClock } from "react-icons/fa";
 import LineChartDemo from "@/components/dashboard-components/line-chart";
+import VerticalBars from "@/components/dashboard-components/vertical-bar";
+import { useAuth } from "@/context/AuthContext";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import GoogleMap from "@/geomap/GoogleMap";
+import { GLOBAL_VARIABLES } from "@/global/globalVariables";
+
 const themeLinearProgressBar = createTheme({
   palette: {
     primary: {
@@ -52,14 +53,14 @@ function Dashboard() {
       acronym: "",
       party: "",
       status: "",
-      toast: function (...params) {
+      toast: (..._params) => {
         throw new Error("Function not implemented.");
       },
     },
   });
   useEffect(() => {
     onPressLoadResultsComputed();
-  }, []);
+  }, [onPressLoadResultsComputed]);
   const onPressLoadResultsComputed = async () => {
     axios
       .get(
@@ -69,7 +70,7 @@ function Dashboard() {
       )
       .then((response) => {
         const results = response.data;
-        if (results !== undefined && results.candidatesResult) {
+        if (results?.candidatesResult) {
           let newDataCandidates = results.candidatesResult.map((x, index) => {
             const candidateName = x.candidate.name
               .toLowerCase()
@@ -109,9 +110,9 @@ function Dashboard() {
             id: index + 1,
             province: x,
             percentage:
-              (100 * results.votesPerProvince[x]["sum"]) /
-              parseInt(results.totalVotesReceived),
-            number: `${results.votesPerProvince[x]["sum"]}K`,
+              (100 * results.votesPerProvince[x].sum) /
+              parseInt(results.totalVotesReceived, 10),
+            number: `${results.votesPerProvince[x].sum}K`,
           }));
           newsTopVotesPerProvinces = newsTopVotesPerProvinces.sort(
             (a, b) => b.percentage - a.percentage,
@@ -119,7 +120,7 @@ function Dashboard() {
           setTopVotesPerProvinces(newsTopVotesPerProvinces);
         }
       })
-      .catch((error) => {});
+      .catch((_error) => {});
   };
   const iconStyle =
     "w-100 h-100 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white";
@@ -216,43 +217,41 @@ function Dashboard() {
                 }),
                 _jsx("div", {
                   className: "gap-1",
-                  children:
-                    data &&
-                    data.slice(0, 5).map((party) =>
-                      _jsxs(
-                        "div",
-                        {
-                          className:
-                            "grid grid-cols-3 sm:grid-cols-3 gap-3 p-0.5",
-                          children: [
-                            _jsx("div", {
-                              className: "col-span-1",
-                              children: _jsx("img", {
-                                src: party.partyImage ?? "",
-                                alt: party.name,
-                                width: "32",
-                                height: "32",
-                              }),
+                  children: data?.slice(0, 5).map((party) =>
+                    _jsxs(
+                      "div",
+                      {
+                        className:
+                          "grid grid-cols-3 sm:grid-cols-3 gap-3 p-0.5",
+                        children: [
+                          _jsx("div", {
+                            className: "col-span-1",
+                            children: _jsx("img", {
+                              src: party.partyImage ?? "",
+                              alt: party.name,
+                              width: "32",
+                              height: "32",
                             }),
-                            _jsx("div", {
-                              className: "col-span-1",
-                              children: _jsx("span", {
-                                className: "font-inria-sans text-sm",
-                                children: party.acronym,
-                              }),
+                          }),
+                          _jsx("div", {
+                            className: "col-span-1",
+                            children: _jsx("span", {
+                              className: "font-inria-sans text-sm",
+                              children: party.acronym,
                             }),
-                            _jsx("div", {
-                              className: "col-span-1",
-                              children: _jsxs("span", {
-                                className: "font-inria-sans text-sm",
-                                children: [party.numVotes, " K votes"],
-                              }),
+                          }),
+                          _jsx("div", {
+                            className: "col-span-1",
+                            children: _jsxs("span", {
+                              className: "font-inria-sans text-sm",
+                              children: [party.numVotes, " K votes"],
                             }),
-                          ],
-                        },
-                        party.party,
-                      ),
+                          }),
+                        ],
+                      },
+                      party.party,
                     ),
+                  ),
                 }),
               ],
             }),
@@ -265,9 +264,9 @@ function Dashboard() {
                 }),
                 _jsx("div", {
                   className: "flex flex-col gap-2 justify-start",
-                  children:
-                    topVotesPerProvinces &&
-                    topVotesPerProvinces.slice(0, 5).map((provinceData) =>
+                  children: topVotesPerProvinces
+                    ?.slice(0, 5)
+                    .map((provinceData) =>
                       _jsxs(
                         "div",
                         {

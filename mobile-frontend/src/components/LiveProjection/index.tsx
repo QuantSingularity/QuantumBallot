@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { Button, Image, StyleSheet, Text, View } from "react-native";
-import profileImg from "@assets/abrar_party_50.png";
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import * as Progress from "react-native-progress";
 import axios from "axios";
-import Countdown from "./CountDown";
+import { useEffect, useState } from "react";
+import { Image, StyleSheet, Text, View } from "react-native";
+import * as Progress from "react-native-progress";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useAuth } from "src/context/AuthContext";
+import Countdown from "./CountDown";
+
 // import CountDown from 'react-native-countdown-component';
 
 interface Announcement {
@@ -59,7 +59,7 @@ export function LiveProjection() {
       await onPressLoadResultsComputed();
     };
     x();
-  }, []);
+  }, [loadAnnouncement, onPressLoadResultsComputed]);
 
   const loadAnnouncement = async () => {
     await axios
@@ -72,8 +72,8 @@ export function LiveProjection() {
             endTimeVoting: new Date(res.endTimeVoting),
             dateResults: new Date(res.dateResults),
             dateCreated: new Date(res.dateCreated),
-            numOfCandidates: parseInt(res.numOfCandidates),
-            numOfVoters: parseInt(res.numOfVoters),
+            numOfCandidates: parseInt(res.numOfCandidates, 10),
+            numOfVoters: parseInt(res.numOfVoters, 10),
           };
 
           setAnnouncement(data);

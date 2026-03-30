@@ -1,5 +1,6 @@
+import * as qrcode from "qrcode";
+import { useEffect, useState } from "react";
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,7 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import * as qrcode from "qrcode";
 export default function VerificationModal({ isOpen, onOpenChange, url }) {
   const [qrCodeURL, setQrCodeURL] = useState("");
   const generateQRCode = async (str_code) => {
@@ -35,7 +35,7 @@ export default function VerificationModal({ isOpen, onOpenChange, url }) {
   };
   useEffect(() => {
     VerifySecret();
-  }, []);
+  }, [VerifySecret]);
   return _jsx(Dialog, {
     open: isOpen,
     onOpenChange: onOpenChange,

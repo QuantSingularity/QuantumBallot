@@ -1,8 +1,8 @@
 /**
  * Tests for CandidateItem component
  */
-import React from "react";
-import { render, fireEvent } from "@testing-library/react-native";
+
+import { fireEvent, render } from "@testing-library/react-native";
 import CandidateItem from "src/components/CandidateItem";
 
 // Mock navigation

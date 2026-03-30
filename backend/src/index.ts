@@ -1,9 +1,9 @@
-import express, { Request, Response } from "express";
-import dotenv from "dotenv";
-import path from "path";
-import { connectToDB } from "./leveldb";
-import BlockChain from "./blockchain/blockchain";
+import path from "node:path";
 import cors from "cors";
+import dotenv from "dotenv";
+import express, { type Request, type Response } from "express";
+import BlockChain from "./blockchain/blockchain";
+import { connectToDB } from "./leveldb";
 
 // Load environment variables from .env file
 dotenv.config({ path: path.join(__dirname, "../.env") });
@@ -48,7 +48,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Health check route
-app.get("/", (req: Request, res: Response) => {
+app.get("/", (_req: Request, res: Response) => {
   res.json({
     message: "QuantumBallot Backend API is running!",
     version: "1.0.0",
@@ -58,7 +58,7 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 // Health check endpoint
-app.get("/health", (req: Request, res: Response) => {
+app.get("/health", (_req: Request, res: Response) => {
   res.json({
     status: "ok",
     timestamp: new Date().toISOString(),
@@ -92,7 +92,7 @@ const startServer = async () => {
     console.log("API routes mounted");
 
     // Error handling middleware
-    app.use((err: Error, req: Request, res: Response, next: any) => {
+    app.use((err: Error, _req: Request, res: Response, _next: any) => {
       console.error("Error:", err.message);
       res.status(500).json({
         success: false,

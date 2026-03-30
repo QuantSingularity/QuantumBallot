@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,8 +12,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 export function LoginAccountCard() {
   // ==== FIELDS ====
   const [username, setUsername] = useState("");
@@ -26,7 +26,7 @@ export function LoginAccountCard() {
   };
   const navigate = useNavigate();
   const formValidation = () => {
-    let errorHash = {};
+    const errorHash = {};
     if (!username) errorHash.username = "Username required.";
     if (!password) errorHash.password = "Password required.";
     setErrors(errorHash);
@@ -38,7 +38,7 @@ export function LoginAccountCard() {
     if (formValidation()) {
       resetValues();
       const result = await onLogin(username, password);
-      if (result && result.error) {
+      if (result?.error) {
         navigate("/", { replace: true });
       } else if (authState?.authenticated) {
         navigate("/dashboard");

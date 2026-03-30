@@ -1,8 +1,16 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import axios from "axios";
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useForm } from "react-hook-form";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -11,26 +19,19 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import {
   Select,
-  SelectTrigger,
-  SelectValue,
   SelectContent,
   SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { api } from "../../services/api";
-import { uploadImage } from "@/services/firebase";
-import { GLOBAL_VARIABLES } from "@/global/globalVariables";
-import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
+import { GLOBAL_VARIABLES } from "@/global/globalVariables";
+import { uploadImage } from "@/services/firebase";
+import { api } from "../../services/api";
+
 const formSchema = z
   .object({
     name: z.string().min(1, { message: "Name cannot be empty" }),
@@ -154,8 +155,7 @@ export const UserForm = ({ defaultValues, onSubmitForm, mode }) => {
               _jsxs(FormItem, {
                 children: [
                   _jsx(FormLabel, {
-                    children:
-                      "Photo " + (mode === "update" ? "(Optional)" : ""),
+                    children: `Photo ${mode === "update" ? "(Optional)" : ""}`,
                   }),
                   _jsx(FormControl, {
                     children: _jsx(Input, {
@@ -238,7 +238,7 @@ export const UserModal = ({
             name: element.name,
             username: element.username,
             password: element.password,
-            role: parseInt(element.role) === 0 ? "admin" : "normal",
+            role: parseInt(element.role, 10) === 0 ? "admin" : "normal",
             photo: imageList ? (imageList[userPhoto] ?? "default") : "",
             refreshToken: element.refreshToken,
             timestamp: new Date(element.timestamp).toLocaleString(),
@@ -250,7 +250,7 @@ export const UserModal = ({
         setData([...newData]);
         onOpenChange(false);
       }
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: "Feedback",
         description: "Error! Something went wrong.",
@@ -261,8 +261,7 @@ export const UserModal = ({
     try {
       const userPhotoName = data.name.toLowerCase().split(" ").join(".");
       uploadImage(data.photoFile, userPhotoName, setImageList);
-      const URL =
-        "http://" + GLOBAL_VARIABLES.LOCALHOST + "/api/committee/add-user";
+      const URL = `http://${GLOBAL_VARIABLES.LOCALHOST}/api/committee/add-user`;
       const body = {
         name: data.name,
         username: data.username,
@@ -281,7 +280,7 @@ export const UserModal = ({
               name: element.name,
               username: element.username,
               password: element.password,
-              role: parseInt(element.role) === 0 ? "admin" : "normal",
+              role: parseInt(element.role, 10) === 0 ? "admin" : "normal",
               photo: imageList ? (imageList[userPhoto] ?? "default") : "",
               refreshToken: element.refreshToken,
               timestamp: new Date(element.timestamp).toLocaleString(),
@@ -294,7 +293,7 @@ export const UserModal = ({
           onOpenChange(false);
         }
       }
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: "Feedback",
         description: "Error! Something went wrong.",

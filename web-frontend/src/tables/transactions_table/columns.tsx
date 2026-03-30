@@ -1,5 +1,5 @@
-import { Transaction } from "@/data_types";
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
+import type { Transaction } from "@/data_types";
 
 export const columns: ColumnDef<Transaction>[] = [
   {
@@ -47,7 +47,7 @@ export const columns: ColumnDef<Transaction>[] = [
     accessorKey: "voteTime",
     header: "Date and Time",
     cell: ({ row }) => {
-      const x: number = parseInt(row.getValue("voteTime") as string);
+      const x: number = parseInt(row.getValue("voteTime") as string, 10);
       return new Date(x).toUTCString();
     },
   },

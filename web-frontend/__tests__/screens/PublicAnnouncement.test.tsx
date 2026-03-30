@@ -1,9 +1,8 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { vi } from "vitest";
-import { BrowserRouter } from "react-router-dom";
-import AuthContext from "@/context/AuthContext";
-import PublicAnnouncement from "@/screens/PublicAnnouncement";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import axios from "axios";
+import { BrowserRouter } from "react-router-dom";
+import { vi } from "vitest";
+import PublicAnnouncement from "@/screens/PublicAnnouncement";
 
 // Mock axios
 vi.mock("axios");

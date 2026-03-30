@@ -1,18 +1,16 @@
-import { EyeClosed, Eye } from "phosphor-react-native";
-import {
-  StyleSheet,
-  View,
-  Text,
-  Linking,
-  TouchableOpacity,
-  Platform,
-} from "react-native";
-import theme from "src/theme";
-import { useEffect, useState } from "react";
-import { StatusBar } from "react-native";
 import { GenerateSaveAndLoad } from "@components/GenerateSaveAndLoad";
 import { useCameraPermissions } from "expo-camera";
-import * as DocumentPicker from "expo-document-picker";
+import { Eye, EyeClosed } from "phosphor-react-native";
+import { useState } from "react";
+import {
+  Platform,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import theme from "src/theme";
 
 interface ErrorHash {
   electoralId?: string;
@@ -24,8 +22,8 @@ interface ErrorHash {
 }
 
 export function Credentials({ navigation }: any) {
-  const [facing, setFacing] = useState("back");
-  const [permission, requestPermission] = useCameraPermissions();
+  const [_facing, _setFacing] = useState("back");
+  const [_permission, _requestPermission] = useCameraPermissions();
   const [secret, setSecret] = useState<string>("x34o43nfkktj");
 
   const onPressEyes = () => {

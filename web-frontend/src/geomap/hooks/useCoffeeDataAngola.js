@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import geoJson from "../assets/america.json";
+
 import { geoEquirectangular, geoPath } from "d3-geo";
+import geoJson from "../assets/america.json";
+
 const colors = {
   normal: {
     color: "#F29EB0",
@@ -17,8 +19,8 @@ const constructProvincies = (mapSize) => {
   const americaCountry = geoJson.features.map((feature) => {
     const svgProps = {
       d: geoPathGenerator(feature) || "",
-      stroke: colors["default"].color,
-      fill: colors["default"].color,
+      stroke: colors.default.color,
+      fill: colors.default.color,
     };
     const res = {
       OBJECTID: feature.properties.OBJECTID,
@@ -40,10 +42,10 @@ const getCoffeeRegionName = (region) => {
   return null;
 };
 const getRegionColor = () => {
-  return colors["default"].color;
+  return colors.default.color;
 };
 const getRegionHoverColor = () => {
-  return colors["normal"].color;
+  return colors.normal.color;
 };
 const isMatchCoffeeRegion = (source, target) => {
   return source.Nome_Prov_ === target.Nome_Prov_;

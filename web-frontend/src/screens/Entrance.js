@@ -1,11 +1,12 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { useAuth } from "@/context/AuthContext";
 import { useEffect } from "react";
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useNavigate } from "react-router-dom";
-import Login from "./Login";
-import SideBarComponent from "@/components/SidebarComponent";
 import Container from "@/components/Container";
+import SideBarComponent from "@/components/SidebarComponent";
+import { useAuth } from "@/context/AuthContext";
 import { loadImages } from "@/services/firebase";
+import Login from "./Login";
+
 function Entrance() {
   const { authState, isLoggedIn, setImageList } = useAuth();
   const navigate = useNavigate();
@@ -15,7 +16,7 @@ function Entrance() {
       navigate("/");
     }
     loadImages(setImageList);
-  }, []);
+  }, [authState?.authenticated, isLoggedIn, navigate, setImageList]);
   return _jsxs("div", {
     className: "flex flex-col gap-2 w-screen h-screen",
     children: [

@@ -23,4 +23,4 @@ const getItemAsync = async (key: string): Promise<string | null> => {
   return decryptedData;
 };
 
-export { setItemAsync, deleteItemAsync, getItemAsync };
+export { deleteItemAsync, getItemAsync, setItemAsync };

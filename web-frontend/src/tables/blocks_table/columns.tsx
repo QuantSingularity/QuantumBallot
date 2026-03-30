@@ -1,8 +1,8 @@
 "use client";
 
-import { Block } from "@/data_types";
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { Link } from "react-router-dom";
+import type { Block } from "@/data_types";
 
 export const columns: ColumnDef<Block>[] = [
   {
@@ -35,7 +35,7 @@ export const columns: ColumnDef<Block>[] = [
     accessorKey: "dateAndTime",
     header: "Date and Time",
     cell: ({ row }) => {
-      const x: number = parseInt(row.getValue("dateAndTime"));
+      const x: number = parseInt(row.getValue("dateAndTime"), 10);
       return new Date(x).toUTCString();
     },
   },

@@ -1,9 +1,8 @@
-import { jsx as _jsx } from "react/jsx-runtime";
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { createContext, useContext, useEffect, useState } from "react";
-import { setItemAsync, deleteItemAsync, getItemAsync } from "./SecureStore";
 import axios from "axios";
 import { addDays } from "date-fns";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { createContext, useContext, useEffect, useState } from "react";
+import { jsx as _jsx } from "react/jsx-runtime";
 import {
   REFRESH_TOKEN_KEY,
   TOKEN_KEY,
@@ -12,6 +11,8 @@ import {
   TOKEN_USERNAME,
 } from "@/global/globalVariables";
 import { loadImages } from "@/services/firebase";
+import { deleteItemAsync, getItemAsync, setItemAsync } from "./SecureStore";
+
 const provinces = [
   "Bengo",
   "Benguela",
@@ -65,7 +66,7 @@ export const AuthProvider = ({ children }) => {
       const name = await getItemAsync(TOKEN_NAME);
       const role = await getItemAsync(TOKEN_ROLE);
       if (token) {
-        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        axios.defaults.headers.common.Authorization = `Bearer ${token}`;
         setAuthState({
           token: token,
           authenticated: true,
@@ -82,7 +83,7 @@ export const AuthProvider = ({ children }) => {
     try {
       axios.defaults.withCredentials = true;
       const result = await axios.post(
-        URL + "/auth-web",
+        `${URL}/auth-web`,
         {
           username: username,
           password: password,
@@ -96,8 +97,7 @@ export const AuthProvider = ({ children }) => {
         name: result.data.name,
         role: result.data.role,
       });
-      axios.defaults.headers.common["Authorization"] =
-        `Bearer ${result.data.accessToken}`;
+      axios.defaults.headers.common.Authorization = `Bearer ${result.data.accessToken}`;
       await setItemAsync(TOKEN_KEY, result.data.accessToken);
       await setItemAsync(REFRESH_TOKEN_KEY, result.data.refreshToken);
       await setItemAsync(TOKEN_USERNAME, result.data.username);
@@ -112,7 +112,7 @@ export const AuthProvider = ({ children }) => {
     await deleteItemAsync(TOKEN_USERNAME);
     await deleteItemAsync(TOKEN_NAME);
     await deleteItemAsync(TOKEN_ROLE);
-    axios.defaults.headers.common["Authorization"] = "";
+    axios.defaults.headers.common.Authorization = "";
     setAuthState({
       token: null,
       authenticated: false,
@@ -125,8 +125,8 @@ export const AuthProvider = ({ children }) => {
     try {
       const refreshToken = await getItemAsync(REFRESH_TOKEN_KEY);
       axios.defaults.withCredentials = true;
-      axios.defaults.headers.common["Authorization"] = `Bearer ${refreshToken}`;
-      const response = await axios.get(URL + "/refresh-token-web", {
+      axios.defaults.headers.common.Authorization = `Bearer ${refreshToken}`;
+      const response = await axios.get(`${URL}/refresh-token-web`, {
         withCredentials: true,
       });
       const statusCode = response.status;
@@ -138,7 +138,7 @@ export const AuthProvider = ({ children }) => {
           token: token,
           authenticated: true,
         });
-        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        axios.defaults.headers.common.Authorization = `Bearer ${token}`;
         await setItemAsync(TOKEN_KEY, token);
         await setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
         return response;

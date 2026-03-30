@@ -1,5 +1,9 @@
 import { BottomNavigation } from "@components/BottomNavigation";
-import { createStackNavigator } from "@react-navigation/stack";
+import CameraQR from "@components/CameraQR";
+import {
+  createStackNavigator,
+  TransitionPresets,
+} from "@react-navigation/stack";
 import { CandidateDetails } from "@screens/CandidateDetails";
 import { Login } from "@screens/Login";
 import { Registration } from "@screens/Registration";
@@ -8,8 +12,6 @@ import { TwoFactor } from "@screens/TwoFactor";
 import { useEffect, useState } from "react";
 import { Button } from "react-native-paper";
 import { useAuth } from "src/context/AuthContext";
-import { TransitionPresets } from "@react-navigation/stack";
-import CameraQR from "@components/CameraQR";
 
 const { Navigator, Screen } = createStackNavigator();
 
@@ -18,13 +20,13 @@ export function AppRoutes() {
   const [activeScreen, setActiveScreen] = useState("Login");
 
   useEffect(() => {
-    isLoggedIn!();
+    isLoggedIn?.();
     if (!authState?.authenticated) {
       setActiveScreen("Login");
     } else {
       setActiveScreen("Menu");
     }
-  }, []);
+  }, [authState?.authenticated, isLoggedIn]);
 
   return (
     <Navigator

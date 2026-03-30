@@ -2,8 +2,8 @@
  * Comprehensive test suite for the crypto module
  */
 const CryptoBlockchain = require("../dist/crypto/cryptoBlockchain").default;
-const fs = require("fs");
-const crypto = require("crypto");
+const fs = require("node:fs");
+const crypto = require("node:crypto");
 
 // Mock fs.writeFileSync to avoid actual file writing during tests
 jest.mock("fs", () => ({

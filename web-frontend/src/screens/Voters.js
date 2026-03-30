@@ -2,6 +2,7 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { Toaster } from "@/components/toast/toaster";
 import { useToast } from "@/components/ui/use-toast";
 import TableVoters from "@/tables/voters_table/page";
+
 function Voters() {
   const { toast } = useToast();
   return _jsxs("div", {

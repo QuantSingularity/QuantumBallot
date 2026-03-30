@@ -1,8 +1,13 @@
-import { View, StyleSheet, Text, TouchableOpacity } from "react-native";
-import theme from "src/theme";
-import { StatusBar } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import { useEffect, useState } from "react";
+import {
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import theme from "src/theme";
 
 export default function ThankVote() {
   const [copied, setCopied] = useState(false);

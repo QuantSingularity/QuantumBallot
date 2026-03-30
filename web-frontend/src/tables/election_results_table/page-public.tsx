@@ -1,4 +1,4 @@
-import { CandidateResults } from "@/data_types";
+import type { CandidateResults } from "@/data_types";
 import { columns } from "./columns";
 import { DataTable } from "./data-table-public";
 

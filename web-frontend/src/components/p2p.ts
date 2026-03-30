@@ -49,7 +49,7 @@ class P2P {
     const requests = [];
     peers.forEach((x) => {
       const opt = {
-        url: x.url + "/register-node",
+        url: `${x.url}/register-node`,
         method: "post",
         data: data,
       };
@@ -61,7 +61,7 @@ class P2P {
       await Promise.all(requests)
         .then(() => {
           const opt = {
-            url: newNodeUrl + "/register-nodes-bulk",
+            url: `${newNodeUrl}/register-nodes-bulk`,
             method: "post",
             data: { nodes: [...peers, this.myPeer] },
           };

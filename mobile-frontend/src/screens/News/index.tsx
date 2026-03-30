@@ -1,10 +1,9 @@
-import React from "react";
 import {
-  View,
+  ScrollView,
   StyleSheet,
   Text,
-  ScrollView,
   TouchableOpacity,
+  View,
 } from "react-native";
 import theme from "src/theme";
 

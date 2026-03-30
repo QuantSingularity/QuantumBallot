@@ -1,8 +1,16 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import axios from "axios";
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useForm } from "react-hook-form";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -11,31 +19,24 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
+import { Input } from "@/components/ui/input";
 import {
   Select,
-  SelectTrigger,
-  SelectValue,
   SelectContent,
   SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import axios from "axios";
-import { Input } from "@/components/ui/input";
-import { uploadImage } from "@/services/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { GLOBAL_VARIABLES } from "@/global/globalVariables";
+import { uploadImage } from "@/services/firebase";
+
 const formSchema = z.object({
   name: z.string(),
   code: z.string().refine(
     (val) => {
       const num = Number(val);
-      return !isNaN(num) && num > 0;
+      return !Number.isNaN(num) && num > 0;
     },
     {
       message: "Code must be a number greater than 0",
@@ -154,8 +155,7 @@ export const CandidateForm = ({ defaultValues, onSubmitForm, mode }) => {
               _jsxs(FormItem, {
                 children: [
                   _jsx(FormLabel, {
-                    children:
-                      "Party Image " + (mode === "update" ? "(Optional)" : ""),
+                    children: `Party Image ${mode === "update" ? "(Optional)" : ""}`,
                   }),
                   _jsx(FormControl, {
                     children: _jsx(Input, {
@@ -243,8 +243,7 @@ export const CandidadeModal = ({
     console.log("part: ", data.partyImageFile, " | ", partyPhotoName);
     uploadImage(data.candidatePhotoFile, candidatePhotoName, setImageList);
     uploadImage(data.partyImageFile, partyPhotoName, setImageList);
-    const URL =
-      "http://" + GLOBAL_VARIABLES.LOCALHOST + "/api/committee/add-candidate";
+    const URL = `http://${GLOBAL_VARIABLES.LOCALHOST}/api/committee/add-candidate`;
     const body = {
       code: data.code,
       name: data.name,
@@ -287,8 +286,7 @@ export const CandidadeModal = ({
     console.log("part: ", data.partyImageFile, " | ", partyPhotoName);
     uploadImage(data.candidatePhotoFile, candidatePhotoName, setImageList);
     uploadImage(data.partyImageFile, partyPhotoName, setImageList);
-    const URL =
-      "http://" + GLOBAL_VARIABLES.LOCALHOST + "/api/committee/add-candidate";
+    const URL = `http://${GLOBAL_VARIABLES.LOCALHOST}/api/committee/add-candidate`;
     const body = {
       code: data.code,
       name: data.name,

@@ -1,13 +1,13 @@
-import BlockList from "@/components/blockchain-list/BlockList";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import JsonEditor from "@/components/json-editor/JsonEditor";
-import EditorRaw from "@/components/json-editor/EditorRaw";
-import { useParams } from "react-router-dom";
-import { GLOBAL_VARIABLES } from "@/global/globalVariables";
 import { useQuery } from "@tanstack/react-query";
-import TableTransactionsBlockDetails from "@/tables/transactions_block_details/page";
-import { BlockCopyButton } from "@/components/ui/block-copy-button";
 import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import BlockList from "@/components/blockchain-list/BlockList";
+import EditorRaw from "@/components/json-editor/EditorRaw";
+import JsonEditor from "@/components/json-editor/JsonEditor";
+import { BlockCopyButton } from "@/components/ui/block-copy-button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { GLOBAL_VARIABLES } from "@/global/globalVariables";
+import TableTransactionsBlockDetails from "@/tables/transactions_block_details/page";
 
 interface BlockDetailsData {
   // Define the structure of data fetched from API
@@ -69,7 +69,7 @@ function BlockchainDetails() {
 
   if (isLoading) return "Loading...";
 
-  if (error) return "An error has occurred: " + error.message;
+  if (error) return `An error has occurred: ${error.message}`;
 
   const blockItem = () => {
     const maxSize: number = 300;
@@ -126,7 +126,7 @@ function BlockchainDetails() {
   };
 
   const getDate = (str: string) => {
-    const x: number = parseInt(str);
+    const x: number = parseInt(str, 10);
     return new Date(x).toUTCString();
   };
 

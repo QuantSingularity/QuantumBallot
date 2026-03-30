@@ -1,4 +1,5 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -7,9 +8,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 export default function RevealModal({ isOpen, onOpenChange, identifier }) {
-  const revealVoter = () => {};
+  const _revealVoter = () => {};
   return _jsx(Dialog, {
     open: isOpen,
     onOpenChange: onOpenChange,

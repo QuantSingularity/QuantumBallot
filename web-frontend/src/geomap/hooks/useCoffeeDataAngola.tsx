@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import geoJson from "../assets/america.json";
+
 import { geoEquirectangular, geoPath } from "d3-geo";
-import { SVGProps } from "react";
+import type { SVGProps } from "react";
+import geoJson from "../assets/america.json";
 
 export interface ICoffeeDistributor {
   Rank: string;
@@ -43,8 +44,8 @@ const constructProvincies = (mapSize: [number, number]): IMapProvincy[] => {
   const americaCountry = geoJson.features.map((feature: any) => {
     const svgProps: SVGProps<SVGPathElement> = {
       d: geoPathGenerator(feature as any) || "",
-      stroke: colors["default"].color,
-      fill: colors["default"].color,
+      stroke: colors.default.color,
+      fill: colors.default.color,
     };
 
     const res: IMapProvincy = {
@@ -72,11 +73,11 @@ const getCoffeeRegionName = (region: string) => {
 };
 
 const getRegionColor = () => {
-  return colors["default"].color;
+  return colors.default.color;
 };
 
 const getRegionHoverColor = () => {
-  return colors["normal"].color;
+  return colors.normal.color;
 };
 
 const isMatchCoffeeRegion = (source: IMapProvincy, target: IMapProvincy) => {

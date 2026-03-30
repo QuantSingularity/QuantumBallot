@@ -1,6 +1,7 @@
 import * as crypto from "node:crypto";
-import fs from "fs";
+import fs from "node:fs";
 import dotenv from "dotenv";
+
 dotenv.config();
 
 class CryptoBlockchain {
@@ -38,7 +39,7 @@ class CryptoBlockchain {
 
   // Use the key to encrypt data.
   public encryptData(data: string) {
-    let cipher = crypto.createCipheriv(
+    const cipher = crypto.createCipheriv(
       this.algorithm,
       Buffer.from(this.KEY),
       this.IV,
@@ -55,9 +56,9 @@ class CryptoBlockchain {
   public decryptData(encryptedData: any): string {
     // console.log("EncryptedData: ", encryptedData);
 
-    let IV = Buffer.from(encryptedData.IV, "hex");
-    let encryptedText = Buffer.from(encryptedData.CIPHER_TEXT, "hex");
-    let decipher = crypto.createDecipheriv(
+    const IV = Buffer.from(encryptedData.IV, "hex");
+    const encryptedText = Buffer.from(encryptedData.CIPHER_TEXT, "hex");
+    const decipher = crypto.createDecipheriv(
       this.algorithm,
       Buffer.from(this.KEY),
       IV,

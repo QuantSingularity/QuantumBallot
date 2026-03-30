@@ -1,10 +1,9 @@
-import React from "react";
-import { render, fireEvent, waitFor, act } from "@testing-library/react-native";
-import { Groups } from "../../src/screens/Groups";
+import { useNavigation } from "@react-navigation/native";
+import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { Alert } from "react-native";
 import axios from "../../src/api/axios";
 import { useAuth } from "../../src/context/AuthContext";
-import { useNavigation } from "@react-navigation/native";
+import { Groups } from "../../src/screens/Groups";
 
 // Mock dependencies
 jest.mock("../../src/api/axios");

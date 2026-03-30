@@ -1,6 +1,7 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { useRef } from "react";
 import { Editor } from "@monaco-editor/react";
+import { useRef } from "react";
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+
 const JsonEditor = ({ data }) => {
   const editorRef = useRef();
   const language = "json";

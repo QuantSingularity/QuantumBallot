@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from "react";
+import { useNavigation } from "@react-navigation/native";
+import { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
   ActivityIndicator,
+  Alert,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { Button, Card, RadioButton } from "react-native-paper";
-import { useNavigation } from "@react-navigation/native";
 import axios from "src/api/axios";
 import { Config } from "../../constants/config";
 import { useAuth } from "../../context/AuthContext";
@@ -41,7 +41,7 @@ export function Groups() {
 
   useEffect(() => {
     initializeVotingScreen();
-  }, []);
+  }, [initializeVotingScreen]);
 
   const initializeVotingScreen = async () => {
     setLoading(true);
@@ -63,7 +63,7 @@ export function Groups() {
   const fetchCandidates = async () => {
     try {
       const response = await axios.get(Config.ENDPOINTS.CANDIDATES);
-      if (response.data && response.data.candidates) {
+      if (response.data?.candidates) {
         setCandidates(response.data.candidates);
       }
     } catch (error: any) {
@@ -80,7 +80,7 @@ export function Groups() {
   const fetchAnnouncement = async () => {
     try {
       const response = await axios.get(Config.ENDPOINTS.ANNOUNCEMENT);
-      if (response.data && response.data.announcement) {
+      if (response.data?.announcement) {
         setAnnouncement(response.data.announcement);
       }
     } catch (error: any) {

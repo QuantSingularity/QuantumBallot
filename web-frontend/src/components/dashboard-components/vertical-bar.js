@@ -1,16 +1,16 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-/* eslint-disable react-hooks/exhaustive-deps */
-import { useAuth } from "@/context/AuthContext";
 import { useEffect, useState } from "react";
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import {
-  BarChart,
   Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
 } from "recharts";
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useAuth } from "@/context/AuthContext";
 export default function VerticalBars() {
   const { topVotesPerProvinces, provinces } = useAuth();
   const [dataset, setDataset] = useState([
@@ -107,7 +107,7 @@ export default function VerticalBars() {
           (u) => u.province === x.province,
         );
         const numberOfVotes = topVotesProvince
-          ? parseInt(topVotesProvince.number)
+          ? parseInt(topVotesProvince.number, 10)
           : 0;
         return {
           ...x,
@@ -117,7 +117,7 @@ export default function VerticalBars() {
       });
       setDataset(val);
     }
-  }, [topVotesPerProvinces]);
+  }, [topVotesPerProvinces, dataset.map]);
   if (topVotesPerProvinces === undefined)
     return _jsx("div", { children: "Loading ..." });
   return _jsxs("div", {

@@ -1,19 +1,19 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { GLOBAL_VARIABLES } from "@/global/globalVariables";
-import { columns, Citizen } from "./columns";
-import { DataTable } from "./data-table";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { GLOBAL_VARIABLES } from "@/global/globalVariables";
+import { type Citizen, columns } from "./columns";
+import { DataTable } from "./data-table";
 
 function TablePopulation({ toast }: any) {
   const [data, setData] = useState<Citizen[]>([]);
 
   const onLoadPopulationData = async () => {
     await axios
-      .get("http://" + GLOBAL_VARIABLES.LOCALHOST + "/api/committee/registers")
+      .get(`http://${GLOBAL_VARIABLES.LOCALHOST}/api/committee/registers`)
       .then((response) => {
         const data = response.data;
         if (data) {
@@ -56,7 +56,7 @@ function TablePopulation({ toast }: any) {
 
   useEffect(() => {
     onLoadPopulationData();
-  }, []);
+  }, [onLoadPopulationData]);
 
   return (
     <section>

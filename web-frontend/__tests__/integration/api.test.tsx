@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import axios from "axios";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { api, api_private, getApiBaseUrl, getApiUrl } from "@/services/api";
 
 vi.mock("axios");
@@ -43,7 +43,7 @@ describe("API Service", () => {
 
       (axios.create as any) = mockCreate;
 
-      const instance = await api_private();
+      const _instance = await api_private();
 
       expect(mockCreate).toHaveBeenCalledWith(
         expect.objectContaining({

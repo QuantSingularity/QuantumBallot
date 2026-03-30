@@ -1,13 +1,13 @@
-import { StyleSheet, View } from "react-native";
-import { useEffect, useState } from "react";
+import { CandidatesList } from "@components/CandidatesList";
 import { HeaderElection } from "@components/HeaderElection";
 import { LiveProjection } from "@components/LiveProjection";
-import { CandidatesList } from "@components/CandidatesList";
+import { useEffect, useState } from "react";
+import { StyleSheet, View } from "react-native";
 import { useAuth } from "src/context/AuthContext";
 
 export function Candidates({ navigation }: any) {
   const { authState, isLoggedIn } = useAuth();
-  const [activeScreen, setActiveScreen] = useState("Login");
+  const [_activeScreen, setActiveScreen] = useState("Login");
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -19,7 +19,7 @@ export function Candidates({ navigation }: any) {
       }
     };
     checkAuth();
-  }, [authState]);
+  }, [authState, isLoggedIn]);
 
   return (
     <View style={styles.container}>

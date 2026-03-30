@@ -1,13 +1,13 @@
+import { useEffect } from "react";
 import { LoginAccountCard } from "@/components/login-account-card";
 import { useAuth } from "@/context/AuthContext";
-import { useEffect } from "react";
 import AmericaIcon from "../assets/americaIcon.svg";
 
 function Login() {
   const { onLogOut } = useAuth();
 
   useEffect(() => {
-    onLogOut!();
+    onLogOut?.();
   }, [onLogOut]);
 
   return (

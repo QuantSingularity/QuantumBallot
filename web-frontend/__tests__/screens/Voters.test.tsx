@@ -1,8 +1,8 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { vi } from "vitest";
-import { BrowserRouter } from "react-router-dom";
-import Voters from "@/screens/Voters";
+import { fireEvent, render, screen } from "@testing-library/react";
 import axios from "axios";
+import { BrowserRouter } from "react-router-dom";
+import { vi } from "vitest";
+import Voters from "@/screens/Voters";
 
 // Mock components used in Voters screen
 vi.mock("@/tables/voters_table/page", () => ({

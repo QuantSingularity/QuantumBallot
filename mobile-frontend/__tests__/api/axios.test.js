@@ -1,33 +1,34 @@
 /**
  * Tests for axios API client
  */
-import { mockAxios } from "../fixtures/mockAxios";
+
 import axios from "src/api/axios";
+import { mockAxios } from "../fixtures/mockAxios";
 
 describe("Axios API Client", () => {
   beforeEach(() => {
     mockAxios.mockClear();
-    mockAxios.defaults.headers.common["Authorization"] = "";
-    mockAxios.defaults.headers.common["Cookie"] = "";
+    mockAxios.defaults.headers.common.Authorization = "";
+    mockAxios.defaults.headers.common.Cookie = "";
   });
 
   test("has correct default configuration", () => {
-    expect(axios.defaults.headers.common["Authorization"]).toBe("");
-    expect(axios.defaults.headers.common["Cookie"]).toBe("");
+    expect(axios.defaults.headers.common.Authorization).toBe("");
+    expect(axios.defaults.headers.common.Cookie).toBe("");
   });
 
   test("can set authorization header", () => {
     const token = "test-token";
-    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    expect(axios.defaults.headers.common["Authorization"]).toBe(
+    axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+    expect(axios.defaults.headers.common.Authorization).toBe(
       "Bearer test-token",
     );
   });
 
   test("can set cookie header", () => {
     const token = "test-token";
-    axios.defaults.headers.common["Cookie"] = `jwt=${token}`;
-    expect(axios.defaults.headers.common["Cookie"]).toBe("jwt=test-token");
+    axios.defaults.headers.common.Cookie = `jwt=${token}`;
+    expect(axios.defaults.headers.common.Cookie).toBe("jwt=test-token");
   });
 
   test("handles GET requests", async () => {

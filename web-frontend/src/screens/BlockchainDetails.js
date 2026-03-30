@@ -1,15 +1,16 @@
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useParams } from "react-router-dom";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import BlockList from "@/components/blockchain-list/BlockList";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import JsonEditor from "@/components/json-editor/JsonEditor";
 import EditorRaw from "@/components/json-editor/EditorRaw";
-import { useParams } from "react-router-dom";
-import { GLOBAL_VARIABLES } from "@/global/globalVariables";
-import { useQuery } from "@tanstack/react-query";
-import TableTransactionsBlockDetails from "@/tables/transactions_block_details/page";
+import JsonEditor from "@/components/json-editor/JsonEditor";
 import { BlockCopyButton } from "@/components/ui/block-copy-button";
-import { useEffect, useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { GLOBAL_VARIABLES } from "@/global/globalVariables";
+import TableTransactionsBlockDetails from "@/tables/transactions_block_details/page";
+
 function BlockchainDetails() {
   const { id } = useParams();
   const [blockHash, setBlockHash] = useState("");
@@ -29,7 +30,7 @@ function BlockchainDetails() {
     if (data) {
       handleRefresh();
     }
-  }, [data]);
+  }, [data, handleRefresh]);
   const handleRefresh = () => {
     setBlockHeader(data.blockHeader);
     setBlockSize(data.blockSize);
@@ -40,9 +41,9 @@ function BlockchainDetails() {
     console.log("ID changed ...");
     setBlockHash(id ?? "");
     refetch();
-  }, [id]);
+  }, [id, refetch]);
   if (isLoading) return "Loading...";
-  if (error) return "An error has occurred: " + error.message;
+  if (error) return `An error has occurred: ${error.message}`;
   const blockItem = () => {
     const maxSize = 300;
     const perc =
@@ -94,7 +95,7 @@ function BlockchainDetails() {
     });
   };
   const getDate = (str) => {
-    const x = parseInt(str);
+    const x = parseInt(str, 10);
     return new Date(x).toUTCString();
   };
   const itemStyle =

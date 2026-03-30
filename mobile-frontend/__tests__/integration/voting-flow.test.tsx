@@ -3,14 +3,13 @@
  * Tests the entire user journey from login to vote submission
  */
 
-import React from "react";
-import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import { NavigationContainer } from "@react-navigation/native";
-import { AppRoutes } from "../../src/routes/app.routes";
-import { AuthProvider } from "../../src/context/AuthContext";
-import axios from "../../src/api/axios";
+import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import * as SecureStore from "expo-secure-store";
 import { Alert } from "react-native";
+import axios from "../../src/api/axios";
+import { AuthProvider } from "../../src/context/AuthContext";
+import { AppRoutes } from "../../src/routes/app.routes";
 
 // Mock dependencies
 jest.mock("../../src/api/axios");

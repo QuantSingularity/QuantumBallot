@@ -44,7 +44,7 @@ export const columns = [
     accessorKey: "voteTime",
     header: "Date and Time",
     cell: ({ row }) => {
-      const x = parseInt(row.getValue("voteTime"));
+      const x = parseInt(row.getValue("voteTime"), 10);
       return new Date(x).toUTCString();
     },
   },

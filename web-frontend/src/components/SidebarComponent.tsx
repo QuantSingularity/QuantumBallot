@@ -1,20 +1,18 @@
-import { HiChartPie } from "react-icons/hi";
-import { GiPublicSpeaker } from "react-icons/gi";
-import { HiSpeakerphone } from "react-icons/hi";
-import { MdOutlineOutput } from "react-icons/md";
-import { FaUsers } from "react-icons/fa6";
-import { FaMoon } from "react-icons/fa";
-import { IoSettings } from "react-icons/io5";
-import { SiHiveBlockchain } from "react-icons/si";
-import { BiLogOutCircle } from "react-icons/bi";
-import { Link } from "react-router-dom";
-import { VscRepoPull } from "react-icons/vsc";
-import { BsClipboardData } from "react-icons/bs";
-import BlockchainIcon from "../assets/blockchain_icon.svg";
-import { useAuth } from "@/context/AuthContext";
-import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { BiLogOutCircle } from "react-icons/bi";
+import { BsClipboardData } from "react-icons/bs";
+import { FaMoon } from "react-icons/fa";
+import { FaUsers } from "react-icons/fa6";
+import { GiPublicSpeaker } from "react-icons/gi";
+import { HiChartPie, HiSpeakerphone } from "react-icons/hi";
+import { IoSettings } from "react-icons/io5";
+import { MdOutlineOutput } from "react-icons/md";
+import { SiHiveBlockchain } from "react-icons/si";
+import { VscRepoPull } from "react-icons/vsc";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 import { Role } from "@/data_types";
+import BlockchainIcon from "../assets/blockchain_icon.svg";
 
 function SideBarComponent() {
   const linkStyle =
@@ -28,17 +26,17 @@ function SideBarComponent() {
   const [url, setUrl] = useState();
 
   const onLogOutUser = () => {
-    onLogOut!();
+    onLogOut?.();
     navigate("/");
   };
 
   useEffect(() => {
-    if (!authState || !authState.username) {
+    if (!authState?.username) {
       return;
     }
 
     const userPhotoName = authState.name.toLowerCase().split(" ").join(".");
-    if (imageList && imageList[userPhotoName]) {
+    if (imageList?.[userPhotoName]) {
       setUrl(imageList[userPhotoName] ?? "default");
     }
   }, [authState, imageList]);

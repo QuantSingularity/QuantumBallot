@@ -75,7 +75,7 @@ class Logger {
     }
   }
 
-  private sendToExternalService(entry: LogEntry): void {
+  private sendToExternalService(_entry: LogEntry): void {
     // Implement external logging service integration here
     // e.g., Sentry, LogRocket, DataDog, etc.
   }

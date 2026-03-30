@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from "react";
+import { Camera, CameraView } from "expo-camera";
+import { CaretLeft } from "phosphor-react-native";
+import { useEffect, useState } from "react";
 import {
-  Text,
-  View,
-  StyleSheet,
   Button,
-  TouchableOpacity,
   Platform,
   StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { CameraView, Camera } from "expo-camera";
-import { CaretLeft } from "phosphor-react-native";
 
 export default function CameraQR({ navigation, route }: any) {
   const { secret } = route.params;

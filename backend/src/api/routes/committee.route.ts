@@ -1,13 +1,14 @@
+import type { Request, Response } from "express";
 import Committee from "../../committee/committee";
-import { Request, Response } from "express";
-import { Otp, PROVINCES_PORT } from "../../committee/data_types";
+import { PROVINCES_PORT } from "../../committee/data_types";
 import emailTemplate from "../../email_center/emailTemplate";
 import sendEmail from "../../email_center/sendEmail";
+
 const jwt = require("jsonwebtoken");
 
-const axios = require("axios");
-const LOCALHOST = "http://localhost:";
-const NODE_ADDRESS = "?"; //Let's assume we already know comming from the higher level.
+const _axios = require("axios");
+const _LOCALHOST = "http://localhost:";
+const _NODE_ADDRESS = "?"; //Let's assume we already know comming from the higher level.
 
 const dotenv = require("dotenv");
 dotenv.config();
@@ -22,29 +23,29 @@ const cookieParser = require("cookie-parser");
 // middleware for cookies
 express().use(cookieParser());
 
-router.get("/", (req: Request, res: Response) => {
+router.get("/", (_req: Request, res: Response) => {
   res.status(401).json({});
 });
 
-router.get("/registers", (req: Request, res: Response) => {
+router.get("/registers", (_req: Request, res: Response) => {
   res.json({
     registers: committee.getCitizens(),
     note: "Request accepted ...",
   });
 });
 
-router.get("/generate-identifiers", async (req: Request, res: Response) => {
+router.get("/generate-identifiers", async (_req: Request, res: Response) => {
   const ans = await committee.generateIdentifiers();
   res.json({ voters: ans, note: "Request accepted ..." });
 });
 
 router.post("/add-candidate", async (req: Request, res: Response) => {
-  let data = req.body;
+  const data = req.body;
   if (!data.name || !data.party || !data.code)
     return res.status(400).json({ note: "Rejected." }); // Changed status code to 400 for client errors
 
   const name = data.name;
-  const code = parseInt(data.code);
+  const code = parseInt(data.code, 10);
   const party = data.party;
   const acronym = data.acronym;
   const status = data.status;
@@ -67,7 +68,7 @@ router.post("/add-candidate", async (req: Request, res: Response) => {
 });
 
 router.post("/add-user", async (req: Request, res: Response) => {
-  let data = req.body;
+  const data = req.body;
   if (!data.name || !data.username || !data.role || !data.password)
     return res.status(400).json({ note: "Rejected." }); // Changed status code to 400 for client errors
 
@@ -82,14 +83,14 @@ router.post("/add-user", async (req: Request, res: Response) => {
   }
 });
 
-router.get("/clear-candidates", async (req: Request, res: Response) => {
+router.get("/clear-candidates", async (_req: Request, res: Response) => {
   res.json({
     candidates: committee.clearCandidates(),
     note: "Request accepted ...",
   });
 });
 
-router.get("/candidates", async (req: Request, res: Response) => {
+router.get("/candidates", async (_req: Request, res: Response) => {
   const ans = await committee.getCandidates();
   if (ans !== null && ans !== undefined) {
     res.json({ candidates: ans, note: "Request accepted ..." });
@@ -99,7 +100,7 @@ router.get("/candidates", async (req: Request, res: Response) => {
 });
 
 // status(400)
-router.get("/announcement", async (req: Request, res: Response) => {
+router.get("/announcement", async (_req: Request, res: Response) => {
   const ans = await committee.getAnnouncement();
   if (ans !== null && ans !== undefined) {
     res.json({ announcement: ans, note: "Request accepted ..." });
@@ -109,7 +110,7 @@ router.get("/announcement", async (req: Request, res: Response) => {
 });
 
 router.post("/deploy-announcement", async (req: Request, res: Response) => {
-  let data = req.body;
+  const data = req.body;
   if (
     !data.startTimeVoting ||
     !data.endTimeVoting ||
@@ -129,7 +130,7 @@ router.post("/deploy-announcement", async (req: Request, res: Response) => {
   }
 });
 
-router.get("/users", async (req: Request, res: Response) => {
+router.get("/users", async (_req: Request, res: Response) => {
   const ans = await committee.getUsers();
   if (ans !== null && ans !== undefined) {
     res.json({ users: ans, note: "Request accepted ..." });
@@ -138,24 +139,24 @@ router.get("/users", async (req: Request, res: Response) => {
   }
 });
 
-router.get("/voter-identifiers", async (req: Request, res: Response) => {
+router.get("/voter-identifiers", async (_req: Request, res: Response) => {
   const ans = await committee.getVotersGenerated();
   res.json({ registers: ans, note: "Request accepted ..." });
 });
 
-router.get("/clear-registers", (req: Request, res: Response) => {
+router.get("/clear-registers", (_req: Request, res: Response) => {
   res.json({
     registers: committee.eraseCitzens(),
     note: "Request accepted ...",
   });
 });
 
-router.get("/clear-users", (req: Request, res: Response) => {
+router.get("/clear-users", (_req: Request, res: Response) => {
   res.json({ users: committee.eraseUsers(), note: "Request accepted ..." });
 });
 
 router.post("/delete-user", async (req: Request, res: Response) => {
-  let data = req.body;
+  const data = req.body;
   if (!data.username) return res.status(400).json({ note: "Rejected." }); // Changed status code to 400 for client errors
   const username = data.username;
   const ans = await committee.eraseUser(username);
@@ -168,7 +169,7 @@ router.post("/delete-user", async (req: Request, res: Response) => {
 });
 
 router.post("/delete-register", async (req: Request, res: Response) => {
-  let data = req.body;
+  const data = req.body;
   if (!data.electoralId) return res.status(400).json({ note: "Rejected." }); // Changed status code to 400 for client errors
   const electoralId = data.electoralId;
   const ans = await committee.eraseRegister(electoralId);
@@ -181,7 +182,7 @@ router.post("/delete-register", async (req: Request, res: Response) => {
 });
 
 router.post("/register-voter", async (req: Request, res: Response) => {
-  let data = req.body;
+  const data = req.body;
   if (
     !data.electoralId ||
     !data.name ||
@@ -210,7 +211,7 @@ router.post("/register-voter", async (req: Request, res: Response) => {
 });
 
 router.post("/update-citizen", async (req: Request, res: Response) => {
-  let data = req.body;
+  const data = req.body;
   if (
     !data.electoralId ||
     !data.name ||
@@ -240,7 +241,7 @@ const credentials = require("../../middleware/credentials");
 express().use(credentials);
 
 router.post("/update-user", async (req: Request, res: Response) => {
-  let data = req.body;
+  const data = req.body;
   if (!data.name || !data.username || !data.role)
     return res.status(400).json({ note: "Rejected." }); // Changed status code to 400 for client errors
 
@@ -272,7 +273,7 @@ router.post("/send-email", async (req: Request, res: Response) => {
       return res.status(404).json({ note: "Rejected. Citizen not found." }); // Return 404 if citizen not found
 
     const otp = citizen.otp;
-    const textContent = "Your otp details: " + JSON.stringify(otp);
+    const textContent = `Your otp details: ${JSON.stringify(otp)}`;
 
     let textQRCode = "";
     let htmlContent = "";
@@ -285,7 +286,7 @@ router.post("/send-email", async (req: Request, res: Response) => {
       } else {
         console.log("Failed to generate QR code.");
       }
-    } catch (error: any) {
+    } catch (_error: any) {
       // console.error("Error generating QR code:", error);
     }
 
@@ -293,7 +294,7 @@ router.post("/send-email", async (req: Request, res: Response) => {
 
     try {
       await sendEmail(email, textContent, htmlContent);
-    } catch (error: any) {
+    } catch (_error: any) {
       // console.error(error);
       ans = false;
     }
@@ -303,7 +304,7 @@ router.post("/send-email", async (req: Request, res: Response) => {
     } else {
       res.status(500).json({ note: "Rejected. Failed to send email." });
     }
-  } catch (error: any) {
+  } catch (_error: any) {
     // console.error(error);
     res.status(500).json({ note: "Rejected. Internal server error." });
   }
@@ -319,7 +320,7 @@ router.post("/verify-otp", verifyJWT, async (req, res) => {
 
   try {
     const email = data.email;
-    const token = data.token; // I only needed to pass the jwt verification.
+    const _token = data.token; // I only needed to pass the jwt verification.
     const otpCode = data.otpCode;
     const citizen = committee
       .getCitizens()
@@ -349,9 +350,9 @@ router.post("/verify-otp", verifyJWT, async (req, res) => {
 express().use(verifyJWT);
 
 router.post("/auth-mobile", async (req: Request, res: Response) => {
-  let data = req.body;
-  let electoralId = data.electoralId;
-  let password = data.password;
+  const data = req.body;
+  const electoralId = data.electoralId;
+  const password = data.password;
 
   if (!electoralId || !password)
     return res.status(500).json({ message: "Something went wrong." });
@@ -392,16 +393,16 @@ router.post("/auth-mobile", async (req: Request, res: Response) => {
     } else {
       return res.send({ note: "Rejected. Something went wrong ..." });
     }
-  } catch (error: any) {
+  } catch (_error: any) {
     res.status(500).send({ note: "Internal server error" });
   }
 });
 
 express().use(verifyJWTWeb);
 router.post("/auth-web", async (req: Request, res: Response) => {
-  let data = req.body;
-  let username = data.username;
-  let password = data.password;
+  const data = req.body;
+  const username = data.username;
+  const password = data.password;
 
   if (!username || !password)
     return res.status(500).json({ message: "Something went wrong." });
@@ -444,7 +445,7 @@ router.post("/auth-web", async (req: Request, res: Response) => {
     } else {
       return res.send({ note: "Rejected. Something went wrong ..." });
     }
-  } catch (error: any) {
+  } catch (_error: any) {
     res.status(500).send({ note: "Internal server error" });
   }
 });
@@ -483,14 +484,14 @@ router.get("/refresh-token", verifyJWT, (req, res) => {
         return res.status(200).json({ accessToken }); // Send JSON response containing access token
       },
     );
-  } catch (error: any) {
+  } catch (_error: any) {
     return res.sendStatus(500); // Forbidden
   }
 });
 
 router.get("/refresh-token-web", async (req: Request, res: Response) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.split(" ")[1];
   // console.log("token: ", token);
 
   if (token == null) return res.sendStatus(401);
@@ -545,7 +546,7 @@ router.get("/refresh-token-web", async (req: Request, res: Response) => {
           .send({ accessToken: accessToken, refreshToken: refreshToken });
       },
     );
-  } catch (error: any) {
+  } catch (_error: any) {
     return res.sendStatus(500); //Forbidden
   }
 });

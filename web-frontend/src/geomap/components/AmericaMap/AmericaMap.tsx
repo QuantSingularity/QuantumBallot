@@ -1,9 +1,9 @@
 import useCoffeeDataAmerica, {
-  IMapProvincy,
+  type IMapProvincy,
 } from "../../hooks/useCoffeeDataAmerica";
 
 import "./AmericaMap.scss";
-import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Tooltip from "../Tooltip/Tooltip";
 
@@ -25,7 +25,7 @@ export default function AmericaMap() {
 
   const mapSize: [number, number] = useMemo(() => {
     return [width || 0, height || 0];
-  }, [height, width]);
+  }, []);
 
   const handleMouseOverCountry = (
     evt: React.MouseEvent<SVGPathElement, MouseEvent>,
@@ -33,8 +33,8 @@ export default function AmericaMap() {
   ) => {
     if (tooltip?.current) {
       tooltip.current.style.display = "block";
-      tooltip.current.style.left = evt.pageX + 10 + "px";
-      tooltip.current.style.top = evt.pageY + 10 + "px";
+      tooltip.current.style.left = `${evt.pageX + 10}px`;
+      tooltip.current.style.top = `${evt.pageY + 10}px`;
       setTooltipContent(renderTooltipContent(provincy));
     }
 
@@ -83,26 +83,25 @@ export default function AmericaMap() {
         <div className="p-3">
           <div className="WorldMap--tooltip--content">
             <ul>
-              {partiesData &&
-                partiesData.map((e: string, index: number) => {
-                  if (
-                    mapData[provincy.Nome_Prov_] !== undefined &&
-                    mapData[provincy.Nome_Prov_][e] !== undefined
-                  ) {
-                    return (
-                      <li key={index}>
-                        {e + ": "}
-                        {mapData[provincy.Nome_Prov_][e]}
-                      </li>
-                    );
-                  }
-                  return null;
-                })}
+              {partiesData?.map((e: string, index: number) => {
+                if (
+                  mapData[provincy.Nome_Prov_] !== undefined &&
+                  mapData[provincy.Nome_Prov_][e] !== undefined
+                ) {
+                  return (
+                    <li key={index}>
+                      {`${e}: `}
+                      {mapData[provincy.Nome_Prov_][e]}
+                    </li>
+                  );
+                }
+                return null;
+              })}
 
               {mapData[provincy.Nome_Prov_] &&
-                mapData[provincy.Nome_Prov_]["sum"] !== undefined && (
+                mapData[provincy.Nome_Prov_].sum !== undefined && (
                   <span key={100}>
-                    Total # of votes: {mapData[provincy.Nome_Prov_]["sum"]}
+                    Total # of votes: {mapData[provincy.Nome_Prov_].sum}
                   </span>
                 )}
             </ul>
@@ -129,20 +128,19 @@ export default function AmericaMap() {
         height={mapSize[1]}
         stroke="black"
       >
-        {mapProvincies &&
-          mapProvincies.map((provincy) => {
-            return (
-              <path
-                id={provincy.OBJECTID.toString()}
-                key={provincy.Nome_Prov_}
-                {...provincy.svg}
-                onMouseMove={(e) => handleMouseOverCountry(e, provincy)}
-                onMouseLeave={() => handleMouseLeaveCountry()}
-                stroke="white"
-                strokeWidth={0.5}
-              />
-            );
-          })}
+        {mapProvincies?.map((provincy) => {
+          return (
+            <path
+              id={provincy.OBJECTID.toString()}
+              key={provincy.Nome_Prov_}
+              {...provincy.svg}
+              onMouseMove={(e) => handleMouseOverCountry(e, provincy)}
+              onMouseLeave={() => handleMouseLeaveCountry()}
+              stroke="white"
+              strokeWidth={0.5}
+            />
+          );
+        })}
       </svg>
     </div>
   );

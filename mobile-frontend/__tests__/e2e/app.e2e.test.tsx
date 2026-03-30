@@ -3,10 +3,7 @@
  * This tests the app's ability to launch and navigate between screens
  */
 
-import React from "react";
-import { render, fireEvent, waitFor } from "@testing-library/react-native";
-import { NavigationContainer } from "@react-navigation/native";
-import { Provider as PaperProvider } from "react-native-paper";
+import { render, waitFor } from "@testing-library/react-native";
 import App from "../../App";
 
 // Mock native modules

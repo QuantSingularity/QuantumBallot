@@ -1,6 +1,6 @@
-import { Image, StyleSheet, View, Text, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect } from "react";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 type ItemProps = {
   id: number;
@@ -43,7 +43,7 @@ export function CandidateItem({
     if (isFactor) {
       onPress();
     }
-  }, []);
+  }, [isFactor, onPress]);
 
   const onPressName = () => {
     if (xTexts[id] === "X") {

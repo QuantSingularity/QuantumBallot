@@ -1,16 +1,17 @@
+import axios from "axios";
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { Button } from "@/components/ui/button";
 import { GLOBAL_VARIABLES, TOKEN_KEY } from "@/global/globalVariables";
 import TableElectionResults from "@/tables/election_results_table/page";
-import axios from "axios";
 import "../style.css";
 import { useEffect, useState } from "react";
-import { getItemAsync } from "@/context/SecureStore";
 import { useAuth } from "@/context/AuthContext";
+import { getItemAsync } from "@/context/SecureStore";
+
 function ElectionResults() {
   useEffect(() => {
     onPressLoadResultsComputed();
-  }, []);
+  }, [onPressLoadResultsComputed]);
   const [data, setData] = useState();
   const { imageList, setImageList } = useAuth();
   const onPressLoadResultsComputed = () => {
@@ -57,12 +58,11 @@ function ElectionResults() {
   const onPressLoadResults = async () => {
     const token = await getItemAsync(TOKEN_KEY);
     axios.defaults.withCredentials = true;
-    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    axios.defaults.headers.common.Authorization = `Bearer ${token}`;
     axios
-      .get(
-        "http://" + GLOBAL_VARIABLES.LOCALHOST + "/api/blockchain/get-results",
-        { withCredentials: true },
-      )
+      .get(`http://${GLOBAL_VARIABLES.LOCALHOST}/api/blockchain/get-results`, {
+        withCredentials: true,
+      })
       .then((response) => {
         const results = response.data;
         if (results !== undefined) {

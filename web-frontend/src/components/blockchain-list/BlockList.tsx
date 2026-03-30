@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { GLOBAL_VARIABLES } from "@/global/globalVariables";
+
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
+import { GLOBAL_VARIABLES } from "@/global/globalVariables";
 
 interface Block {
   id: number;
@@ -167,7 +168,7 @@ const CardItem = ({
 };
 
 export default function BlockList() {
-  const URI = "http://" + GLOBAL_VARIABLES.LOCALHOST + "/api/blockchain/blocks";
+  const URI = `http://${GLOBAL_VARIABLES.LOCALHOST}/api/blockchain/blocks`;
 
   const { isLoading, error, data, refetch } = useQuery({
     queryKey: ["block-list"],
@@ -184,7 +185,7 @@ export default function BlockList() {
 
   if (isLoading) return "Loading...";
 
-  if (error) return "An error has occurred: " + error.message;
+  if (error) return `An error has occurred: ${error.message}`;
 
   return (
     <div className="flex">

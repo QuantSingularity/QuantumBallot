@@ -1,17 +1,18 @@
+import axios from "axios";
+import { useEffect, useState } from "react";
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { Button } from "@/components/ui/button";
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { GLOBAL_VARIABLES } from "@/global/globalVariables";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
-import axios from "axios";
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
+
 function TablePopulation({ toast }) {
   const [data, setData] = useState([]);
   const onLoadPopulationData = async () => {
     await axios
-      .get("http://" + GLOBAL_VARIABLES.LOCALHOST + "/api/committee/registers")
+      .get(`http://${GLOBAL_VARIABLES.LOCALHOST}/api/committee/registers`)
       .then((response) => {
         const data = response.data;
         if (data) {
@@ -50,7 +51,7 @@ function TablePopulation({ toast }) {
   };
   useEffect(() => {
     onLoadPopulationData();
-  }, []);
+  }, [onLoadPopulationData]);
   return _jsxs("section", {
     children: [
       _jsx(Button, {

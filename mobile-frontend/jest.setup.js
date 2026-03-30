@@ -1,7 +1,7 @@
 // Jest setup file
 import "@testing-library/jest-native/extend-expect";
-import { mockSecureStore } from "./__tests__/fixtures/mockSecureStore";
 import { mockAxios } from "./__tests__/fixtures/mockAxios";
+import { mockSecureStore } from "./__tests__/fixtures/mockSecureStore";
 
 // Mock expo-secure-store
 jest.mock("expo-secure-store", () => mockSecureStore);

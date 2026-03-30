@@ -1,21 +1,20 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { HiChartPie } from "react-icons/hi";
-import { GiPublicSpeaker } from "react-icons/gi";
-import { HiSpeakerphone } from "react-icons/hi";
-import { MdOutlineOutput } from "react-icons/md";
-import { FaUsers } from "react-icons/fa6";
-import { FaMoon } from "react-icons/fa";
-import { IoSettings } from "react-icons/io5";
-import { SiHiveBlockchain } from "react-icons/si";
-import { BiLogOutCircle } from "react-icons/bi";
-import { Link } from "react-router-dom";
-import { VscRepoPull } from "react-icons/vsc";
-import { BsClipboardData } from "react-icons/bs";
-import BlockchainIcon from "../assets/blockchain_icon.svg";
-import { useAuth } from "@/context/AuthContext";
-import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { BiLogOutCircle } from "react-icons/bi";
+import { BsClipboardData } from "react-icons/bs";
+import { FaMoon } from "react-icons/fa";
+import { FaUsers } from "react-icons/fa6";
+import { GiPublicSpeaker } from "react-icons/gi";
+import { HiChartPie, HiSpeakerphone } from "react-icons/hi";
+import { IoSettings } from "react-icons/io5";
+import { MdOutlineOutput } from "react-icons/md";
+import { SiHiveBlockchain } from "react-icons/si";
+import { VscRepoPull } from "react-icons/vsc";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 import { Role } from "@/data_types";
+import BlockchainIcon from "../assets/blockchain_icon.svg";
+
 function SideBarComponent() {
   const linkStyle =
     "flex items-center p-2 text-base font-normal text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700";
@@ -25,7 +24,7 @@ function SideBarComponent() {
   const { authState, onLogOut, imageList } = useAuth();
   const navigate = useNavigate();
   const [url, setUrl] = useState();
-  if (!authState || !authState.username) {
+  if (!authState?.username) {
     return _jsx("div", { children: "Loading ..." });
   }
   const onLogOutUser = () => {
@@ -34,10 +33,10 @@ function SideBarComponent() {
   };
   useEffect(() => {
     const userPhotoName = authState.name.toLowerCase().split(" ").join(".");
-    if (imageList && imageList[userPhotoName]) {
+    if (imageList?.[userPhotoName]) {
       setUrl(imageList[userPhotoName] ?? "default");
     }
-  }, []);
+  }, [authState.name.toLowerCase, imageList]);
   return _jsx("aside", {
     className:
       "flex flex-col left-0 top-0 w-60 h-screen fixed transition-transform sm:translate-x-0",

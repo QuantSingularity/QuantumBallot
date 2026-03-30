@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import * as qrcode from "qrcode";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -7,7 +8,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import * as qrcode from "qrcode";
 
 type EditVoterModalProps = {
   isOpen?: boolean;

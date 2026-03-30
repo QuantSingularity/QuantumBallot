@@ -1,10 +1,11 @@
-import {
-  Voter,
+import type {
   Candidate,
-  Results,
   CandidateResult,
   HashMap,
+  Results,
+  Voter,
 } from "../blockchain/data_types";
+import type { Announcement, Citizen } from "../committee/data_types";
 import CryptoBlockchain from "../crypto/cryptoBlockchain";
 import {
   clearResults,
@@ -16,7 +17,6 @@ import {
   readVoters,
   writeResults,
 } from "../leveldb";
-import { Announcement, Citizen } from "../committee/data_types";
 
 const CryptoBlockIdentifier = new CryptoBlockchain(
   process.env.SECRET_KEY_IDENTIFIER,
@@ -109,7 +109,7 @@ class SmartContract {
         map[c.party] = 0;
       });
 
-      map["sum"] = 0;
+      map.sum = 0;
 
       this.statsPerProvince[p] = map;
     });
@@ -244,18 +244,6 @@ class SmartContract {
     return ans;
   }
 
-  private announceElection() {
-    this.electionState = ElectionState.Announced;
-  }
-
-  private startElection() {
-    this.electionState = ElectionState.Started;
-  }
-
-  private endElection() {
-    this.electionState = ElectionState.Ended;
-  }
-
   private async existsVoter(voter: Voter): Promise<boolean> {
     const res = voter.identifier in this.hashVoters;
     return res;
@@ -331,7 +319,7 @@ class SmartContract {
 
     let sum: number = 0;
     this.provinces.forEach((x) => {
-      sum += this.statsPerProvince[x]["sum"];
+      sum += this.statsPerProvince[x].sum;
     });
 
     const averageVotePerProvince = sum / 18;
@@ -396,7 +384,7 @@ class SmartContract {
     if (this.provinces.find((x) => x === province)) {
       const currentStatOfPrivince = this.statsPerProvince[province];
       currentStatOfPrivince[this.hashCandidates[choice_code].party]++;
-      currentStatOfPrivince["sum"]++;
+      currentStatOfPrivince.sum++;
       this.statsPerProvince[province] = currentStatOfPrivince;
     }
   }
@@ -425,14 +413,6 @@ class SmartContract {
     if (winnerCandidate.num_votes === 0 || num_winners >= 2) return null; // No winner If candidates tie.
 
     return winnerCandidate;
-  }
-
-  private candidateResults() {
-    return this.results.candidatesResult;
-  }
-
-  private timestampToDate(timestamp: number): Date {
-    return new Date(timestamp * 1000);
   }
 
   public async getResults(): Promise<Results> {

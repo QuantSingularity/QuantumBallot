@@ -1,11 +1,10 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import {
   ArrowDownIcon,
   ArrowUpIcon,
   CaretSortIcon,
   EyeNoneIcon,
 } from "@radix-ui/react-icons";
-import { cn } from "@/lib/utils";
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -14,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 export function DataTableColumnHeader({ column, title, className }) {
   if (!column.getCanSort()) {
     return _jsx("div", { className: cn(className), children: title });

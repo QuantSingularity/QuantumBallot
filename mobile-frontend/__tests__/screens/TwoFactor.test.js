@@ -1,10 +1,10 @@
 /**
  * Tests for TwoFactor screen
  */
-import React from "react";
-import { render, fireEvent, waitFor } from "@testing-library/react-native";
-import TwoFactor from "src/screens/TwoFactor";
+
+import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { AuthProvider } from "src/context/AuthContext";
+import TwoFactor from "src/screens/TwoFactor";
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -21,7 +21,7 @@ jest.mock("@react-navigation/native", () => {
 
 // Mock QR code generation
 jest.mock("qrcode", () => ({
-  toDataURL: jest.fn((url, callback) =>
+  toDataURL: jest.fn((_url, callback) =>
     callback(null, "data:image/png;base64,test-qr-code"),
   ),
 }));

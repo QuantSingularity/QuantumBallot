@@ -1,5 +1,6 @@
 import va from "@vercel/analytics";
 import { z } from "zod";
+
 const eventSchema = z.object({
   name: z.enum([
     "copy_npm_command",

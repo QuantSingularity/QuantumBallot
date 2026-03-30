@@ -1,17 +1,18 @@
-import {
-  jsx as _jsx,
-  jsxs as _jsxs,
-  Fragment as _Fragment,
-} from "react/jsx-runtime";
 import { PureComponent } from "react";
 import {
-  LineChart,
+  Fragment as _Fragment,
+  jsx as _jsx,
+  jsxs as _jsxs,
+} from "react/jsx-runtime";
+import {
+  CartesianGrid,
   Line,
+  LineChart,
+  ResponsiveContainer,
   XAxis,
   YAxis,
-  CartesianGrid,
-  ResponsiveContainer,
 } from "recharts";
+
 const data = [
   {
     name: "Day 1",

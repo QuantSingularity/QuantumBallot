@@ -1,18 +1,17 @@
 "use client";
 
-import * as React from "react";
-
 import {
-  ColumnDef,
+  type ColumnDef,
+  type ColumnFiltersState,
   flexRender,
-  SortingState,
-  getSortedRowModel,
   getCoreRowModel,
-  getPaginationRowModel,
-  useReactTable,
   getFilteredRowModel,
-  ColumnFiltersState,
+  getPaginationRowModel,
+  getSortedRowModel,
+  type SortingState,
+  useReactTable,
 } from "@tanstack/react-table";
+import * as React from "react";
 
 import { Input } from "@/components/ui/input";
 

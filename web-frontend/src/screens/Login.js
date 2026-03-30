@@ -1,13 +1,14 @@
+import { useEffect } from "react";
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { LoginAccountCard } from "@/components/login-account-card";
 import { useAuth } from "@/context/AuthContext";
-import { useEffect } from "react";
 import AmericaIcon from "../assets/americaIcon.svg";
+
 function Login() {
   const { onLogOut } = useAuth();
   useEffect(() => {
     onLogOut();
-  }, []);
+  }, [onLogOut]);
   return _jsxs("div", {
     className:
       "flex flex-col items-center justify-center gap-2 w-screen h-screen",

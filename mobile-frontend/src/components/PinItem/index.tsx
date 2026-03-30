@@ -1,4 +1,4 @@
-import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 type ItemPropsNumber = {
@@ -24,7 +24,7 @@ export function PinItem(prop: ItemPropsNumber) {
 
   const onPressDel = () => {
     const len = prop.token.length;
-    if (len == 0) return;
+    if (len === 0) return;
     const oldToken = prop.token.substring(0, len - 1);
     prop.setToken(oldToken);
     updatePIN(len - 1);

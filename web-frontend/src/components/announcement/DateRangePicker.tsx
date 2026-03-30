@@ -1,13 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
-import * as React from "react";
-import { useAuth } from "@/context/AuthContext";
-
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
-
-import { cn } from "@/lib/utils";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -15,6 +10,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useAuth } from "@/context/AuthContext";
+import { cn } from "@/lib/utils";
 
 export function DatePickerWithRange({ className }: { className?: string }) {
   /*  const [date, setDate] = useState<DateRange | undefined>({

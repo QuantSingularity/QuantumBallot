@@ -1,18 +1,18 @@
-import React, { useState } from "react";
+import { Picker } from "@react-native-picker/picker";
+import { useNavigation } from "@react-navigation/native";
+import { useState } from "react";
 import {
-  View,
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  ScrollView,
-  Alert,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
+  View,
 } from "react-native";
 import { TextInput } from "react-native-paper";
-import { Picker } from "@react-native-picker/picker";
-import { useNavigation } from "@react-navigation/native";
 import { useAuth } from "../../context/AuthContext";
 
 // US States for American elections
@@ -131,7 +131,7 @@ export function Registration() {
     setIsLoading(true);
 
     try {
-      const result = await onRegister!({
+      const result = await onRegister?.({
         electoralId: electoralId.trim(),
         name: name.trim(),
         email: email.trim().toLowerCase(),

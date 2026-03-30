@@ -1,4 +1,4 @@
-import { CandidateResult, Results } from "@/data_types";
+import type { CandidateResult, Results } from "@/data_types";
 // Removing unused imports
 // import 'dotenv/config';
 

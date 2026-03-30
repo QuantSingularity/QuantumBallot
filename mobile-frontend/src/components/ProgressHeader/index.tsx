@@ -1,27 +1,10 @@
 import {
-  CaretLeft,
-  CheckCircle,
-  UsersFour,
-  WarningCircle,
-} from "phosphor-react-native";
-import logoImg from "@assets/flag.png";
-import profileImg from "@assets/abrar_party_75.png";
-import fcBarca from "@assets/FC_Barcelona.png";
-import theme from "src/theme";
-import {
-  Image,
+  FlatList,
+  SafeAreaView,
+  StatusBar,
   StyleSheet,
   View,
-  Text,
-  TouchableOpacity,
-  SafeAreaView,
-  FlatList,
-  StatusBar,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { Checkbox } from "react-native-paper";
-import { useState } from "react";
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 type ItemPropsNumber = { number: string; key: string };
 type ItemType = { number: boolean };
@@ -46,7 +29,7 @@ export function ProgressHeader({ number }: ItemPropsNumber) {
         <FlatList
           data={listOfObjects}
           renderItem={({ item }) => (
-            <Item number={item.value <= parseInt(number)} />
+            <Item number={item.value <= parseInt(number, 10)} />
           )}
           showsVerticalScrollIndicator={false}
           alwaysBounceVertical={false}

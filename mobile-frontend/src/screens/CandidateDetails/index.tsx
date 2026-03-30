@@ -1,19 +1,19 @@
-import {
-  StyleSheet,
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  Platform,
-} from "react-native";
-import { StatusBar } from "react-native";
 import { CaretLeft } from "phosphor-react-native";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import {
+  Image,
+  Platform,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export function CandidateDetails({ navigation, route }: any) {
   const { name, party, photo, src } = route.params;
 
-  const [candidatePhoto, setCandidatePhoto] = useState(photo);
+  const [candidatePhoto, _setCandidatePhoto] = useState(photo);
 
   const onPressOK = () => {
     navigation.goBack();

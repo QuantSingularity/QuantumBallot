@@ -1,6 +1,6 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { vi } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
+import { vi } from "vitest";
 import AuthContext from "@/context/AuthContext";
 import Entrance from "@/screens/Entrance";
 

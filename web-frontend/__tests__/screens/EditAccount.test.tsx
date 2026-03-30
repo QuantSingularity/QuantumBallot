@@ -1,9 +1,8 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { vi } from "vitest";
-import { BrowserRouter } from "react-router-dom";
-import AuthContext from "@/context/AuthContext";
-import EditAccount from "@/screens/EditAccount";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import axios from "axios";
+import { BrowserRouter } from "react-router-dom";
+import { vi } from "vitest";
+import EditAccount from "@/screens/EditAccount";
 
 // Mock axios
 vi.mock("axios");

@@ -31,7 +31,7 @@ describe("Middleware", () => {
   describe("verifyJWT", () => {
     test("should call next() when valid token is provided", () => {
       req.headers.authorization = "Bearer valid-token";
-      jwt.verify.mockImplementation((token, secret, callback) => {
+      jwt.verify.mockImplementation((_token, _secret, callback) => {
         callback(null, { electoralId: "test-id" });
       });
 
@@ -53,7 +53,7 @@ describe("Middleware", () => {
 
     test("should return 403 when invalid token is provided", () => {
       req.headers.authorization = "Bearer invalid-token";
-      jwt.verify.mockImplementation((token, secret, callback) => {
+      jwt.verify.mockImplementation((_token, _secret, callback) => {
         callback(new Error("Invalid token"), null);
       });
 
@@ -66,7 +66,7 @@ describe("Middleware", () => {
 
     test("should handle token without Bearer prefix", () => {
       req.headers.authorization = "valid-token";
-      jwt.verify.mockImplementation((token, secret, callback) => {
+      jwt.verify.mockImplementation((_token, _secret, callback) => {
         callback(null, { electoralId: "test-id" });
       });
 
@@ -81,7 +81,7 @@ describe("Middleware", () => {
   describe("verifyJWTWeb", () => {
     test("should call next() when valid token is provided", () => {
       req.headers.authorization = "Bearer valid-token";
-      jwt.verify.mockImplementation((token, secret, callback) => {
+      jwt.verify.mockImplementation((_token, _secret, callback) => {
         callback(null, { username: "test-user" });
       });
 
@@ -103,7 +103,7 @@ describe("Middleware", () => {
 
     test("should return 403 when invalid token is provided", () => {
       req.headers.authorization = "Bearer invalid-token";
-      jwt.verify.mockImplementation((token, secret, callback) => {
+      jwt.verify.mockImplementation((_token, _secret, callback) => {
         callback(new Error("Invalid token"), null);
       });
 

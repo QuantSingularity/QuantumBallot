@@ -1,4 +1,5 @@
 import { jsx as _jsx } from "react/jsx-runtime";
+
 function NoPage() {
   return _jsx("div", {
     className: "md:items-center md:gap-2 w-full bg-red h-screen",

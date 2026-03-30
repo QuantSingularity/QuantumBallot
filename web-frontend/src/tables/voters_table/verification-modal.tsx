@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import * as qrcode from "qrcode";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -7,7 +8,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import * as qrcode from "qrcode";
 
 type EditVoterModalProps = {
   isOpen?: boolean;
@@ -49,7 +49,7 @@ export default function VerificationModal({
 
   useEffect(() => {
     VerifySecret();
-  }, [VerifySecret, url]);
+  }, [VerifySecret]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange} defaultOpen={false}>

@@ -1,9 +1,9 @@
 "use client";
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import * as React from "react";
 import { CheckIcon, ClipboardIcon } from "lucide-react";
-import { trackEvent } from "./events";
+import * as React from "react";
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { Button } from "./button";
+import { trackEvent } from "./events";
 import {
   Tooltip,
   TooltipContent,
@@ -16,7 +16,7 @@ export function BlockCopyButton({ event, name, code, ...props }) {
     setTimeout(() => {
       setHasCopied(false);
     }, 2000);
-  }, [hasCopied]);
+  }, []);
   return _jsx(TooltipProvider, {
     children: _jsxs(Tooltip, {
       children: [

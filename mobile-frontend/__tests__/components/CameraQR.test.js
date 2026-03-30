@@ -1,8 +1,8 @@
 /**
  * Tests for CameraQR component
  */
-import React from "react";
-import { render, fireEvent, act } from "@testing-library/react-native";
+
+import { act, render } from "@testing-library/react-native";
 import CameraQR from "src/components/CameraQR";
 
 // Mock expo-camera

@@ -1,5 +1,6 @@
+import { MoreHorizontal } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,11 +9,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-import { MoreHorizontal } from "lucide-react";
-import { useState } from "react";
+import type { Candidate } from "@/data_types";
 import { CandidadeModal } from "./operation-candidate";
-import { Candidate } from "@/data_types";
 
 type CustomDropMenuProps = {
   candidate: Candidate;

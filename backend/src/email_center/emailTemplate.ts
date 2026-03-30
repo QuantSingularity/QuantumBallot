@@ -1,5 +1,6 @@
-import { Otp } from "../committee/data_types";
-const qrcode = require("qrcode");
+import type { Otp } from "../committee/data_types";
+
+const _qrcode = require("qrcode");
 
 const emailTemplate = (otp: Otp, voterName: string, textQRCode: string) => {
   // console.log("QR CODE: ", textQRCode);

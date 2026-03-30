@@ -1,4 +1,3 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import {
   Box,
   Button,
@@ -8,7 +7,9 @@ import {
   MenuList,
   Text,
 } from "@chakra-ui/react";
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { LANGUAGE_VERSIONS } from "./constants";
+
 const languages = Object.entries(LANGUAGE_VERSIONS);
 const ACTIVE_COLOR = "blue.400";
 const LanguageSelector = ({ language, onSelect }) => {

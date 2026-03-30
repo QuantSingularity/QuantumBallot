@@ -1,5 +1,4 @@
-import React from "react";
-import { AppProps } from "next/app";
+import type { AppProps } from "next/app";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import "@/styles/globals.css";

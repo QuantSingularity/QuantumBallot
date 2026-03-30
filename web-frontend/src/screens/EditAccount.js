@@ -1,5 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { TabsEditAccountCard } from "@/components/edit-account-card";
+
 function EditAccount() {
   return _jsxs("div", {
     className: "flex flex-col gap-2 w-auto h-screen ",

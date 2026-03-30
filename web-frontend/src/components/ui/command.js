@@ -1,9 +1,10 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import * as React from "react";
 import { Command as CommandPrimitive } from "cmdk";
 import { Search } from "lucide-react";
-import { cn } from "@/lib/utils";
+import * as React from "react";
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
+
 const Command = React.forwardRef(({ className, ...props }, ref) =>
   _jsx(CommandPrimitive, {
     ref: ref,
@@ -102,14 +103,15 @@ const CommandShortcut = ({ className, ...props }) => {
   });
 };
 CommandShortcut.displayName = "CommandShortcut";
+
 export {
   Command,
   CommandDialog,
-  CommandInput,
-  CommandList,
   CommandEmpty,
   CommandGroup,
+  CommandInput,
   CommandItem,
-  CommandShortcut,
+  CommandList,
   CommandSeparator,
+  CommandShortcut,
 };

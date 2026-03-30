@@ -1,16 +1,19 @@
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
+import axios from "axios";
+import express from "express";
 import BlockChain from "../blockchain/blockchain";
-
 // P2P Star Topology network
 import baseConfig from "../config";
 
-import axios from "axios";
-import express from "express";
 const app = express();
-import http from "http";
+
+import http from "node:http";
+
 const server = http.createServer(app);
+
 import { Server } from "socket.io";
 import P2pNetwork from "./p2p";
+
 const io = new Server(server);
 
 const PARAM = process.argv[2];
@@ -35,14 +38,15 @@ const redirectRoute = async (text) => {
 app.use("/api", redirectRoute("../api/index"));
 
 import bodyParser from "body-parser";
+
 app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 
-app.get("/network", function (req, res) {
+app.get("/network", (_req, res) => {
   res.status(200).json({ network: getAllNodes() });
 });
 
-app.post("/update_nodes", function (req, res) {
+app.post("/update_nodes", (req, res) => {
   const data = req.body;
   const urls = data.urls;
 
@@ -61,7 +65,7 @@ app.post("/update_nodes", function (req, res) {
   }, 50);
 });
 
-app.post("/connect_node", function (req, res) {
+app.post("/connect_node", (req, res) => {
   const data = req.body;
   const urls = data.urls;
 
@@ -110,7 +114,7 @@ const addNode = (node) => {
 
 const requestSingleConnection = (url, thisAllNodes) => {
   axios
-    .post(LOCALHOST + url + "/update_nodes", { urls: thisAllNodes })
+    .post(`${LOCALHOST + url}/update_nodes`, { urls: thisAllNodes })
     .then(() => {})
     .catch((error) => console.error(error));
 };
@@ -127,7 +131,7 @@ const requestConnection = (thisAllNodes, destines) => {
     // console.log("? URL => ", url);
 
     const request = axios
-      .post(LOCALHOST + url + "/connect_node", { urls: thisAllNodes })
+      .post(`${LOCALHOST + url}/connect_node`, { urls: thisAllNodes })
       .then((response) => {
         const urls_x = response.data.myUrls;
         fullUpdated[url] = urls_x;
@@ -278,6 +282,7 @@ const askQuestion = () => {
 // --> CLIENT <--
 
 import io_client from "socket.io-client";
+
 const clients = {};
 
 const newClient = (url) => {
@@ -291,7 +296,7 @@ const newClient = (url) => {
 
 // <- Data Center ->
 
-import * as readline from "readline";
+import * as readline from "node:readline";
 
 const rl = readline.createInterface({
   input: process.stdin,

@@ -1,16 +1,9 @@
-import {
-  StyleSheet,
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  Platform,
-} from "react-native";
-import theme from "src/theme";
 import * as DocumentPicker from "expo-document-picker";
-import { useState } from "react";
-import { TextInput } from "react-native-gesture-handler";
 import * as FileSystem from "expo-file-system";
+import { useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { TextInput } from "react-native-gesture-handler";
+import theme from "src/theme";
 
 type ItemProps = {
   title: string;
@@ -50,17 +43,17 @@ export function GenerateSaveAndLoad({ secret, setSecret, eyeOn }: any) {
     }
   };
 
-  const resetValues = () => {
+  const _resetValues = () => {
     setSecret("");
     setDirectorySave("");
     setErrors({});
   };
 
-  const onPress = () => {
+  const _onPress = () => {
     // navigation.navigate('News');
   };
 
-  const [pickedDocument, setPickedDocument] = useState(null);
+  const [_pickedDocument, setPickedDocument] = useState(null);
 
   const onPressFindAndLoadCertificate = async () => {
     try {

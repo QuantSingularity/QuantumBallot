@@ -1,7 +1,7 @@
 import {
+  Fragment as _Fragment,
   jsx as _jsx,
   jsxs as _jsxs,
-  Fragment as _Fragment,
 } from "react/jsx-runtime";
 import CustomDropMenuVoter from "./CustomDropMenuVoters";
 export const columns = [

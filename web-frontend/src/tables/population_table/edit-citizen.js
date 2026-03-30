@@ -1,8 +1,15 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useForm } from "react-hook-form";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -11,22 +18,16 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import {
   Select,
-  SelectTrigger,
-  SelectValue,
   SelectContent,
   SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { api } from "../../services/api";
+
 const provinces = [
   "Bengo",
   "Benguela",
@@ -262,7 +263,7 @@ export const EditCitizenModal = ({
         setData([...newData]);
         onOpenChange(false);
       }
-    } catch (error) {
+    } catch (_error) {
       // console.error(error);
       toast({
         title: "Feedback",

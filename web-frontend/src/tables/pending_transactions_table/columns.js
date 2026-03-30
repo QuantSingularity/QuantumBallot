@@ -1,4 +1,4 @@
-import { jsxs as _jsxs, jsx as _jsx } from "react/jsx-runtime";
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 export const columns = [
   {
     accessorKey: "id",
@@ -49,7 +49,7 @@ export const columns = [
     accessorKey: "voteTime",
     header: "Date and Time",
     cell: ({ row }) => {
-      const x = parseInt(row.getValue("voteTime"));
+      const x = parseInt(row.getValue("voteTime"), 10);
       return new Date(x).toUTCString();
     },
   },

@@ -1,9 +1,8 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { vi } from "vitest";
-import { BrowserRouter } from "react-router-dom";
-import CandidateDetails from "@/screens/CandidateDetails";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { BrowserRouter, useParams } from "react-router-dom";
+import { vi } from "vitest";
+import CandidateDetails from "@/screens/CandidateDetails";
 
 // Mock the useParams hook
 vi.mock("react-router-dom", async () => {

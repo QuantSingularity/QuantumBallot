@@ -1,18 +1,18 @@
 /**
  * Tests for AuthContext
  */
-import React from "react";
-import { renderHook, act } from "@testing-library/react-native";
+
+import { act, renderHook } from "@testing-library/react-native";
 import {
   AuthProvider,
-  useAuth,
-  TOKEN_KEY,
-  TOKEN_EMAIL,
   TOKEN_ELECTORAL_ID,
+  TOKEN_EMAIL,
+  TOKEN_KEY,
   TOKEN_PORT,
+  useAuth,
 } from "src/context/AuthContext";
-import { mockSecureStore } from "../fixtures/mockSecureStore";
 import { mockAxios } from "../fixtures/mockAxios";
+import { mockSecureStore } from "../fixtures/mockSecureStore";
 
 // Wrapper component for testing hooks with context
 const wrapper = ({ children }) => <AuthProvider>{children}</AuthProvider>;
@@ -22,8 +22,8 @@ describe("AuthContext", () => {
     // Reset mocks before each test
     mockSecureStore.resetStore();
     mockAxios.mockClear();
-    mockAxios.defaults.headers.common["Authorization"] = "";
-    mockAxios.defaults.headers.common["Cookie"] = "";
+    mockAxios.defaults.headers.common.Authorization = "";
+    mockAxios.defaults.headers.common.Cookie = "";
   });
 
   test("should initialize with null values", async () => {
@@ -61,10 +61,10 @@ describe("AuthContext", () => {
       port: "3010",
     });
 
-    expect(mockAxios.defaults.headers.common["Authorization"]).toBe(
+    expect(mockAxios.defaults.headers.common.Authorization).toBe(
       "Bearer test-token",
     );
-    expect(mockAxios.defaults.headers.common["Cookie"]).toBe("jwt=test-token");
+    expect(mockAxios.defaults.headers.common.Cookie).toBe("jwt=test-token");
   });
 
   test("should successfully login with valid credentials", async () => {
@@ -104,10 +104,10 @@ describe("AuthContext", () => {
       "3010",
     );
 
-    expect(mockAxios.defaults.headers.common["Authorization"]).toBe(
+    expect(mockAxios.defaults.headers.common.Authorization).toBe(
       "Bearer mock-access-token",
     );
-    expect(mockAxios.defaults.headers.common["Cookie"]).toBe(
+    expect(mockAxios.defaults.headers.common.Cookie).toBe(
       "jwt=mock-access-token",
     );
   });
@@ -200,8 +200,8 @@ describe("AuthContext", () => {
     );
     expect(mockSecureStore.deleteItemAsync).toHaveBeenCalledWith(TOKEN_PORT);
 
-    expect(mockAxios.defaults.headers.common["Authorization"]).toBe("");
-    expect(mockAxios.defaults.headers.common["Cookie"]).toBe("");
+    expect(mockAxios.defaults.headers.common.Authorization).toBe("");
+    expect(mockAxios.defaults.headers.common.Cookie).toBe("");
   });
 
   test("should check if user is logged in", async () => {
@@ -210,9 +210,9 @@ describe("AuthContext", () => {
     // Setup: Store a token in SecureStore
     await mockSecureStore.setItemAsync(TOKEN_KEY, "test-token");
 
-    let checkResult;
+    let _checkResult;
     await act(async () => {
-      checkResult = await result.current.isLoggedIn();
+      _checkResult = await result.current.isLoggedIn();
     });
 
     expect(mockAxios.get).toHaveBeenCalledWith("/committee/refresh-token", {
@@ -229,7 +229,7 @@ describe("AuthContext", () => {
       TOKEN_KEY,
       "mock-refresh-token",
     );
-    expect(mockAxios.defaults.headers.common["Authorization"]).toBe(
+    expect(mockAxios.defaults.headers.common.Authorization).toBe(
       "Bearer mock-refresh-token",
     );
   });

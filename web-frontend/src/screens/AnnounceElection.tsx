@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { DateRange } from "@/data_types";
-import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Card,
   CardContent,
@@ -14,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
+import type { DateRange } from "@/data_types";
 
 const AnnounceElection = () => {
   const [title, setTitle] = useState<string>("");

@@ -1,10 +1,8 @@
-import { GLOBAL_VARIABLES } from "@/global/globalVariables";
-import { columns } from "./columns";
-
 import { useQuery } from "@tanstack/react-query";
-
 import { useEffect } from "react";
+import { GLOBAL_VARIABLES } from "@/global/globalVariables";
 import { DataTable } from "../pending_transactions_table/data-table";
+import { columns } from "./columns";
 
 export default function TablePendingTransactions() {
   const URI =
@@ -27,7 +25,7 @@ export default function TablePendingTransactions() {
 
   if (isLoading) return "Loading...";
 
-  if (error) return "An error has occurred: " + error.message;
+  if (error) return `An error has occurred: ${error.message}`;
 
   return (
     <section>

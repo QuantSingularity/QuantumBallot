@@ -1,19 +1,19 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import GoogleMap from "@/geomap/GoogleMap";
+
 import CircularProgress from "@mui/joy/CircularProgress";
 import LinearProgress from "@mui/material/LinearProgress";
 import Stack from "@mui/material/Stack";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { FaUserClock } from "react-icons/fa";
 import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
-import { useAuth } from "@/context/AuthContext";
-import { GLOBAL_VARIABLES } from "@/global/globalVariables";
-
-import VerticalBars from "@/components/dashboard-components/vertical-bar";
+import { FaUserClock } from "react-icons/fa";
 import LineChartDemo from "@/components/dashboard-components/line-chart";
-import { Results } from "@/data_types";
+import VerticalBars from "@/components/dashboard-components/vertical-bar";
+import { useAuth } from "@/context/AuthContext";
+import type { Results } from "@/data_types";
+import GoogleMap from "@/geomap/GoogleMap";
+import { GLOBAL_VARIABLES } from "@/global/globalVariables";
 
 const themeLinearProgressBar = createTheme({
   palette: {
@@ -58,7 +58,7 @@ function Dashboard() {
       acronym: "",
       party: "",
       status: "",
-      toast: function (...params: any[]): void {
+      toast: (..._params: any[]): void => {
         throw new Error("Function not implemented.");
       },
     },
@@ -74,7 +74,7 @@ function Dashboard() {
       .then((response) => {
         const results = response.data;
 
-        if (results !== undefined && results.candidatesResult) {
+        if (results?.candidatesResult) {
           let newDataCandidates = results.candidatesResult.map(
             (x: any, index: number) => {
               const candidateName = x.candidate.name
@@ -127,9 +127,9 @@ function Dashboard() {
               id: index + 1,
               province: x,
               percentage:
-                (100 * results.votesPerProvince[x]["sum"]) /
-                parseInt(results.totalVotesReceived),
-              number: `${results.votesPerProvince[x]["sum"]}K`,
+                (100 * results.votesPerProvince[x].sum) /
+                parseInt(results.totalVotesReceived, 10),
+              number: `${results.votesPerProvince[x].sum}K`,
             }),
           );
 
@@ -140,15 +140,12 @@ function Dashboard() {
           setTopVotesPerProvinces(newsTopVotesPerProvinces);
         }
       })
-      .catch((error) => {});
+      .catch((_error) => {});
   }, [
     imageList,
     provinces,
-    setData,
-    setDataResults,
     setMapData,
     setPartiesData,
-    setPercentage,
     setTopVotesPerProvinces,
   ]);
 
@@ -225,32 +222,31 @@ function Dashboard() {
             </span>
 
             <div className="gap-1">
-              {data &&
-                data.slice(0, 5).map((party) => (
-                  <div
-                    key={party.party}
-                    className="grid grid-cols-3 sm:grid-cols-3 gap-3 p-0.5"
-                  >
-                    <div className="col-span-1">
-                      <img
-                        src={party.partyImage ?? ""}
-                        alt={party.name}
-                        width="32"
-                        height="32"
-                      />
-                    </div>
-                    <div className="col-span-1">
-                      <span className="font-inria-sans text-sm">
-                        {party.acronym}
-                      </span>
-                    </div>
-                    <div className="col-span-1">
-                      <span className="font-inria-sans text-sm">
-                        {party.numVotes} K votes
-                      </span>
-                    </div>
+              {data?.slice(0, 5).map((party) => (
+                <div
+                  key={party.party}
+                  className="grid grid-cols-3 sm:grid-cols-3 gap-3 p-0.5"
+                >
+                  <div className="col-span-1">
+                    <img
+                      src={party.partyImage ?? ""}
+                      alt={party.name}
+                      width="32"
+                      height="32"
+                    />
                   </div>
-                ))}
+                  <div className="col-span-1">
+                    <span className="font-inria-sans text-sm">
+                      {party.acronym}
+                    </span>
+                  </div>
+                  <div className="col-span-1">
+                    <span className="font-inria-sans text-sm">
+                      {party.numVotes} K votes
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -260,34 +256,33 @@ function Dashboard() {
             </span>
 
             <div className="flex flex-col gap-2 justify-start">
-              {topVotesPerProvinces &&
-                topVotesPerProvinces.slice(0, 5).map((provinceData: any) => (
-                  <div
-                    className="grid grid-cols-6 items-center gap-2"
-                    key={provinceData.province}
-                  >
-                    <span className="flex justify-end col-span-2 font-inria-sans text-sm">
-                      {provinceData.province}
-                    </span>
-                    <div className="col-span-3">
-                      <ThemeProvider theme={themeLinearProgressBar}>
-                        <Stack sx={{ width: "100%" }} spacing={2}>
-                          <LinearProgress
-                            variant="determinate"
-                            value={provinceData.percentage}
-                            sx={{
-                              height: 25,
-                              borderRadius: 1,
-                            }}
-                          />
-                        </Stack>
-                      </ThemeProvider>
-                    </div>
-                    <span className="flex justify-start">
-                      {provinceData.number}
-                    </span>
+              {topVotesPerProvinces?.slice(0, 5).map((provinceData: any) => (
+                <div
+                  className="grid grid-cols-6 items-center gap-2"
+                  key={provinceData.province}
+                >
+                  <span className="flex justify-end col-span-2 font-inria-sans text-sm">
+                    {provinceData.province}
+                  </span>
+                  <div className="col-span-3">
+                    <ThemeProvider theme={themeLinearProgressBar}>
+                      <Stack sx={{ width: "100%" }} spacing={2}>
+                        <LinearProgress
+                          variant="determinate"
+                          value={provinceData.percentage}
+                          sx={{
+                            height: 25,
+                            borderRadius: 1,
+                          }}
+                        />
+                      </Stack>
+                    </ThemeProvider>
                   </div>
-                ))}
+                  <span className="flex justify-start">
+                    {provinceData.number}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
           <div className="grid grid-cols-2 bg-white gap-2 rounded-xl p-4 justify-between">

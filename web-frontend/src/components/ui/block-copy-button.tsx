@@ -1,10 +1,9 @@
 "use client";
 
-import * as React from "react";
 import { CheckIcon, ClipboardIcon } from "lucide-react";
-
-import { Event, trackEvent } from "./events";
-import { Button, ButtonProps } from "./button";
+import * as React from "react";
+import { Button, type ButtonProps } from "./button";
+import { type Event, trackEvent } from "./events";
 import {
   Tooltip,
   TooltipContent,
@@ -28,7 +27,7 @@ export function BlockCopyButton({
     setTimeout(() => {
       setHasCopied(false);
     }, 2000);
-  }, [hasCopied]);
+  }, []);
 
   return (
     <TooltipProvider>

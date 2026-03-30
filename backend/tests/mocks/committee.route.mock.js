@@ -44,30 +44,30 @@ const committee = {
 };
 
 // Routes for committee operations
-router.get("/citizens", (req, res) => {
+router.get("/citizens", (_req, res) => {
   res.json(committee.getCitizens());
 });
 
-router.get("/users", (req, res) => {
+router.get("/users", (_req, res) => {
   res.json(committee.getUsers());
 });
 
-router.get("/voters-generated", async (req, res) => {
+router.get("/voters-generated", async (_req, res) => {
   const voters = await committee.getVotersGenerated();
   res.json(voters);
 });
 
-router.get("/candidates", async (req, res) => {
+router.get("/candidates", async (_req, res) => {
   const candidates = await committee.getCandidates();
   res.json(candidates);
 });
 
-router.post("/generate-identifiers", async (req, res) => {
+router.post("/generate-identifiers", async (_req, res) => {
   const identifiers = await committee.generateIdentifiers();
   res.json(identifiers);
 });
 
-router.delete("/clear-candidates", async (req, res) => {
+router.delete("/clear-candidates", async (_req, res) => {
   const result = await committee.clearCandidates();
   res.json(result);
 });
@@ -125,12 +125,12 @@ router.post("/auth/web", async (req, res) => {
   });
 });
 
-router.delete("/citizens", async (req, res) => {
+router.delete("/citizens", async (_req, res) => {
   const result = await committee.eraseCitzens();
   res.json(result);
 });
 
-router.delete("/users", async (req, res) => {
+router.delete("/users", async (_req, res) => {
   const result = await committee.eraseUsers();
   res.json(result);
 });
@@ -190,7 +190,7 @@ router.post("/announcement", async (req, res) => {
   res.json(result);
 });
 
-router.get("/announcement", async (req, res) => {
+router.get("/announcement", async (_req, res) => {
   const result = await committee.getAnnouncement();
   res.json(result);
 });

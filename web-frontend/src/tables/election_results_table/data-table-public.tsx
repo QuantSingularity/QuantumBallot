@@ -1,19 +1,19 @@
 // Ensure 'use client' is at the top of the file
 "use client";
 
-import * as React from "react";
 import {
-  ColumnDef,
+  type ColumnDef,
+  type ColumnFiltersState,
   flexRender,
-  SortingState,
-  getSortedRowModel,
   getCoreRowModel,
-  getPaginationRowModel,
-  useReactTable,
   getFilteredRowModel,
-  ColumnFiltersState,
+  getPaginationRowModel,
+  getSortedRowModel,
+  type SortingState,
+  useReactTable,
 } from "@tanstack/react-table";
-
+import * as React from "react";
+import { DataTablePagination } from "@/components/ui/DataTablePaginationElectionResults";
 import {
   Table,
   TableBody,
@@ -22,7 +22,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { DataTablePagination } from "@/components/ui/DataTablePaginationElectionResults";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];

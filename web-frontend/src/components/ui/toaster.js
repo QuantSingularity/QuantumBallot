@@ -12,8 +12,8 @@ export function Toaster() {
   const { toasts } = useToast();
   return _jsxs(ToastProvider, {
     children: [
-      toasts.map(function ({ id, title, description, action, ...props }) {
-        return _jsxs(
+      toasts.map(({ id, title, description, action, ...props }) =>
+        _jsxs(
           Toast,
           {
             ...props,
@@ -31,8 +31,8 @@ export function Toaster() {
             ],
           },
           id,
-        );
-      }),
+        ),
+      ),
       _jsx(ToastViewport, {}),
     ],
   });

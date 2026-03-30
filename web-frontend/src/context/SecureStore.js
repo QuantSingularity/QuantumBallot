@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as CryptoJS from "crypto-js";
+
 const SECRET_KEY_TOKEN = import.meta.env.SECRET_KEY_TOKEN ?? "";
 const setItemAsync = async (key, value) => {
   const encryptedData = CryptoJS.AES.encrypt(
@@ -18,4 +19,5 @@ const getItemAsync = async (key) => {
   const decryptedData = bytes.toString(CryptoJS.enc.Utf8);
   return decryptedData;
 };
-export { setItemAsync, deleteItemAsync, getItemAsync };
+
+export { deleteItemAsync, getItemAsync, setItemAsync };

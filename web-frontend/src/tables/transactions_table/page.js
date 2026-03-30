@@ -1,12 +1,11 @@
-import { jsx as _jsx } from "react/jsx-runtime";
+import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { jsx as _jsx } from "react/jsx-runtime";
+import { GLOBAL_VARIABLES } from "@/global/globalVariables";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
-import { useQuery } from "@tanstack/react-query";
-import { GLOBAL_VARIABLES } from "@/global/globalVariables";
 export default function TableTransactions() {
-  const URI =
-    "http://" + GLOBAL_VARIABLES.LOCALHOST + "/api/blockchain/transactions";
+  const URI = `http://${GLOBAL_VARIABLES.LOCALHOST}/api/blockchain/transactions`;
   const { isLoading, error, data, refetch } = useQuery({
     queryKey: ["transactions"],
     queryFn: () => fetch(URI).then((res) => res.json()),
@@ -18,7 +17,7 @@ export default function TableTransactions() {
     return () => clearInterval(intervalId);
   }, [refetch]);
   if (isLoading) return "Loading...";
-  if (error) return "An error has occurred: " + error.message;
+  if (error) return `An error has occurred: ${error.message}`;
   return _jsx("section", {
     children: _jsx(DataTable, { columns: columns, data: data }),
   });

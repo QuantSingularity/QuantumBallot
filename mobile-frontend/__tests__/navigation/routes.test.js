@@ -1,10 +1,10 @@
 /**
  * Tests for Navigation
  */
-import React from "react";
-import { render, act } from "@testing-library/react-native";
-import AppRoutes from "src/routes/app.routes";
+
+import { render } from "@testing-library/react-native";
 import { AuthProvider } from "src/context/AuthContext";
+import AppRoutes from "src/routes/app.routes";
 import { mockSecureStore } from "../fixtures/mockSecureStore";
 
 // Mock react-navigation

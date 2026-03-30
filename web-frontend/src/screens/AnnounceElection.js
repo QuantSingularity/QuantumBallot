@@ -1,9 +1,25 @@
+import axios from "axios";
+import { addDays } from "date-fns";
+import { useEffect, useState } from "react";
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { DatePicker } from "@/components/announcement/DatePicker";
+import { DatePickerWithRange } from "@/components/announcement/DateRangePicker";
+import { Toaster } from "@/components/toast/toaster";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/components/ui/use-toast";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useAuth } from "@/context/AuthContext";
-import { useEffect, useState } from "react";
-import { Toaster } from "@/components/toast/toaster";
-import { useToast } from "@/components/ui/use-toast";
+import { GLOBAL_VARIABLES } from "@/global/globalVariables";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,22 +31,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../components/ui/alert-dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { GLOBAL_VARIABLES } from "@/global/globalVariables";
-import axios from "axios";
-import { DatePickerWithRange } from "@/components/announcement/DateRangePicker";
-import { DatePicker } from "@/components/announcement/DatePicker";
-import { addDays } from "date-fns";
+
 function AnnounceElection() {
   const { authState, isLoggedIn } = useAuth();
   const { dateRange, setDateRange } = useAuth();
@@ -41,10 +42,10 @@ function AnnounceElection() {
   const [dateResults, setDateResults] = useState(new Date());
   const [numOfCandidates, setNumOfCandidates] = useState(0);
   const [numOfVoters, setNumOfVoters] = useState(0);
-  const [dateCreated, setDateCreated] = useState("");
+  const [_dateCreated, setDateCreated] = useState("");
   // ==== END FIELDS ====
   const [errors, setErrors] = useState({});
-  const resetValues = () => {
+  const _resetValues = () => {
     setStartTimeVoting("");
     setEndTimeVoting("");
     setDateResults(new Date());
@@ -55,9 +56,9 @@ function AnnounceElection() {
   };
   useEffect(() => {
     onPressLoadAnnouncement();
-  }, []);
+  }, [onPressLoadAnnouncement]);
   const formValidation = () => {
-    let errorHash = {};
+    const errorHash = {};
     if (!startTimeVoting || !endTimeVoting)
       errorHash.electionDuration = "Election duration required.";
     if (!dateResults.toLocaleString())
@@ -79,12 +80,10 @@ function AnnounceElection() {
     setDateCreated("");
     setStartTimeVoting(dateRange?.from);
     setEndTimeVoting(dateRange?.to);
-  }, []);
+  }, [dateRange?.from, dateRange?.to]);
   const onPressLoadAnnouncement = async () => {
     await axios
-      .get(
-        "http://" + GLOBAL_VARIABLES.LOCALHOST + "/api/committee/announcement",
-      )
+      .get(`http://${GLOBAL_VARIABLES.LOCALHOST}/api/committee/announcement`)
       .then((response) => {
         const announcement = response.data.announcement;
         if (announcement) {
@@ -101,7 +100,7 @@ function AnnounceElection() {
           }));
         }
       })
-      .catch((error) => {
+      .catch((_error) => {
         //console.error(error)
       });
   };
@@ -138,7 +137,7 @@ function AnnounceElection() {
   };
   const onPressNotifyVoters = () => {
     axios
-      .get("http://" + GLOBAL_VARIABLES.LOCALHOST + "/api/committee/registers")
+      .get(`http://${GLOBAL_VARIABLES.LOCALHOST}/api/committee/registers`)
       .then((response) => {
         const registers = response.data.registers;
         const receivers = registers.map((element, index) => ({
@@ -166,7 +165,7 @@ function AnnounceElection() {
             });
         });
       })
-      .catch((error) => {
+      .catch((_error) => {
         //console.error(error)
       });
     toast({
@@ -272,7 +271,7 @@ function AnnounceElection() {
                                 "shipping current-password webauthn",
                               onChange: (event) =>
                                 setNumOfCandidates(
-                                  parseInt(event.target.value),
+                                  parseInt(event.target.value, 10),
                                 ),
                             }),
                           ],
@@ -297,7 +296,9 @@ function AnnounceElection() {
                               autoComplete:
                                 "shipping current-password webauthn",
                               onChange: (event) =>
-                                setNumOfVoters(parseInt(event.target.value)),
+                                setNumOfVoters(
+                                  parseInt(event.target.value, 10),
+                                ),
                             }),
                           ],
                         }),

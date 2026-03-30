@@ -1,8 +1,8 @@
-import { BrowserRouter } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import Entrance from "./screens/Entrance";
+import { BrowserRouter } from "react-router-dom";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { AuthProvider } from "./context/AuthContext";
+import Entrance from "./screens/Entrance";
 
 const queryClient = new QueryClient({
   defaultOptions: {

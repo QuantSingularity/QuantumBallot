@@ -1,6 +1,7 @@
-import { useEffect } from "react";
+import Image from "next/image";
 import { useRouter } from "next/router";
-import { Candidate } from "@/data_types";
+import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -9,8 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import Image from "next/image";
+import type { Candidate } from "@/data_types";
 import Waveform from "@/tables/election_results_table/Waveform";
 
 interface CandidateDetailsProps {

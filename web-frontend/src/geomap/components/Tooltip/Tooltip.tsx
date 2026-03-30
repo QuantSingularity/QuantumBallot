@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { FC } from "react";
+import type { FC } from "react";
 import "./Tooltip.scss";
 
 interface ITooltip {

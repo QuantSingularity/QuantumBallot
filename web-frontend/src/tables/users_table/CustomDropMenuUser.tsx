@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Button } from "@/components/ui/button";
 
+import axios from "axios";
+import { MoreHorizontal } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,13 +12,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-import axios from "axios";
-import { MoreHorizontal } from "lucide-react";
-import { useState } from "react";
-import { UserModal } from "./operation-user";
+import type { User } from "@/data_types";
 import { GLOBAL_VARIABLES } from "@/global/globalVariables";
-import { User } from "@/data_types";
+import { UserModal } from "./operation-user";
 
 type CustomDropMenuProps = {
   user: User;

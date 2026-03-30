@@ -1,6 +1,6 @@
-import { useState } from "react";
 import { Howl } from "howler";
-import { MdVoiceOverOff, MdRecordVoiceOver } from "react-icons/md";
+import { useState } from "react";
+import { MdRecordVoiceOver, MdVoiceOverOff } from "react-icons/md";
 import msncElection2022 from "../../sounds/msnbc_election_2022.wav";
 
 // Define sound outside of component function
@@ -9,7 +9,7 @@ const sound = new Howl({
   autoplay: false,
   loop: true,
   volume: 0.3,
-  onend: function () {
+  onend: () => {
     console.log("Finished!");
   },
 });

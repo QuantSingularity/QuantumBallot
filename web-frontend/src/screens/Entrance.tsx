@@ -1,10 +1,10 @@
-import { useAuth } from "@/context/AuthContext";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Login from "./Login";
-import SideBarComponent from "@/components/SidebarComponent";
 import Container from "@/components/Container";
+import SideBarComponent from "@/components/SidebarComponent";
+import { useAuth } from "@/context/AuthContext";
 import { loadImages } from "@/services/firebase";
+import Login from "./Login";
 
 function Entrance() {
   const { authState, isLoggedIn, setImageList } = useAuth();
@@ -12,7 +12,7 @@ function Entrance() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    isLoggedIn!();
+    isLoggedIn?.();
     if (!authState?.authenticated) {
       navigate("/");
     }

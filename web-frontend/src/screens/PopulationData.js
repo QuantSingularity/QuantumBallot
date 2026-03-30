@@ -1,7 +1,8 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import TablePopulation from "@/tables/population_table/page";
 import { Toaster } from "@/components/toast/toaster";
 import { useToast } from "@/components/ui/use-toast";
+import TablePopulation from "@/tables/population_table/page";
+
 function PopulationData() {
   const { toast } = useToast();
   return _jsxs("div", {

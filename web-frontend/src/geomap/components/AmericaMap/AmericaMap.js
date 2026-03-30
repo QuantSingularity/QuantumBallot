@@ -20,12 +20,12 @@ export default function AmericaMap() {
   } = useCoffeeDataAmerica();
   const mapSize = useMemo(() => {
     return [width || 0, height || 0];
-  }, [height, width]);
+  }, []);
   const handleMouseOverCountry = (evt, provincy) => {
     if (tooltip?.current) {
       tooltip.current.style.display = "block";
-      tooltip.current.style.left = evt.pageX + 10 + "px";
-      tooltip.current.style.top = evt.pageY + 10 + "px";
+      tooltip.current.style.left = `${evt.pageX + 10}px`;
+      tooltip.current.style.top = `${evt.pageY + 10}px`;
       setTooltipContent(renderTooltipContent(provincy));
     }
     setMapProvincies(
@@ -76,30 +76,29 @@ export default function AmericaMap() {
             className: "WorldMap--tooltip--content",
             children: _jsxs("ul", {
               children: [
-                partiesData &&
-                  partiesData.map((e, index) => {
-                    if (
-                      mapData[provincy.Nome_Prov_] !== undefined &&
-                      mapData[provincy.Nome_Prov_][e] !== undefined
-                    ) {
-                      return _jsxs(
-                        "li",
-                        {
-                          children: [e + ": ", mapData[provincy.Nome_Prov_][e]],
-                        },
-                        index,
-                      );
-                    }
-                    return null;
-                  }),
+                partiesData?.map((e, index) => {
+                  if (
+                    mapData[provincy.Nome_Prov_] !== undefined &&
+                    mapData[provincy.Nome_Prov_][e] !== undefined
+                  ) {
+                    return _jsxs(
+                      "li",
+                      {
+                        children: [`${e}: `, mapData[provincy.Nome_Prov_][e]],
+                      },
+                      index,
+                    );
+                  }
+                  return null;
+                }),
                 mapData[provincy.Nome_Prov_] &&
-                  mapData[provincy.Nome_Prov_]["sum"] !== undefined &&
+                  mapData[provincy.Nome_Prov_].sum !== undefined &&
                   _jsxs(
                     "span",
                     {
                       children: [
                         "Total # of votes: ",
-                        mapData[provincy.Nome_Prov_]["sum"],
+                        mapData[provincy.Nome_Prov_].sum,
                       ],
                     },
                     100,
@@ -128,22 +127,20 @@ export default function AmericaMap() {
         width: mapSize[0],
         height: mapSize[1],
         stroke: "black",
-        children:
-          mapProvincies &&
-          mapProvincies.map((provincy) => {
-            return _jsx(
-              "path",
-              {
-                id: provincy.OBJECTID.toString(),
-                ...provincy.svg,
-                onMouseMove: (e) => handleMouseOverCountry(e, provincy),
-                onMouseLeave: () => handleMouseLeaveCountry(),
-                stroke: "white",
-                strokeWidth: 0.5,
-              },
-              provincy.Nome_Prov_,
-            );
-          }),
+        children: mapProvincies?.map((provincy) => {
+          return _jsx(
+            "path",
+            {
+              id: provincy.OBJECTID.toString(),
+              ...provincy.svg,
+              onMouseMove: (e) => handleMouseOverCountry(e, provincy),
+              onMouseLeave: () => handleMouseLeaveCountry(),
+              stroke: "white",
+              strokeWidth: 0.5,
+            },
+            provincy.Nome_Prov_,
+          );
+        }),
       }),
     ],
   });

@@ -1,22 +1,17 @@
 import "react-native-gesture-handler";
-import { StatusBar } from "react-native";
-import { SafeAreaProvider } from "react-native-safe-area-context";
 import {
-  useFonts,
   Roboto_400Regular,
   Roboto_700Bold,
+  useFonts,
 } from "@expo-google-fonts/roboto";
-import theme from "src/theme";
-import { useCallback, useEffect, useState } from "react";
-import * as Font from "expo-font";
-import * as SplashScreen from "expo-splash-screen";
 import { NavigationContainer } from "@react-navigation/native";
 import { AppRoutes } from "@routes/app.routes";
+import * as Font from "expo-font";
+import { useEffect, useState } from "react";
+import { StatusBar } from "react-native";
+import { MD3LightTheme as DefaultTheme } from "react-native-paper";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider } from "src/context/AuthContext";
-import {
-  MD3LightTheme as DefaultTheme,
-  Provider as PaperProvider,
-} from "react-native-paper";
 
 const getFonts = () =>
   Font.loadAsync({
@@ -38,8 +33,8 @@ export declare type Theme_ = {
 };
 
 export default function App() {
-  const [fontLoaded] = useFonts({ Roboto_400Regular, Roboto_700Bold });
-  const [fontsLoaded, setFontLoaded] = useState(false);
+  const [_fontLoaded] = useFonts({ Roboto_400Regular, Roboto_700Bold });
+  const [_fontsLoaded, _setFontLoaded] = useState(false);
 
   const [appIsReady, setAppIsReady] = useState(false);
 

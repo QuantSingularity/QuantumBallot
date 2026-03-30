@@ -1,25 +1,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Import the functions you need from the SDKs you need
+
+import { getAnalytics, logEvent } from "firebase/analytics";
 import { initializeApp } from "firebase/app";
 import {
-  getAuth,
   createUserWithEmailAndPassword,
+  getAuth,
+  onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut,
-  onAuthStateChanged,
 } from "firebase/auth";
 import {
-  getFirestore,
-  collection,
   doc,
-  setDoc,
   getDoc,
-  getDocs,
+  getFirestore,
+  setDoc,
   updateDoc,
-  deleteDoc,
-  query,
-  where,
 } from "firebase/firestore";
+import { getFunctions, httpsCallable } from "firebase/functions";
+import { getMessaging, getToken, onMessage } from "firebase/messaging";
 import {
   getDownloadURL,
   getStorage,
@@ -27,9 +26,6 @@ import {
   ref,
   uploadBytes,
 } from "firebase/storage";
-import { getFunctions, httpsCallable } from "firebase/functions";
-import { getAnalytics, logEvent } from "firebase/analytics";
-import { getMessaging, getToken, onMessage } from "firebase/messaging";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -167,7 +163,7 @@ export const loadImages = async (setImageList) => {
 };
 
 export const uploadImage = async (file, filename, setImageList) => {
-  if (file === null || file === undefined || filename == "") return;
+  if (file === null || file === undefined || filename === "") return;
   const imageRef = ref(storage, `images/${filename}`);
   await uploadBytes(imageRef, file).then((snapshot) => {
     getDownloadURL(snapshot.ref).then((url) => {
@@ -193,7 +189,7 @@ export const loadSpeech = async (setSpeechList) => {
 };
 
 export const uploadSpeech = async (file, filename, setSpeechList) => {
-  if (file === null || file === undefined || filename == "") return;
+  if (file === null || file === undefined || filename === "") return;
   const audioRef = ref(storage, `audio/${filename}`);
   await uploadBytes(audioRef, file).then((snapshot) => {
     getDownloadURL(snapshot.ref).then((url) => {

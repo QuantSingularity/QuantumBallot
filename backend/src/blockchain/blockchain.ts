@@ -1,18 +1,17 @@
-import * as CryptoJS from "crypto-js";
+import assert from "node:assert";
 import sha256 from "crypto-js/sha256";
-import assert from "assert";
-import { Block, BlockHeader, Voter, Transaction } from "./data_types";
-import SmartContract from "../smart_contract/smart_contract";
+import CryptoBlockchain from "../crypto/cryptoBlockchain";
 import {
-  readChain,
-  writeChain,
+  clearChains,
   deployCandidates,
   deployVotersGenerated,
+  readChain,
   readVoterCitizenRelation,
   updateVoter,
-  clearChains,
+  writeChain,
 } from "../leveldb";
-import CryptoBlockchain from "../crypto/cryptoBlockchain";
+import SmartContract from "../smart_contract/smart_contract";
+import type { Block, BlockHeader, Transaction, Voter } from "./data_types";
 
 const CryptoBlockIdentifier = new CryptoBlockchain(
   process.env.SECRET_KEY_IDENTIFIER,
@@ -35,7 +34,7 @@ class BlockChain {
 
     try {
       this.smartContract = new SmartContract();
-    } catch (e: any) {}
+    } catch (_e: any) {}
   }
 
   public setNodeAddress(nodeAddress: string) {
@@ -46,16 +45,16 @@ class BlockChain {
   private async loadChain() {
     try {
       this.chain = await readChain();
-    } catch (e: any) {}
+    } catch (_e: any) {}
   }
 
   public async clearChainsFromStorage() {
     try {
-      await clearChains().then((res) => {
+      await clearChains().then((_res) => {
         this.loadChain();
         this.smartContract = new SmartContract();
       });
-    } catch (error: any) {}
+    } catch (_error: any) {}
 
     return [];
   }
@@ -63,7 +62,7 @@ class BlockChain {
   private saveChain() {
     try {
       writeChain(this.chain);
-    } catch (e: any) {}
+    } catch (_e: any) {}
   }
 
   private getGenesisBlock(): Block {
@@ -105,7 +104,7 @@ class BlockChain {
 
         return true;
       }
-    } catch (e: any) {}
+    } catch (_e: any) {}
 
     return false;
   }
@@ -157,7 +156,7 @@ class BlockChain {
       return null;
     }
 
-    let transaction: Transaction = this.createTransaction(
+    const transaction: Transaction = this.createTransaction(
       identifier,
       electoralId,
       electoralIdIV,
@@ -178,12 +177,12 @@ class BlockChain {
     merkleRoot: string,
     nonce: number,
   ): string {
-    let concat: string = previousBlockHash + merkleRoot + "" + nonce;
+    const concat: string = `${previousBlockHash + merkleRoot}${nonce}`;
     return this.hashData(concat);
   }
 
-  public createBlock(hash: string, previousBlockHash: string, nonce: number) {
-    let blockHeader: BlockHeader = {
+  public createBlock(_hash: string, previousBlockHash: string, nonce: number) {
+    const blockHeader: BlockHeader = {
       version: "1",
       blockHash: "",
       previousBlockHash: this.getLastBlock()?.blockHeader.blockHash || "-",
@@ -199,7 +198,7 @@ class BlockChain {
       nonce,
     );
 
-    let newBlock: Block = {
+    const newBlock: Block = {
       blockIndex: this.chain.length,
       blockSize: 285,
       blockHeader: blockHeader,
@@ -211,7 +210,7 @@ class BlockChain {
   }
 
   private createGenesisBlock() {
-    let blockHeader: BlockHeader = {
+    const blockHeader: BlockHeader = {
       version: "1",
       blockHash: "-",
       previousBlockHash: "-",
@@ -221,7 +220,7 @@ class BlockChain {
       nonce: 1234,
     };
 
-    let genesisBlock: Block = {
+    const genesisBlock: Block = {
       blockIndex: 0,
       blockSize: 285,
       blockHeader: blockHeader,
@@ -248,7 +247,7 @@ class BlockChain {
     try {
       const ans = await this.smartContract.getVoters();
       return ans;
-    } catch (e: any) {}
+    } catch (_e: any) {}
 
     return null;
   }
@@ -257,7 +256,7 @@ class BlockChain {
     try {
       const ans = await this.smartContract.getCandidates();
       return ans;
-    } catch (e: any) {}
+    } catch (_e: any) {}
 
     return null;
   }
@@ -268,10 +267,10 @@ class BlockChain {
 
       try {
         this.smartContract = new SmartContract();
-      } catch (e: any) {}
+      } catch (_e: any) {}
 
       return ans;
-    } catch (e: any) {}
+    } catch (_e: any) {}
 
     return null;
   }
@@ -280,7 +279,7 @@ class BlockChain {
     try {
       const ans = await deployCandidates();
       return ans;
-    } catch (e: any) {}
+    } catch (_e: any) {}
 
     return null;
   }
@@ -309,7 +308,7 @@ class BlockChain {
     choiceCodeIV: string,
     secret: string,
   ): Transaction {
-    let vote: Voter = {
+    const vote: Voter = {
       identifier: identifier,
       electoralId: electoralId,
       electoralIV: electoralIdIV,
@@ -320,11 +319,10 @@ class BlockChain {
       IV: choiceCodeIV,
     };
 
-    let hashDigest: string =
-      "" + vote.identifier + vote.choiceCode + vote.state;
-    let transactionHash: string = this.hashData(hashDigest);
+    const hashDigest: string = `${vote.identifier}${vote.choiceCode}${vote.state}`;
+    const transactionHash: string = this.hashData(hashDigest);
 
-    let transaction: Transaction = {
+    const transaction: Transaction = {
       data: vote,
       transactionHash: transactionHash,
     };
@@ -349,8 +347,8 @@ class BlockChain {
 
     // We skip genesis block in the loop
     for (let i: number = 1; i < chain.length; ++i) {
-      let prevBlock: Block = chain[i - 1];
-      let curBlock: Block = chain[i];
+      const prevBlock: Block = chain[i - 1];
+      const curBlock: Block = chain[i];
 
       if (prevBlock.blockIndex + 1 !== curBlock.blockIndex) return false;
 
@@ -360,7 +358,7 @@ class BlockChain {
       )
         return false;
 
-      let blockHash: string = this.hashBlock(
+      const blockHash: string = this.hashBlock(
         prevBlock.blockHeader.blockHash,
         curBlock.blockHeader.merkleRoot,
         curBlock.blockHeader.nonce,
@@ -377,21 +375,21 @@ class BlockChain {
 
   public mineBlock(): Block | null {
     const DIFFICULTY_TARGET = 4;
-    let lastHashBlock: string =
+    const lastHashBlock: string =
       this.getLastBlock()?.blockHeader.blockHash || "-";
 
     if (!this.isValidTransactionPool(this.transactionPool)) {
       return null;
     }
 
-    let merkleRoot: string = this.createMarkle(this.transactionPool) || "-";
-    let nonce: number = this.proofOfWork(
+    const merkleRoot: string = this.createMarkle(this.transactionPool) || "-";
+    const nonce: number = this.proofOfWork(
       lastHashBlock,
       merkleRoot,
       DIFFICULTY_TARGET,
     );
 
-    let candidateBlock: Block = this.createBlock(
+    const candidateBlock: Block = this.createBlock(
       this.hashBlock(lastHashBlock, merkleRoot, nonce),
       lastHashBlock,
       nonce,
@@ -401,20 +399,13 @@ class BlockChain {
     return candidateBlock;
   }
 
-  // Retargeting to Adjust Difficulty
-  private retargetAdjustDifficulty(): number {
-    // New Target = Old Target * (Actual Time of Last 2016 Blocks / 20160 minutes)
-    // Read the book, page 236. (MASTER BITCOIN)
-    return 0;
-  }
-
   private isSHA256(str: string): boolean {
     const regExp: RegExp = /^[0-9a-fA-F]{64}$/;
     return regExp.test(str);
   }
 
   private isValidVote(vote: Voter): boolean {
-    let length: number = vote.identifier.length;
+    const length: number = vote.identifier.length;
     if (length <= 5 || length >= 50) return false;
 
     if (vote.choiceCode.length === 0) return false;
@@ -457,10 +448,6 @@ class BlockChain {
     return true;
   }
 
-  private isPresentedInTransactionPool(transaction: Transaction): boolean {
-    return this.transactionPool.findIndex((x) => x === transaction) >= 0;
-  }
-
   private isPresentedInChain(transaction: Transaction): boolean {
     return (
       this.getTransactions().findIndex(
@@ -472,11 +459,11 @@ class BlockChain {
   }
 
   private isValidTimestampDifference(timestamp: number): boolean {
-    let currentTime = new Date(Date.now());
+    const currentTime = new Date(Date.now());
     const hours = 2;
     currentTime.setHours(currentTime.getHours() + hours); // Add two hours.
 
-    let futureTime = currentTime.setHours(currentTime.getHours() + hours);
+    const futureTime = currentTime.setHours(currentTime.getHours() + hours);
 
     return timestamp <= futureTime;
   }
@@ -488,15 +475,15 @@ class BlockChain {
   ) {
     // Later, improve the difficultyTarget to auto adjust and increase the difficulty to find the nonce :)
     let nonce: number = 0;
-    let hash = this.hashBlock(previousBlockHash, merkleRoot, nonce);
+    const hash = this.hashBlock(previousBlockHash, merkleRoot, nonce);
 
-    let prefixHash = "0".repeat(difficultyTarget);
+    const prefixHash = "0".repeat(difficultyTarget);
     let sub = hash.substring(0, difficultyTarget);
 
     // Bruteforce until find the correct hash. It may take a lot of time depending on "difficulty target".
     while (prefixHash !== sub) {
       nonce++;
-      let hash = this.hashBlock(previousBlockHash, merkleRoot, nonce);
+      const hash = this.hashBlock(previousBlockHash, merkleRoot, nonce);
       sub = hash.substring(0, difficultyTarget);
     }
     return nonce;
@@ -518,8 +505,8 @@ class BlockChain {
     while (hashList.length > 1) {
       // If number of hashes is ood, duplicate last hash in the list.
       if (hashList.length % 2 !== 0) {
-        let index_last = hashList.length - 1;
-        let last: string = hashList[index_last];
+        const index_last = hashList.length - 1;
+        const last: string = hashList[index_last];
         hashList.push(last);
       }
 
@@ -527,18 +514,18 @@ class BlockChain {
       assert(hashList.length % 2 === 0);
 
       // New hash list
-      let newHashList: string[] = [];
+      const newHashList: string[] = [];
 
       // Loop though hashes 2 at a time.
       for (let i = 0; i < hashList.length; i += 2) {
         // Join both current hashes together (concatenate).
-        let current: string = hashList[0];
-        let next: string = hashList[i + 1];
+        const current: string = hashList[0];
+        const next: string = hashList[i + 1];
 
-        let concat: string = `${current}${next}`;
+        const concat: string = `${current}${next}`;
 
         // Hash both of the hashes.
-        let newRoot: string = this.hashData(concat);
+        const newRoot: string = this.hashData(concat);
 
         // Add this to the new list.
         newHashList.push(newRoot);
@@ -549,7 +536,7 @@ class BlockChain {
     }
 
     // DEBUG output ----------------------------------------
-    hashList.forEach((element) => {
+    hashList.forEach((_element) => {
       // console.log(" " + element);
     });
 
@@ -576,7 +563,7 @@ class BlockChain {
   }
 
   public getTransactions() {
-    const x = this.chain.map((x, index) => x.transactions).flat(1);
+    const x = this.chain.flatMap((x, _index) => x.transactions);
     const res = x.map((x, index) => {
       const newVal = {
         id: index + 1,
@@ -622,7 +609,7 @@ class BlockChain {
         electoralIdEncrypted.CIPHER_TEXT,
       );
       return identifier;
-    } catch (e: any) {
+    } catch (_e: any) {
       //console.log(e);
     }
 

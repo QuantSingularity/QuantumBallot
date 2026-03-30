@@ -1,6 +1,6 @@
-import { jsx as _jsx, Fragment as _Fragment } from "react/jsx-runtime";
-import CustomDropMenuCandidate from "./CustomDropMenuCandidate";
+import { Fragment as _Fragment, jsx as _jsx } from "react/jsx-runtime";
 import { DataTableColumnHeader } from "@/components/ui/DataTableColumnHeader";
+import CustomDropMenuCandidate from "./CustomDropMenuCandidate";
 export const columns = [
   {
     accessorKey: "id",

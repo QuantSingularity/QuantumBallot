@@ -1,5 +1,3 @@
-import { Console } from "console";
-import { HashMap } from "../blockchain/data_types";
 import axios from "axios";
 
 export interface Data {
@@ -35,7 +33,7 @@ class P2P {
 
   public getPeers() {
     const arr: Data[] = [];
-    this.peers.forEach((value, key) => {
+    this.peers.forEach((value, _key) => {
       arr.push(value);
     });
 
@@ -50,7 +48,7 @@ class P2P {
     const requests = [];
     peers.forEach((x) => {
       const opt = {
-        url: x.url + "/register-node",
+        url: `${x.url}/register-node`,
         method: "post",
         data: data,
       };
@@ -60,16 +58,16 @@ class P2P {
 
     try {
       await Promise.all(requests)
-        .then((x) => {
+        .then((_x) => {
           const opt = {
-            url: newNodeUrl + "/register-nodes-bulk",
+            url: `${newNodeUrl}/register-nodes-bulk`,
             method: "post",
             data: { nodes: [...peers, this.myPeer] },
           };
 
           return axios(opt);
         })
-        .then((x) => {
+        .then((_x) => {
           //console.log(x);
         })
         .catch((error) => {

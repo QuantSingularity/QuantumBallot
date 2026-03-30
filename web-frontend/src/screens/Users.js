@@ -1,14 +1,15 @@
+import axios from "axios";
+import { useEffect, useState } from "react";
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { Toaster } from "@/components/toast/toaster";
+import { useToast } from "@/components/toast/use-toast";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Button } from "@/components/ui/button";
-import { GLOBAL_VARIABLES } from "@/global/globalVariables";
-import { Toaster } from "@/components/toast/toaster";
-import { useEffect, useState } from "react";
-import { useToast } from "@/components/toast/use-toast";
 import { useAuth } from "@/context/AuthContext";
-import axios from "axios";
-import TableUsers from "@/tables/users_table/page";
+import { GLOBAL_VARIABLES } from "@/global/globalVariables";
 import { UserModal } from "@/tables/users_table/operation-user";
+import TableUsers from "@/tables/users_table/page";
+
 function Users() {
   const [data, setData] = useState([]);
   const { imageList, setImageList, updateImages } = useAuth();
@@ -16,11 +17,11 @@ function Users() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   useEffect(() => {
     onPressLoadUsers();
-  }, []);
+  }, [onPressLoadUsers]);
   const onPressLoadUsers = () => {
     updateImages();
     axios
-      .get("http://" + GLOBAL_VARIABLES.LOCALHOST + "/api/committee/users")
+      .get(`http://${GLOBAL_VARIABLES.LOCALHOST}/api/committee/users`)
       .then((response) => {
         const users = response.data.users;
         if (users !== undefined) {
@@ -35,7 +36,7 @@ function Users() {
               name: element.name,
               username: element.username,
               password: element.password,
-              role: parseInt(element.role) === 0 ? "admin" : "normal",
+              role: parseInt(element.role, 10) === 0 ? "admin" : "normal",
               photo: imageList ? (imageList[userPhotoName] ?? "") : "",
               refreshToken: element.refreshToken,
               timestamp: new Date(element.timestamp).toLocaleString(),
@@ -57,7 +58,7 @@ function Users() {
           setData([...newData]);
         }
       })
-      .catch((error) => {});
+      .catch((_error) => {});
   };
   return _jsxs("div", {
     className: "flex gap-2 flex-col ",

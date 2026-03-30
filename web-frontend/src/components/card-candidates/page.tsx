@@ -1,11 +1,11 @@
-import BottomBackgroundCandidateYellow from "../../assets/candidates/bottom_background_candidates_yellow.svg";
-import BottomBackgroundCandidateRed from "../../assets/candidates/bottom_background_candidates_red.svg";
 import BottomBackgroundCandidateBlack from "../../assets/candidates/bottom_background_candidates_black.svg";
-import TopCountryBackground from "../../assets/candidates/topCountryBackground.svg";
+import BottomBackgroundCandidateRed from "../../assets/candidates/bottom_background_candidates_red.svg";
+import BottomBackgroundCandidateYellow from "../../assets/candidates/bottom_background_candidates_yellow.svg";
 import bottomCountryBackground from "../../assets/candidates/bottomCountryBackground.svg";
+import TopCountryBackground from "../../assets/candidates/topCountryBackground.svg";
 import "./style.scss";
-import { CandidateResults } from "@/data_types";
 import defaultPhoto from "@/assets/candidates/candidateImage.png";
+import type { CandidateResults } from "@/data_types";
 
 type CardResultProps = {
   data: CandidateResults[];

@@ -1,10 +1,10 @@
 /**
  * Tests for Registration screen
  */
-import React from "react";
-import { render, fireEvent, waitFor } from "@testing-library/react-native";
-import Registration from "src/screens/Registration";
+
+import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { AuthProvider } from "src/context/AuthContext";
+import Registration from "src/screens/Registration";
 import { mockAxios } from "../fixtures/mockAxios";
 
 // Mock navigation

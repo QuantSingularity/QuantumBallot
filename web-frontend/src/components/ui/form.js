@@ -1,9 +1,10 @@
-import { jsx as _jsx } from "react/jsx-runtime";
-import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
+import * as React from "react";
+import { jsx as _jsx } from "react/jsx-runtime";
 import { Controller, FormProvider, useFormContext } from "react-hook-form";
-import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
+
 const Form = FormProvider;
 const FormFieldContext = React.createContext({});
 const FormField = ({ ...props }) => {
@@ -94,13 +95,14 @@ const FormMessage = React.forwardRef(
   },
 );
 FormMessage.displayName = "FormMessage";
+
 export {
-  useFormField,
   Form,
-  FormItem,
-  FormLabel,
   FormControl,
   FormDescription,
-  FormMessage,
   FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  useFormField,
 };

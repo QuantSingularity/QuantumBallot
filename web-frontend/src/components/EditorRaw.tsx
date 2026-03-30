@@ -1,5 +1,6 @@
-import { useRef } from "react";
 import { Editor } from "@monaco-editor/react";
+import { useRef } from "react";
+
 // import { CODE_SNIPPETS } from "./constants";
 
 type JsonProp = {

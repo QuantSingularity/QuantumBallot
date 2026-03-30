@@ -1,7 +1,7 @@
-import { setMaxListeners } from "events";
+import { setMaxListeners } from "node:events";
+import type { NextFunction, Request, Response } from "express";
 import BlockChain from "../../blockchain/blockchain";
-import { Block } from "../../blockchain/data_types";
-import { Request, Response, NextFunction } from "express";
+import type { Block } from "../../blockchain/data_types";
 
 const axios = require("axios");
 const LOCALHOST = "http://localhost:";
@@ -65,7 +65,7 @@ const asyncHandler =
     });
   };
 
-module.exports = function (blockchain: BlockChain, allNodes: string[]) {
+module.exports = (blockchain: BlockChain, allNodes: string[]) => {
   // Input validation middleware
   const validateTransaction = (
     req: Request,
@@ -82,7 +82,7 @@ module.exports = function (blockchain: BlockChain, allNodes: string[]) {
       return errorResponse(res, 400, "Missing required field: choiceCode");
     }
 
-    if (isNaN(parseInt(choiceCode))) {
+    if (Number.isNaN(parseInt(choiceCode, 10))) {
       return errorResponse(res, 400, "Invalid choice code: must be a number");
     }
 
@@ -91,14 +91,14 @@ module.exports = function (blockchain: BlockChain, allNodes: string[]) {
 
   router.get(
     "/",
-    asyncHandler(async (req: Request, res: Response) => {
+    asyncHandler(async (_req: Request, res: Response) => {
       return successResponse(res, 200, blockchain);
     }),
   );
 
   router.get(
     "/pending-transactions",
-    asyncHandler(async (req: Request, res: Response) => {
+    asyncHandler(async (_req: Request, res: Response) => {
       const pendingTransactions = blockchain.getPendingTransactions();
       return successResponse(res, 200, pendingTransactions);
     }),
@@ -106,7 +106,7 @@ module.exports = function (blockchain: BlockChain, allNodes: string[]) {
 
   router.get(
     "/transactions",
-    asyncHandler(async (req: Request, res: Response) => {
+    asyncHandler(async (_req: Request, res: Response) => {
       const transactions = blockchain.getTransactions();
       return successResponse(res, 200, transactions);
     }),
@@ -114,7 +114,7 @@ module.exports = function (blockchain: BlockChain, allNodes: string[]) {
 
   router.get(
     "/blocks",
-    asyncHandler(async (req: Request, res: Response) => {
+    asyncHandler(async (_req: Request, res: Response) => {
       const blocks = blockchain.getBlocks();
       return successResponse(res, 200, blocks);
     }),
@@ -141,7 +141,7 @@ module.exports = function (blockchain: BlockChain, allNodes: string[]) {
 
   router.get(
     "/chain",
-    asyncHandler(async (req: Request, res: Response) => {
+    asyncHandler(async (_req: Request, res: Response) => {
       return successResponse(res, 200, blockchain);
     }),
   );
@@ -149,7 +149,7 @@ module.exports = function (blockchain: BlockChain, allNodes: string[]) {
   router.get(
     "/get-results",
     verifyJWTWeb,
-    asyncHandler(async (req: Request, res: Response) => {
+    asyncHandler(async (_req: Request, res: Response) => {
       const results = await blockchain.smartContract.getResults();
 
       if (!results) {
@@ -162,7 +162,7 @@ module.exports = function (blockchain: BlockChain, allNodes: string[]) {
 
   router.get(
     "/get-results-computed",
-    asyncHandler(async (req: Request, res: Response) => {
+    asyncHandler(async (_req: Request, res: Response) => {
       const results = await blockchain.smartContract.getResultsComputed();
 
       if (!results) {
@@ -187,7 +187,7 @@ module.exports = function (blockchain: BlockChain, allNodes: string[]) {
       const data = req.body;
 
       try {
-        if (checkVote(data.identifier, parseInt(data.choiceCode))) {
+        if (checkVote(data.identifier, parseInt(data.choiceCode, 10))) {
           const electoralId: string = data.identifier;
           console.log("identifier: ", electoralId);
 
@@ -197,7 +197,7 @@ module.exports = function (blockchain: BlockChain, allNodes: string[]) {
             return errorResponse(res, 401, "Invalid electoral identifier");
           }
 
-          const choiceCode: number = parseInt(data.choiceCode);
+          const choiceCode: number = parseInt(data.choiceCode, 10);
 
           const choiceEncrypted = blockchain.encryptDataVoter(
             choiceCode.toString(),
@@ -297,7 +297,7 @@ module.exports = function (blockchain: BlockChain, allNodes: string[]) {
 
   router.get(
     "/voters",
-    asyncHandler(async (req: Request, res: Response) => {
+    asyncHandler(async (_req: Request, res: Response) => {
       const voters = await blockchain.getSmartContractVoters();
       return successResponse(
         res,
@@ -310,7 +310,7 @@ module.exports = function (blockchain: BlockChain, allNodes: string[]) {
 
   router.get(
     "/clear-voters",
-    asyncHandler(async (req: Request, res: Response) => {
+    asyncHandler(async (_req: Request, res: Response) => {
       await blockchain.smartContract.eraseVoters();
       const voters = await blockchain.smartContract.getVoters();
       return successResponse(
@@ -324,7 +324,7 @@ module.exports = function (blockchain: BlockChain, allNodes: string[]) {
 
   router.get(
     "/clear-results",
-    asyncHandler(async (req: Request, res: Response) => {
+    asyncHandler(async (_req: Request, res: Response) => {
       await blockchain.smartContract.eraseResults();
       return successResponse(res, 200, null, "Results cleared successfully");
     }),
@@ -332,7 +332,7 @@ module.exports = function (blockchain: BlockChain, allNodes: string[]) {
 
   router.get(
     "/clear-chains",
-    asyncHandler(async (req: Request, res: Response) => {
+    asyncHandler(async (_req: Request, res: Response) => {
       const result = await blockchain.clearChainsFromStorage();
       return successResponse(
         res,
@@ -345,7 +345,7 @@ module.exports = function (blockchain: BlockChain, allNodes: string[]) {
 
   router.get(
     "/candidates",
-    asyncHandler(async (req: Request, res: Response) => {
+    asyncHandler(async (_req: Request, res: Response) => {
       const candidates = await blockchain.getSmartContractCandidates();
       return successResponse(
         res,
@@ -358,7 +358,7 @@ module.exports = function (blockchain: BlockChain, allNodes: string[]) {
 
   router.get(
     "/deploy-voters",
-    asyncHandler(async (req: Request, res: Response) => {
+    asyncHandler(async (_req: Request, res: Response) => {
       const ans = await blockchain.deployVoters();
 
       if (ans !== null) {
@@ -377,7 +377,7 @@ module.exports = function (blockchain: BlockChain, allNodes: string[]) {
 
   router.get(
     "/deploy-candidates",
-    asyncHandler(async (req: Request, res: Response) => {
+    asyncHandler(async (_req: Request, res: Response) => {
       const ans = await blockchain.deployCandidatesBlockchain();
 
       if (ans !== null) {
@@ -401,7 +401,7 @@ module.exports = function (blockchain: BlockChain, allNodes: string[]) {
       const block = req.body;
 
       // Validate block data
-      if (!block || !block.hash) {
+      if (!block?.hash) {
         return errorResponse(res, 400, "Invalid block data");
       }
 
@@ -437,7 +437,7 @@ module.exports = function (blockchain: BlockChain, allNodes: string[]) {
   const broadcastData = async (
     endpoint: string,
     data: any,
-    res: Response,
+    _res: Response,
   ): Promise<any[] | undefined> => {
     try {
       const requests = allNodes
@@ -464,7 +464,7 @@ module.exports = function (blockchain: BlockChain, allNodes: string[]) {
 
   router.get(
     "/mine",
-    asyncHandler(async (req: Request, res: Response) => {
+    asyncHandler(async (_req: Request, res: Response) => {
       const block: Block | null = blockchain.mineBlock();
 
       if (!block) {
@@ -530,7 +530,7 @@ module.exports = function (blockchain: BlockChain, allNodes: string[]) {
 
       const responses = await Promise.all(requests);
 
-      let blockchains: BlockChain[] = [blockchain];
+      const blockchains: BlockChain[] = [blockchain];
       responses.forEach((element: any) => {
         blockchains.push(element.data);
       });

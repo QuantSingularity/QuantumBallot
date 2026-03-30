@@ -52,7 +52,7 @@ describe("BlockChain", () => {
         throw new Error("Smart contract initialization error");
       });
 
-      const newBlockchain = new BlockChain();
+      const _newBlockchain = new BlockChain();
       expect(consoleSpy).toHaveBeenCalledWith(
         "Error initializing smart contract:",
         expect.objectContaining({

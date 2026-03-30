@@ -1,15 +1,15 @@
-import React, { PureComponent } from "react";
+import { PureComponent } from "react";
 import {
-  LineChart,
+  Area,
+  AreaChart,
+  Brush,
+  CartesianGrid,
   Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Brush,
-  AreaChart,
-  Area,
-  ResponsiveContainer,
 } from "recharts";
 
 const data = [

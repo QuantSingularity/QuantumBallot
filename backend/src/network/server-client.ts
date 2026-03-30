@@ -1,6 +1,4 @@
-import { Request, Response } from "express";
-import { request } from "axios";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import BlockChain from "../blockchain/blockchain";
 
 // P2P Star Topology network
@@ -9,7 +7,7 @@ import baseConfig from "../config";
 const axios = require("axios");
 const express = require("express");
 const app = express();
-const http = require("http");
+const http = require("node:http");
 const server = http.createServer(app);
 const { Server } = require("socket.io");
 const P2pNetwork = require("./p2p");
@@ -36,11 +34,11 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 
-app.get("/network", function (req, res) {
+app.get("/network", (_req, res) => {
   res.status(200).json({ network: getAllNodes() });
 });
 
-app.post("/update_nodes", function (req, res) {
+app.post("/update_nodes", (req, res) => {
   const data = req.body;
   const urls = data.urls;
 
@@ -59,7 +57,7 @@ app.post("/update_nodes", function (req, res) {
   }, 50);
 });
 
-app.post("/connect_node", function (req, res) {
+app.post("/connect_node", (req, res) => {
   const data = req.body;
   const urls = data.urls;
 
@@ -78,9 +76,9 @@ app.post("/connect_node", function (req, res) {
   }, 100);
 });
 
-const isNodePresent = (node) => {
+const _isNodePresent = (node) => {
   if (node === NODE_ADDRESS) return true;
-  return allNodes.findIndex((x) => x == node) !== -1;
+  return allNodes.indexOf(node) !== -1;
 };
 
 const removeAllNodes = () => {
@@ -106,7 +104,7 @@ const addNode = (node) => {
 
 const requestSingleConnection = (url: any, thisAllNodes: any) => {
   axios
-    .post(LOCALHOST + url + "/update_nodes", { urls: thisAllNodes })
+    .post(`${LOCALHOST + url}/update_nodes`, { urls: thisAllNodes })
     .then((_: any) => {})
     .catch((error: any) => console.error(error));
 };
@@ -115,7 +113,7 @@ const requestConnection = (thisAllNodes: any, destines: any) => {
   thisAllNodes = [...thisAllNodes, ...getAllNodes()];
   thisAllNodes = removeDuplicated(thisAllNodes);
 
-  let fullUpdated = {};
+  const fullUpdated = {};
   let nodesListed = [...thisAllNodes];
 
   const requests = [];
@@ -123,9 +121,9 @@ const requestConnection = (thisAllNodes: any, destines: any) => {
     // console.log("? URL => ", url);
 
     const request = axios
-      .post(LOCALHOST + url + "/connect_node", { urls: thisAllNodes })
+      .post(`${LOCALHOST + url}/connect_node`, { urls: thisAllNodes })
       .then((response) => {
-        let urls_x = response.data.myUrls;
+        const urls_x = response.data.myUrls;
         fullUpdated[url] = urls_x;
 
         nodesListed = [...nodesListed, ...urls_x];
@@ -136,8 +134,8 @@ const requestConnection = (thisAllNodes: any, destines: any) => {
   });
 
   Promise.all(requests)
-    .then((data: any) => {})
-    .then((data: any) => {
+    .then((_data: any) => {})
+    .then((_data: any) => {
       let allGood = true;
       let newNodes = [];
 
@@ -155,7 +153,10 @@ const requestConnection = (thisAllNodes: any, destines: any) => {
           newNodes = removeDuplicated(newNodes);
 
           allGood = false;
-          let merged = [...fullUpdated[element], ...fullUpdated[NODE_ADDRESS]];
+          const merged = [
+            ...fullUpdated[element],
+            ...fullUpdated[NODE_ADDRESS],
+          ];
 
           // If there's no connection between them, ... Connect :)
           requestSingleConnection(element, merged);
@@ -171,7 +172,7 @@ const requestConnection = (thisAllNodes: any, destines: any) => {
 };
 
 const isUpdated = (nodeList) => {
-  let currentNodeList = getAllNodes();
+  const currentNodeList = getAllNodes();
   currentNodeList.sort();
   nodeList.sort();
 
@@ -271,12 +272,12 @@ const askQuestion = () => {
 // --> CLIENT <--
 
 const io_client = require("socket.io-client");
-let clients = {};
+const clients = {};
 
 const newClient = (url) => {
   const client = io_client.connect(url);
   clients[url] = clients[url] ? clients[url] : client;
-  clients[url].on("connect", (data: any) => {
+  clients[url].on("connect", (_data: any) => {
     console.log("I am a client, I could connect.");
     serverConnected(client);
   });
@@ -284,7 +285,7 @@ const newClient = (url) => {
 
 // <- Data Center ->
 
-import * as readline from "readline";
+import * as readline from "node:readline";
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -313,7 +314,7 @@ const printHeader = (): void => {
   askOption(); // Ensure this function is defined elsewhere
 };
 
-const resetNode = () => {
+const _resetNode = () => {
   removeAllNodes();
 };
 
@@ -362,7 +363,7 @@ const removeNode = (): void => {
   rl.question(
     "<node1, node2, ...> Enter the list node(s) to remove: ",
     (input) => {
-      let nodes = input.trim().split(",");
+      const nodes = input.trim().split(",");
       allNodes = allNodes.filter(
         (x) => !nodes.includes(x) || x === NODE_ADDRESS,
       );

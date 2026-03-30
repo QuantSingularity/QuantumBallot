@@ -1,3 +1,5 @@
+import axios from "axios";
+import { useState } from "react";
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import BlockList from "@/components/blockchain-list/BlockList";
@@ -9,8 +11,7 @@ import LineChartCustomized from "@/tables/blocks_table/LineChartCustomized";
 import TableBlocks from "@/tables/blocks_table/page";
 import TablePendingTransactions from "@/tables/pending_transactions_table/page";
 import TableTransactions from "@/tables/transactions_table/page";
-import axios from "axios";
-import { useState } from "react";
+
 function Blockchain() {
   const { toast } = useToast();
   const [range, setRange] = useState("3010-3010");
@@ -20,12 +21,12 @@ function Blockchain() {
     return Array.from({ length: finish - start + 1 }, (_, i) => start + i);
   };
   const getRange = () => {
-    if (range.length == 0) return false;
+    if (range.length === 0) return false;
     const array = range.trim().split("-");
     if (array.length >= 1) {
-      setStart(parseInt(array[0]));
-      if (array.length >= 2) setEnd(parseInt(array[1]));
-      else setEnd(parseInt(array[0]));
+      setStart(parseInt(array[0], 10));
+      if (array.length >= 2) setEnd(parseInt(array[1], 10));
+      else setEnd(parseInt(array[0], 10));
       return true;
     }
     if (end < start) {
@@ -40,7 +41,7 @@ function Blockchain() {
     if (!getRange()) return false;
     const nodeAddress = createListRange(start, end);
     const requests = nodeAddress.map((url) => {
-      const URI = "http://localhost:" + url + "/api/blockchain/mine"; // + endpoint
+      const URI = `http://localhost:${url}/api/blockchain/mine`; // + endpoint
       return axios.get(URI);
     });
     const CancelToken = axios.CancelToken;

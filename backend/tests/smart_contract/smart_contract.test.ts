@@ -1,7 +1,5 @@
-import SmartContract from "../../src/smart_contract/smart_contract";
-import { Voter, Candidate } from "../../src/blockchain/data_types";
-import { Announcement, Citizen } from "../../src/committee/data_types";
 import * as leveldb from "../../src/leveldb";
+import SmartContract from "../../src/smart_contract/smart_contract";
 
 // Mock the dependencies
 jest.mock("../../src/crypto/cryptoBlockchain", () => {

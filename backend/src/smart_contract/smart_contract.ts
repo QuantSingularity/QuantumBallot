@@ -1,12 +1,11 @@
-// Smart Contract with improved security
-import assert from "assert";
-import {
-  Voter,
+import type {
   Candidate,
-  Results,
   CandidateResult,
   HashMap,
+  Results,
+  Voter,
 } from "../blockchain/data_types";
+import type { Announcement, Citizen } from "../committee/data_types";
 import CryptoBlockchain from "../crypto/cryptoBlockchain";
 import {
   clearResults,
@@ -18,7 +17,6 @@ import {
   readVoters,
   writeResults,
 } from "../leveldb";
-import { Announcement, Citizen } from "../committee/data_types";
 
 // Use environment variables with fallback for better security
 const SECRET_KEY_IDENTIFIER = process.env.SECRET_KEY_IDENTIFIER || "";
@@ -134,13 +132,13 @@ class SmartContract {
 
     this.statsPerProvince = {};
     this.provinces.forEach((p) => {
-      let map: HashMap<number> = {};
+      const map: HashMap<number> = {};
 
       this.candidates.forEach((c) => {
         map[c.party] = 0;
       });
 
-      map["sum"] = 0;
+      map.sum = 0;
 
       this.statsPerProvince[p] = map;
     });
@@ -217,7 +215,7 @@ class SmartContract {
     const endTime = new Date(this.announcement.endTimeVoting).getTime();
 
     // Validate date objects
-    if (isNaN(startTime) || isNaN(endTime)) {
+    if (Number.isNaN(startTime) || Number.isNaN(endTime)) {
       console.error("Invalid date format in announcement");
       return false;
     }
@@ -282,7 +280,7 @@ class SmartContract {
   }
 
   public revealVoter(voter: Voter) {
-    if (!voter || !voter.electoralIV || !voter.electoralId) {
+    if (!voter?.electoralIV || !voter.electoralId) {
       throw new Error("Invalid voter data");
     }
 
@@ -304,20 +302,8 @@ class SmartContract {
     }
   }
 
-  private announceElection() {
-    this.electionState = ElectionState.Announced;
-  }
-
-  private startElection() {
-    this.electionState = ElectionState.Started;
-  }
-
-  private endElection() {
-    this.electionState = ElectionState.Ended;
-  }
-
   private async existsVoter(voter: Voter): Promise<boolean> {
-    if (!voter || !voter.identifier) return false;
+    if (!voter?.identifier) return false;
     return voter.identifier in this.hashVoters;
   }
 
@@ -342,7 +328,7 @@ class SmartContract {
     }
 
     // Track processed votes
-    let votesProcessed: HashMap<boolean> = {};
+    const votesProcessed: HashMap<boolean> = {};
     this.electionState = ElectionState.Ended;
 
     // Build voter lookup
@@ -379,7 +365,10 @@ class SmartContract {
           const startTime = new Date(this.announcement.startTimeVoting);
           const endTime = new Date(voter.voteTime || Date.now());
 
-          if (!isNaN(startTime.getTime()) && !isNaN(endTime.getTime())) {
+          if (
+            !Number.isNaN(startTime.getTime()) &&
+            !Number.isNaN(endTime.getTime())
+          ) {
             const duration =
               (endTime.getTime() - startTime.getTime()) / (1000 * 60); // In minutes
             if (duration >= 0) {
@@ -409,12 +398,12 @@ class SmartContract {
     const winner: Candidate | null = this.winningCandidate();
 
     // Prepare candidate results
-    let candidate_results: CandidateResult[] = [];
+    const candidate_results: CandidateResult[] = [];
     for (const x of this.candidates) {
       const value = this.hashCandidates[x.code];
       if (!value) continue;
 
-      let candidateResult: CandidateResult = {
+      const candidateResult: CandidateResult = {
         numVotes: value.num_votes,
         percentage:
           this.announcement.numOfVoters > 0
@@ -432,7 +421,7 @@ class SmartContract {
     ).getTime();
     const endTime: number = new Date(this.announcement.endTimeVoting).getTime();
 
-    if (isNaN(startTime) || isNaN(endTime)) {
+    if (Number.isNaN(startTime) || Number.isNaN(endTime)) {
       throw new Error("Invalid election time data");
     }
 
@@ -441,9 +430,9 @@ class SmartContract {
     this.provinces.forEach((x) => {
       if (
         this.statsPerProvince[x] &&
-        typeof this.statsPerProvince[x]["sum"] === "number"
+        typeof this.statsPerProvince[x].sum === "number"
       ) {
-        sum += this.statsPerProvince[x]["sum"];
+        sum += this.statsPerProvince[x].sum;
       }
     });
 
@@ -451,7 +440,7 @@ class SmartContract {
       this.provinces.length > 0 ? sum / this.provinces.length : 0;
 
     // Create results object
-    let results: Results = {
+    const results: Results = {
       startTime: startTime,
       endTime: endTime,
       winner: winner!,
@@ -548,15 +537,15 @@ class SmartContract {
         this.statsPerProvince[province] &&
         this.hashCandidates[choice_code]
       ) {
-        let currentStatOfProvince = this.statsPerProvince[province];
+        const currentStatOfProvince = this.statsPerProvince[province];
         const party = this.hashCandidates[choice_code].party;
 
         if (typeof currentStatOfProvince[party] === "number") {
           currentStatOfProvince[party]++;
         }
 
-        if (typeof currentStatOfProvince["sum"] === "number") {
-          currentStatOfProvince["sum"]++;
+        if (typeof currentStatOfProvince.sum === "number") {
+          currentStatOfProvince.sum++;
         }
 
         this.statsPerProvince[province] = currentStatOfProvince;
@@ -574,28 +563,17 @@ class SmartContract {
     if (!this.candidates || this.candidates.length === 0) return null;
 
     // Find candidate with most votes
-    let winnerCandidate: Candidate = this.candidates.reduce((prev, curr) =>
+    const winnerCandidate: Candidate = this.candidates.reduce((prev, curr) =>
       prev.num_votes > curr.num_votes ? prev : curr,
     );
 
     // Check for ties or zero votes
-    let num_winners = this.candidates.filter(
+    const num_winners = this.candidates.filter(
       (x) => x.num_votes === winnerCandidate.num_votes,
     ).length;
     if (winnerCandidate.num_votes === 0 || num_winners >= 2) return null;
 
     return winnerCandidate;
-  }
-
-  private candidateResults() {
-    return this.results?.candidatesResult || [];
-  }
-
-  private timestampToDate(timestamp: number): Date {
-    if (isNaN(timestamp)) {
-      throw new Error("Invalid timestamp");
-    }
-    return new Date(timestamp * 1000);
   }
 
   public async getResults(): Promise<Results> {

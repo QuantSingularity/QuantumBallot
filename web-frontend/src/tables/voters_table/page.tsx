@@ -1,12 +1,12 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { GLOBAL_VARIABLES, TOKEN_KEY } from "@/global/globalVariables";
-import { columns } from "./columns";
-import { DataTable } from "./data-table";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { getItemAsync } from "@/context/SecureStore";
+import type { Voter } from "@/data_types";
+import { GLOBAL_VARIABLES, TOKEN_KEY } from "@/global/globalVariables";
 
 import {
   AlertDialog,
@@ -19,15 +19,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../../components/ui/alert-dialog";
-import { getItemAsync } from "@/context/SecureStore";
-import { Voter } from "@/data_types";
+import { columns } from "./columns";
+import { DataTable } from "./data-table";
 
 function TableVoters({ toast }: { toast: (...params: any[]) => void }) {
   const [data, setData] = useState<Voter[]>([]);
 
   useEffect(() => {
     onPressLoadIdentifiers();
-  }, []);
+  }, [onPressLoadIdentifiers]);
 
   const removeExtraEquals = (str: string): string => {
     if (str.substring(0, str.length - 2) !== "==") {
@@ -39,7 +39,7 @@ function TableVoters({ toast }: { toast: (...params: any[]) => void }) {
   const onPressGenerateIdentifiers = async () => {
     const token = await getItemAsync(TOKEN_KEY);
     axios.defaults.withCredentials = true;
-    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    axios.defaults.headers.common.Authorization = `Bearer ${token}`;
 
     axios
       .get(
@@ -127,7 +127,7 @@ function TableVoters({ toast }: { toast: (...params: any[]) => void }) {
 
   const onPressLoadIdentifiers = () => {
     axios
-      .get("http://" + GLOBAL_VARIABLES.LOCALHOST + "/api/blockchain/voters")
+      .get(`http://${GLOBAL_VARIABLES.LOCALHOST}/api/blockchain/voters`)
       .then((response) => {
         const voters = response.data.voters;
 

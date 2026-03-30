@@ -1,14 +1,12 @@
 "use client";
-import {
-  jsx as _jsx,
-  Fragment as _Fragment,
-  jsxs as _jsxs,
-} from "react/jsx-runtime";
-import { useEffect } from "react";
-import { useAuth } from "@/context/AuthContext";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useEffect } from "react";
+import {
+  Fragment as _Fragment,
+  jsx as _jsx,
+  jsxs as _jsxs,
+} from "react/jsx-runtime";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -16,6 +14,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useAuth } from "@/context/AuthContext";
+import { cn } from "@/lib/utils";
 export function DatePickerWithRange({ className }) {
   /*  const [date, setDate] = useState<DateRange | undefined>({
         from: new Date(2022, 0, 20),

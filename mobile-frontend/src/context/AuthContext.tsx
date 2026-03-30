@@ -1,7 +1,7 @@
+import * as SecureStore from "expo-secure-store";
 import { createContext, useContext, useEffect, useState } from "react";
 import axios from "src/api/axios";
-import * as SecureStore from "expo-secure-store";
-import { HashMap } from "src/data_types";
+import type { HashMap } from "src/data_types";
 import { Config } from "../constants/config";
 
 interface AuthProps {
@@ -67,8 +67,8 @@ export const AuthProvider = ({ children }: any) => {
         const port = await SecureStore.getItemAsync(TOKEN_PORT);
 
         if (token) {
-          axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-          axios.defaults.headers.common["Cookie"] = `jwt=${token}`;
+          axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+          axios.defaults.headers.common.Cookie = `jwt=${token}`;
 
           setAuthState({
             token: token,
@@ -127,8 +127,8 @@ export const AuthProvider = ({ children }: any) => {
         port: port,
       });
 
-      axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
-      axios.defaults.headers.common["Cookie"] = `jwt=${accessToken}`;
+      axios.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
+      axios.defaults.headers.common.Cookie = `jwt=${accessToken}`;
 
       await SecureStore.setItemAsync(TOKEN_KEY, accessToken);
       await SecureStore.setItemAsync(TOKEN_EMAIL, email);
@@ -159,8 +159,8 @@ export const AuthProvider = ({ children }: any) => {
       await SecureStore.deleteItemAsync(TOKEN_ELECTORAL_ID);
       await SecureStore.deleteItemAsync(TOKEN_PORT);
 
-      axios.defaults.headers.common["Authorization"] = "";
-      axios.defaults.headers.common["Cookie"] = "";
+      axios.defaults.headers.common.Authorization = "";
+      axios.defaults.headers.common.Cookie = "";
 
       setAuthState({
         token: null,
@@ -181,11 +181,11 @@ export const AuthProvider = ({ children }: any) => {
 
   const isLoggedIn = async () => {
     try {
-      if (!axios.defaults.headers.common["Authorization"]) {
+      if (!axios.defaults.headers.common.Authorization) {
         const token = await SecureStore.getItemAsync(TOKEN_KEY);
         if (token) {
-          axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-          axios.defaults.headers.common["Cookie"] = `jwt=${token}`;
+          axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+          axios.defaults.headers.common.Cookie = `jwt=${token}`;
         }
       }
 
@@ -209,7 +209,7 @@ export const AuthProvider = ({ children }: any) => {
           port: port || "",
         });
 
-        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        axios.defaults.headers.common.Authorization = `Bearer ${token}`;
         await SecureStore.setItemAsync(TOKEN_KEY, token);
 
         return { success: true, authenticated: true };
@@ -217,7 +217,7 @@ export const AuthProvider = ({ children }: any) => {
         await logout();
         return { success: false, authenticated: false };
       }
-    } catch (e: any) {
+    } catch (_e: any) {
       await logout();
       return {
         error: true,

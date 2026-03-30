@@ -1,10 +1,10 @@
 /**
  * Tests for Login screen
  */
-import React from "react";
-import { render, fireEvent, waitFor } from "@testing-library/react-native";
-import Login from "src/screens/Login";
+
+import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { AuthProvider } from "src/context/AuthContext";
+import Login from "src/screens/Login";
 import { mockAxios } from "../fixtures/mockAxios";
 import { mockSecureStore } from "../fixtures/mockSecureStore";
 

@@ -1,15 +1,15 @@
 import "resize-observer-polyfill";
 import { fireEvent, render, screen } from "@testing-library/react";
-import Login from "@/screens/Login";
+import userEvent from "@testing-library/user-event";
+import axios from "axios";
 import { BrowserRouter } from "react-router-dom";
 import { vi } from "vitest";
-import axios from "axios";
-import userEvent from "@testing-library/user-event";
-import Dashboard from "@/screens/Dashboard";
 import Candidates from "@/screens/Candidates";
-import { DataTable } from "@/tables/population_table/data-table";
+import Dashboard from "@/screens/Dashboard";
+import Login from "@/screens/Login";
 import PopulationData from "@/screens/PopulationData";
 import Users from "@/screens/Users";
+import { DataTable } from "@/tables/population_table/data-table";
 
 vi.mock("@/context/AuthContext", () => ({
   useAuth: () => ({
