@@ -1115,53 +1115,43 @@ class SecurityTestSuite:
         return results
 
     def generate_security_report(self, test_results: Dict) -> None:
-#        """Generate comprehensive security report"""
-#        report_file = f"security_report_{self.environment}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.json"
-#
-#        with open(report_file, "w") as f:
-#            json.dump(test_results, f, indent=2)
-#
-#        print(f"Security report generated: {report_file}")
-#
-#        # Generate summary
-#        total_passed = 0
-#        total_failed = 0
-#        total_warnings = 0
-#
-#        def count_results(results):
-#            nonlocal total_passed, total_failed, total_warnings
-#            if isinstance(results, dict):
-#                if "passed" in results:
-#                    total_passed += len(results["passed"])
-#                if "failed" in results:
-#                    total_failed += len(results["failed"])
-#                if "warnings" in results:
-#                    total_warnings += len(results["warnings"])
-#
-#                for value in results.values():
-#                    if isinstance(value, dict):
-#                        count_results(value)
-#
-#        count_results(test_results["tests"])
-#
-#        print(f"\nSecurity Test Summary:")
-#        print(f"Passed: {total_passed}")
-#        print(f"Failed: {total_failed}")
-#        print(f"Warnings: {total_warnings}")
-#
-#        if total_failed > 0:
-#            print(f"\n❌ Security tests FAILED - {total_failed} critical issues found")
-#            sys.exit(1)
-#        elif total_warnings > 0:
-#            print(
-#                f"\n⚠️  Security tests PASSED with warnings - {total_warnings} issues to review"
-#            )
-#        else:
-#            print(f"\n✅ All security tests PASSED")
-#
-#
-#def main():
-#    """Main function to run security tests"""
+"""Generate comprehensive security report"""
+         report_file = f"security_report_{self.environment}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.json"
+         with open(report_file, "w") as f:
+             json.dump(test_results, f, indent=2)
+         print(f"Security report generated: {report_file}")
+         # Generate summary
+         total_passed = 0
+         total_failed = 0
+         total_warnings = 0
+         def count_results(results):
+             nonlocal total_passed, total_failed, total_warnings
+             if isinstance(results, dict):
+                 if "passed" in results:
+                     total_passed += len(results["passed"])
+                 if "failed" in results:
+                     total_failed += len(results["failed"])
+                 if "warnings" in results:
+                     total_warnings += len(results["warnings"])
+                 for value in results.values():
+                     if isinstance(value, dict):
+                         count_results(value)
+         count_results(test_results["tests"])
+         print(f"\nSecurity Test Summary:")
+         print(f"Passed: {total_passed}")
+         print(f"Failed: {total_failed}")
+         print(f"Warnings: {total_warnings}")
+         if total_failed > 0:
+             print(f"\n❌ Security tests FAILED - {total_failed} critical issues found")
+             sys.exit(1)
+         elif total_warnings > 0:
+             print(
+                 f"\n⚠️  Security tests PASSED with warnings - {total_warnings} issues to review"
+             )
+         else:
+             print(f"\n✅ All security tests PASSED")
+     main():
+     """Main function to run security tests"""
     import argparse
 
     parser = argparse.ArgumentParser(description="QuantumBallot Security Test Suite")
