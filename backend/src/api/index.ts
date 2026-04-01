@@ -3,20 +3,22 @@ import type BlockChain from "../blockchain/blockchain";
 const express = require("express");
 const cors = require("cors");
 const corsOptions = require("../config/coreOptions");
+const cookieParser = require("cookie-parser");
+const credentials = require("../middleware/credentials");
 
-const app_api = express();
-// <--- Middleware --->
+const router = express.Router();
 
-app_api.use(express.json());
-app_api.use(express.urlencoded({ extended: false }));
-app_api.use(cors(corsOptions));
+router.use(express.json());
+router.use(express.urlencoded({ extended: false }));
+router.use(cors(corsOptions));
+router.use(cookieParser());
+router.use(credentials);
 
 module.exports = (blockchain: BlockChain, allNodes: string[]) => {
   const redirectRoute = (text: string) => require(text)(blockchain, allNodes);
 
-  // <--- API ROUTE END-POINTS --->
-  app_api.use("/blockchain", redirectRoute("./routes/blockchain.route"));
-  app_api.use("/committee", require("./routes/committee.route"));
+  router.use("/blockchain", redirectRoute("./routes/blockchain.route"));
+  router.use("/committee", require("./routes/committee.route"));
 
-  return app_api;
+  return router;
 };

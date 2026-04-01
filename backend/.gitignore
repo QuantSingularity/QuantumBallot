@@ -1,6 +1,38 @@
+# Dependencies
 node_modules/
-db
-src/db
-/build
-*.env
+
+# Build output
+dist/
+build/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Database files
+data/
+db/
+src/db/
+*.db
+
+# Crypto keys
 secret.key
+src/crypto/*.key
+src/crypto/*.pem
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Test coverage
+coverage/
+.nyc_output/

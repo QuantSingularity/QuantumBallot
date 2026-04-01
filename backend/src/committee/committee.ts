@@ -37,10 +37,6 @@ const CryptoBlockIdentifier = new CryptoBlockchain(
   process.env.SECRET_KEY_IDENTIFIER,
   process.env.SECRET_IV_IDENTIFIER,
 );
-const _CryptoBlockVote = new CryptoBlockchain(
-  process.env.SECRET_KEY_VOTES,
-  process.env.SECRET_IV_VOTES,
-);
 
 class Committee {
   citizens: Citizen[];
@@ -61,9 +57,7 @@ class Committee {
   public async loadCitizens() {
     try {
       this.citizens = await readCitizens();
-    } catch (_error: any) {
-      // console.error('Error loading citizens:', error);
-    }
+    } catch (_error: any) {}
   }
 
   public async loadUsers() {
@@ -79,7 +73,7 @@ class Committee {
       await clearVotersGenerated();
 
       const length = 8;
-      this.citizens.forEach((citizen) => {
+      for (const citizen of this.citizens) {
         if (citizen.status === "verified") {
           const id = CryptoBlockIdentifier.generateIdentifier(length);
           const electoralIdEncrypted = CryptoBlockIdentifier.encryptData(
@@ -95,9 +89,9 @@ class Committee {
           };
 
           voters.push(obj);
-          writeVoterGenerated(id, obj);
+          await writeVoterGenerated(id, obj);
         }
-      });
+      }
 
       this.votersGenerated = voters;
       return voters;
@@ -134,7 +128,7 @@ class Committee {
         status: status,
       };
 
-      await writeCandidateTemp(code, obj);
+      await writeCandidateTemp(code.toString(), obj);
       this.candidates = await readCandidatesTemp();
     } catch (_e: any) {}
 
@@ -144,17 +138,17 @@ class Committee {
   public async authMobile(electoralId: string, password: string) {
     try {
       const response = await readCitizen(electoralId);
+      if (!response) return null;
+
       const match = await bcrypt.compare(password, response.password);
 
-      if (response !== null && match) {
-        const output = {
+      if (match) {
+        return {
           electoralId: response.electoralId,
           address: response.address,
           email: response.email,
           province: response.province,
         };
-
-        return output;
       }
     } catch (_error: any) {}
 
@@ -164,16 +158,16 @@ class Committee {
   public async authWeb(username: string, password: string) {
     try {
       const response = await readUser(username);
+      if (!response) return null;
+
       const match = await bcrypt.compare(password, response.password);
 
-      if (response !== null && match) {
-        const output = {
+      if (match) {
+        return {
           name: response.name,
           username: response.username,
           role: response.role,
         };
-
-        return output;
       }
     } catch (_error: any) {}
     return null;
@@ -213,9 +207,9 @@ class Committee {
     return this.citizens;
   }
 
-  private async saveCitizen(citzen: Citizen) {
+  private async saveCitizen(citizen: Citizen) {
     try {
-      await writeCitizen(citzen.electoralId, citzen);
+      await writeCitizen(citizen.electoralId, citizen);
     } catch (_e: any) {}
   }
 
@@ -229,6 +223,9 @@ class Committee {
     const citizen = this.citizens.find(
       (x) => x.electoralId.localeCompare(electoralId) === 0,
     );
+
+    if (!citizen) return;
+
     citizen.refreshToken = refreshToken;
 
     try {
@@ -245,6 +242,9 @@ class Committee {
     const user = this.users.find(
       (x) => x.username.localeCompare(username) === 0,
     );
+
+    if (!user) return;
+
     user.refreshToken = refreshToken;
 
     try {
@@ -263,7 +263,7 @@ class Committee {
 
     const hashedPwd = await bcrypt.hash(data.password, 10);
 
-    const citzen: Citizen = {
+    const citizen: Citizen = {
       electoralId: data.electoralId,
       name: data.name,
       email: data.email,
@@ -276,12 +276,12 @@ class Committee {
       otp: this.generateOtp(),
     };
 
-    if (this.existsCitizen(citzen)) {
+    if (this.existsCitizen(citizen)) {
       return false;
     }
 
-    this.citizens.push(citzen);
-    this.saveCitizen(citzen);
+    this.citizens.push(citizen);
+    await this.saveCitizen(citizen);
 
     return true;
   }
@@ -315,15 +315,17 @@ class Committee {
       await this.loadUsers();
       const oldUser = this.users.find((x) => x.username === data.username);
 
-      const hashedPwd = await bcrypt.hash(data.password, 10);
-
       if (oldUser) {
-        Object.assign(oldUser, {
+        const updatedFields: Partial<User> = {
           name: data.name,
-          // username: data.username,
-          password: data.password ? hashedPwd : oldUser.password,
           role: data.role === "admin" ? Role.ADMIN : Role.NORMAL,
-        });
+        };
+
+        if (data.password) {
+          updatedFields.password = await bcrypt.hash(data.password, 10);
+        }
+
+        Object.assign(oldUser, updatedFields);
 
         await this.saveUser(oldUser);
         return true;
@@ -349,7 +351,7 @@ class Committee {
       return null;
     }
 
-    this.saveUser(user);
+    await this.saveUser(user);
     this.users.push(user);
 
     return this.users;
@@ -400,8 +402,8 @@ class Committee {
   private generateOtp(): Otp {
     const secret = speakeasy.generateSecret({
       name: "Election QuantumBallot",
-      length: 6, // Length of the generated code
-      step: 300, // Time step in seconds (5 minutes = 300 seconds)
+      length: 20,
+      step: 300,
     });
 
     const otp: Otp = {
@@ -414,11 +416,12 @@ class Committee {
     return otp;
   }
 
-  public verifyOtp(secret, token): boolean {
+  public verifyOtp(secret: string, token: string): boolean {
     const verified = speakeasy.totp.verify({
       secret: secret,
       encoding: "base32",
       token: token,
+      window: 1,
     });
 
     return verified;
@@ -429,9 +432,8 @@ class Committee {
   ): Promise<string | null> => {
     try {
       const qrCodeData = await new Promise<string>((resolve, reject) => {
-        qrcode.toDataURL(otpauth_url, (err, data) => {
+        qrcode.toDataURL(otpauth_url, (err: any, data: string) => {
           if (err) {
-            // console.error(err);
             reject(err);
           } else {
             resolve(data);
@@ -441,7 +443,6 @@ class Committee {
 
       return qrCodeData;
     } catch (_error: any) {
-      // console.error(error);
       return null;
     }
   };

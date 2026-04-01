@@ -24,7 +24,7 @@ const CryptoBlockVote = new CryptoBlockchain(
 
 class BlockChain {
   chain: Block[];
-  transactionPool: Transaction[]; // Pending Transactions
+  transactionPool: Transaction[];
   smartContract!: SmartContract;
   nodeAddress!: string;
 
@@ -44,16 +44,21 @@ class BlockChain {
 
   private async loadChain() {
     try {
-      this.chain = await readChain();
+      const chain = await readChain();
+      if (Array.isArray(chain) && chain.length > 0) {
+        this.chain = chain;
+      }
     } catch (_e: any) {}
   }
 
   public async clearChainsFromStorage() {
     try {
-      await clearChains().then((_res) => {
-        this.loadChain();
+      await clearChains();
+      this.chain = [this.getGenesisBlock()];
+      this.transactionPool = [];
+      try {
         this.smartContract = new SmartContract();
-      });
+      } catch (_e: any) {}
     } catch (_error: any) {}
 
     return [];
@@ -78,9 +83,9 @@ class BlockChain {
   }
 
   public replaceChain(chain: Block[]): boolean {
-    if (this.isValidChain(chain)) {
-      //console.log("Valid chain (:)[^_^](:)");
+    if (chain.length > this.chain.length && this.isValidChain(chain)) {
       this.chain = chain;
+      this.saveChain();
       return true;
     }
 
@@ -92,12 +97,11 @@ class BlockChain {
       if (this.isValidBlock(block)) {
         this.chain.push(block);
 
-        // Update voter in the database
         block.transactions.forEach((x) => {
           updateVoter(x.data.identifier, x.data);
         });
 
-        this.transactionPool = []; // Clear the transaction pool (pending transactions)
+        this.transactionPool = [];
         this.smartContract.update();
 
         this.saveChain();
@@ -125,11 +129,13 @@ class BlockChain {
   }
 
   private isValidBlock(block: Block): boolean {
+    if (!block) return false;
+
     if (!this.isBlockLast(block)) {
       return false;
     }
 
-    if (block !== null && !this.isSHA256(block.blockHeader.blockHash)) {
+    if (!this.isSHA256(block.blockHeader.blockHash)) {
       return false;
     }
 
@@ -152,7 +158,7 @@ class BlockChain {
     choiceCodeIV: string,
     secret: string,
   ): Transaction | null {
-    if (!this.smartContract.isValidElectionTime()) {
+    if (!this.smartContract || !this.smartContract.isValidElectionTime()) {
       return null;
     }
 
@@ -182,11 +188,13 @@ class BlockChain {
   }
 
   public createBlock(_hash: string, previousBlockHash: string, nonce: number) {
+    const merkleRoot = this.createMarkle(this.transactionPool) || "-";
+
     const blockHeader: BlockHeader = {
       version: "1",
       blockHash: "",
       previousBlockHash: this.getLastBlock()?.blockHeader.blockHash || "-",
-      merkleRoot: this.createMarkle(this.transactionPool) || "-",
+      merkleRoot: merkleRoot,
       timestamp: Date.now(),
       difficultyTarget: -1,
       nonce: nonce,
@@ -203,7 +211,7 @@ class BlockChain {
       blockSize: 285,
       blockHeader: blockHeader,
       transactionCounter: this.transactionPool.length,
-      transactions: this.transactionPool,
+      transactions: [...this.transactionPool],
     };
 
     return newBlock;
@@ -215,7 +223,7 @@ class BlockChain {
       blockHash: "-",
       previousBlockHash: "-",
       merkleRoot: "-",
-      timestamp: new Date("2022-09-03").getTime(), // It must be static ...
+      timestamp: new Date("2022-09-03").getTime(),
       difficultyTarget: 1234,
       nonce: 1234,
     };
@@ -340,12 +348,13 @@ class BlockChain {
   }
 
   private isValidChain(chain: Block[]): boolean {
+    if (!chain || chain.length === 0) return false;
+
     const genesisBlock: Block = this.getGenesisBlock();
     if (!this.areObjectsEqual(chain[0], genesisBlock)) {
       return false;
     }
 
-    // We skip genesis block in the loop
     for (let i: number = 1; i < chain.length; ++i) {
       const prevBlock: Block = chain[i - 1];
       const curBlock: Block = chain[i];
@@ -394,7 +403,6 @@ class BlockChain {
       lastHashBlock,
       nonce,
     );
-    // this.addBlock(candidateBlock); It adds int the receive method
 
     return candidateBlock;
   }
@@ -412,35 +420,24 @@ class BlockChain {
 
     if (vote.secret.length === 0) return false;
 
-    // Is in the smart-contract
     return true;
   }
 
   private isValidTransactionPool(transactions: Transaction[]): boolean {
-    const len: boolean = transactions.length > 0;
+    if (!transactions || transactions.length === 0) return false;
     const mapped = transactions.map((x) => this.isValidTransaction(x));
-
-    const validTransactions: boolean = mapped.every((x) => x);
-
-    return len && validTransactions;
+    return mapped.every((x) => x);
   }
 
   public isValidTransaction(transaction: Transaction): boolean {
-    // The transaction size in bytes is less than MAX_BLOCK_SIZE.
-
-    /*        if (this.isPresentedInTransactionPool(transaction)) {
-                    console.log("Transaction Pool: ", this.transactionPool);
-                    console.log("Error in isPresentedInTransactionPool");
-                    return false;
-                }*/
+    if (!transaction) return false;
 
     if (this.isPresentedInChain(transaction)) {
-      // console.log("[present] -> transaction: ", transaction);
       return false;
     }
 
     if (
-      (transaction != null && !this.isSHA256(transaction.transactionHash)) ||
+      !this.isSHA256(transaction.transactionHash) ||
       !this.isValidVote(transaction.data)
     )
       return false;
@@ -459,13 +456,10 @@ class BlockChain {
   }
 
   private isValidTimestampDifference(timestamp: number): boolean {
-    const currentTime = new Date(Date.now());
-    const hours = 2;
-    currentTime.setHours(currentTime.getHours() + hours); // Add two hours.
-
-    const futureTime = currentTime.setHours(currentTime.getHours() + hours);
-
-    return timestamp <= futureTime;
+    const currentTime = Date.now();
+    const twoHoursInMs = 2 * 60 * 60 * 1000;
+    const futureLimit = currentTime + twoHoursInMs;
+    return timestamp <= futureLimit;
   }
 
   public proofOfWork(
@@ -473,18 +467,14 @@ class BlockChain {
     merkleRoot: string,
     difficultyTarget: number,
   ) {
-    // Later, improve the difficultyTarget to auto adjust and increase the difficulty to find the nonce :)
     let nonce: number = 0;
-    const hash = this.hashBlock(previousBlockHash, merkleRoot, nonce);
-
     const prefixHash = "0".repeat(difficultyTarget);
-    let sub = hash.substring(0, difficultyTarget);
 
-    // Bruteforce until find the correct hash. It may take a lot of time depending on "difficulty target".
-    while (prefixHash !== sub) {
-      nonce++;
+    while (true) {
       const hash = this.hashBlock(previousBlockHash, merkleRoot, nonce);
-      sub = hash.substring(0, difficultyTarget);
+      const sub = hash.substring(0, difficultyTarget);
+      if (prefixHash === sub) break;
+      nonce++;
     }
     return nonce;
   }
@@ -496,104 +486,65 @@ class BlockChain {
   private createMarkle(transactions: Transaction[]): string | null {
     let hashList: string[] = transactions.map((x) => x.transactionHash);
 
-    // Stop if hash list is empty
     if (hashList.length === 0) {
       return null;
     } else if (hashList.length === 1) return hashList[0];
 
-    // While there is more than 1 hash in the list, keep looping ...
     while (hashList.length > 1) {
-      // If number of hashes is ood, duplicate last hash in the list.
       if (hashList.length % 2 !== 0) {
-        const index_last = hashList.length - 1;
-        const last: string = hashList[index_last];
+        const last: string = hashList[hashList.length - 1];
         hashList.push(last);
       }
 
-      // List size is now even
       assert(hashList.length % 2 === 0);
 
-      // New hash list
       const newHashList: string[] = [];
 
-      // Loop though hashes 2 at a time.
       for (let i = 0; i < hashList.length; i += 2) {
-        // Join both current hashes together (concatenate).
-        const current: string = hashList[0];
+        const current: string = hashList[i];
         const next: string = hashList[i + 1];
 
         const concat: string = `${current}${next}`;
-
-        // Hash both of the hashes.
         const newRoot: string = this.hashData(concat);
-
-        // Add this to the new list.
         newHashList.push(newRoot);
       }
 
-      // This is the new list.
       hashList = newHashList;
     }
 
-    // DEBUG output ----------------------------------------
-    hashList.forEach((_element) => {
-      // console.log(" " + element);
-    });
-
-    // -----------------------------------------------------
-
-    // Finally we end up with a single item.
     return hashList[0];
   }
 
   public getPendingTransactions() {
-    const x = this.transactionPool.map((x, index) => {
-      const newVal = {
-        id: index + 1,
-        transactionHash: x.transactionHash,
-        identifier: x.data.identifier,
-        choiceCode: x.data.choiceCode,
-        voteTime: x.data.voteTime,
-      };
-
-      return newVal;
-    });
-
-    return x;
+    return this.transactionPool.map((x, index) => ({
+      id: index + 1,
+      transactionHash: x.transactionHash,
+      identifier: x.data.identifier,
+      choiceCode: x.data.choiceCode,
+      voteTime: x.data.voteTime,
+    }));
   }
 
   public getTransactions() {
-    const x = this.chain.flatMap((x, _index) => x.transactions);
-    const res = x.map((x, index) => {
-      const newVal = {
-        id: index + 1,
-        transactionHash: x.transactionHash,
-        identifier: x.data.identifier,
-        choiceCode: x.data.choiceCode,
-        voteTime: x.data.voteTime,
-      };
-
-      return newVal;
-    });
-
-    return res;
+    const x = this.chain.flatMap((x) => x.transactions);
+    return x.map((x, index) => ({
+      id: index + 1,
+      transactionHash: x.transactionHash,
+      identifier: x.data.identifier,
+      choiceCode: x.data.choiceCode,
+      voteTime: x.data.voteTime,
+    }));
   }
 
   public getBlocks() {
-    const res = this.chain.map((x, index) => {
-      const newVal = {
-        id: index + 1,
-        hashBlock: x.blockHeader.blockHash,
-        nonce: x.blockHeader.nonce,
-        numOfTransactions: x.transactionCounter,
-        dateAndTime: x.blockHeader.timestamp,
-        size: x.blockSize,
-      };
-
-      return newVal;
-    });
-
-    return res;
+    return this.chain.map((x, index) => ({
+      id: index + 1,
+      hashBlock: x.blockHeader.blockHash,
+      nonce: x.blockHeader.nonce,
+      numOfTransactions: x.transactionCounter,
+      dateAndTime: x.blockHeader.timestamp,
+      size: x.blockSize,
+    }));
   }
 
   public getBlockDetails(blockHash: string) {
@@ -609,17 +560,10 @@ class BlockChain {
         electoralIdEncrypted.CIPHER_TEXT,
       );
       return identifier;
-    } catch (_e: any) {
-      //console.log(e);
-    }
+    } catch (_e: any) {}
 
     return null;
   }
 }
-
-/*
-    Code processing results.
-    in the level db, the transaction and the header metadate are separated.
-*/
 
 export default BlockChain;

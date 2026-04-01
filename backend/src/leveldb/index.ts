@@ -8,11 +8,9 @@ const getBlockAddress = (str: string) => str + NODE_ADDRESS;
 
 const { Level } = require("level");
 
-// Determine database path from environment or use default
 const DB_PATH = process.env.DB_PATH || "./data/QuantumBallot_db";
 const dbPath = getBlockAddress(DB_PATH);
 
-// Ensure database directory exists
 const dbDir = path.dirname(dbPath);
 if (!fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir, { recursive: true });
@@ -52,22 +50,12 @@ const votercitizenrelationdb = db.sublevel(VOTER_CITIZEN_RELATION, {
   valueEncoding: "json",
 });
 
-/*
-  INFO ABOUT THE API: https://github.com/Level/level?tab=readme-ov-file
-*/
-
-/**
- * Initialize and connect to the LevelDB database
- * @returns Promise that resolves when database is ready
- */
 export async function connectToDB(): Promise<void> {
   try {
-    // Open the database if not already open
     await db.open();
     console.log(`LevelDB connected successfully at: ${dbPath}`);
   } catch (error: any) {
     if ((error as any).code === "LEVEL_DATABASE_NOT_OPEN") {
-      // Database is already open, which is fine
       console.log(`LevelDB already open at: ${dbPath}`);
     } else {
       console.error("Failed to connect to LevelDB:", error);
@@ -76,9 +64,6 @@ export async function connectToDB(): Promise<void> {
   }
 }
 
-/**
- * Close the database connection
- */
 export async function closeDB(): Promise<void> {
   try {
     await db.close();
@@ -89,9 +74,6 @@ export async function closeDB(): Promise<void> {
   }
 }
 
-/**
- * Get database instance for external use
- */
 export function getDB() {
   return db;
 }
@@ -104,9 +86,9 @@ export async function writeChain(value: Block[]) {
   await chaindb.put(CHAIN, value);
 
   const chain: Block[] = value;
-  chain.forEach((x: any) => {
-    writeBlock(x.blockHeader.blockHash, x);
-  });
+  for (const block of chain) {
+    await writeBlock(block.blockHeader.blockHash, block);
+  }
 }
 
 export async function writeBlock(key: string, value: any) {
@@ -142,21 +124,25 @@ export async function writeCandidateTemp(key: string, value: any) {
 }
 
 export async function updateVoter(key: string, value: any) {
-  votersdb.put(key, value);
+  await votersdb.put(key, value);
 }
 
 export async function deployVotersGenerated() {
   await clearVoters();
   for await (const [key, value] of votersgenerateddb.iterator()) {
-    if (value !== undefined) votersdb.put(key, value);
-    await writeVoterCitizenRelation(value.electoralId, value.identifier);
+    if (value !== undefined) {
+      await votersdb.put(key, value);
+      await writeVoterCitizenRelation(value.electoralId, value.identifier);
+    }
   }
 }
 
 export async function deployCandidates() {
-  clearCandidates();
+  await clearCandidates();
   for await (const [key, value] of candidatesTempDb.iterator()) {
-    if (value !== undefined) candidatesdb.put(key, value);
+    if (value !== undefined) {
+      await candidatesdb.put(key, value);
+    }
   }
 }
 
@@ -212,7 +198,9 @@ export async function readVoterGenerated() {
   const votersGenerated: Voter[] = [];
 
   for await (const [_, value] of votersgenerateddb.iterator()) {
-    votersGenerated.push(value);
+    if (value !== undefined) {
+      votersGenerated.push(value);
+    }
   }
 
   return votersGenerated;
@@ -228,7 +216,6 @@ export async function readChain() {
     const value = await chaindb.get(CHAIN);
     return value;
   } catch (error: any) {
-    // Return empty array if chain doesn't exist yet
     if ((error as any).code === "LEVEL_NOT_FOUND") {
       return [];
     }
@@ -280,19 +267,35 @@ export async function readTransactions() {
 }
 
 export async function readCitizen(key: string) {
-  const value = await citizensdb.get(key);
-  return value;
+  try {
+    const value = await citizensdb.get(key);
+    return value;
+  } catch (error: any) {
+    if ((error as any).code === "LEVEL_NOT_FOUND") {
+      return null;
+    }
+    throw error;
+  }
 }
 
 export async function readUser(key: string) {
-  const value = await userdb.get(key);
-  return value;
+  try {
+    const value = await userdb.get(key);
+    return value;
+  } catch (error: any) {
+    if ((error as any).code === "LEVEL_NOT_FOUND") {
+      return null;
+    }
+    throw error;
+  }
 }
 
 export async function readCitizens() {
   const citizens: Citizen[] = [];
   for await (const [_, value] of citizensdb.iterator()) {
-    citizens.push(value);
+    if (value !== undefined) {
+      citizens.push(value);
+    }
   }
 
   return citizens;
@@ -311,7 +314,8 @@ export async function clearCitizens() {
 }
 
 export async function clearChains() {
-  return chaindb.clear();
+  await chaindb.clear();
+  return blockdb.clear();
 }
 
 export async function clearUsers() {
@@ -341,10 +345,10 @@ export async function clearVoters() {
 
 export async function readBlocks() {
   const blocks: any[] = [];
-  const stream = blockdb.createReadStream();
-  stream.on("data", (block: any) => {
-    blocks.push(block);
-  });
-
+  for await (const [_, value] of blockdb.iterator()) {
+    if (value !== undefined) {
+      blocks.push(value);
+    }
+  }
   return blocks;
 }

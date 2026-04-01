@@ -1,27 +1,39 @@
-FROM node:21-alpine
+FROM node:20-alpine AS builder
 
-# Enviroment variables
-ENV NODE_PORT=3000
-ENV DIR=/usr/app
-ENV SERVER_PORT="3002"
-
-WORKDIR ${DIR}
+WORKDIR /app
 
 COPY package*.json ./
 
-COPY . .
+RUN npm ci --only=production=false
 
-# RUN npm install
-RUN npm install -g npm@latest
-RUN npm install rimraf --global
-#RUN npm install --only=production && npm cache clean --force && npm install -g typescript && npm install rimraf --save
-RUN npm install -g typescript && npm install rimraf --save
+COPY tsconfig.json ./
+COPY src/ ./src/
+
 RUN npm run build
 
-EXPOSE $NODE_PORT
+FROM node:20-alpine AS production
 
-# CMD ["ts-node", "src/network.ts"]
-# CMD ["node", "build/network.js"]
-CMD node build/network.js ${SERVER_PORT}
+RUN apk add --no-cache dumb-init
 
-#CMD ["node", "build/app.js"]
+ENV NODE_ENV=production
+ENV PORT=3000
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm ci --only=production && npm cache clean --force
+
+COPY --from=builder /app/dist ./dist
+
+RUN mkdir -p ./data
+
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+  CMD wget -qO- http://localhost:3000/health || exit 1
+
+USER node
+
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "dist/index.js"]

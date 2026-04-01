@@ -1,21 +1,24 @@
 import path from "node:path";
 import cors from "cors";
 import dotenv from "dotenv";
-import express, { type Request, type Response } from "express";
+import express, {
+  type NextFunction,
+  type Request,
+  type Response,
+} from "express";
+import cookieParser from "cookie-parser";
 import BlockChain from "./blockchain/blockchain";
-import { connectToDB } from "./leveldb";
+import { closeDB, connectToDB } from "./leveldb";
 
-// Load environment variables from .env file
 dotenv.config({ path: path.join(__dirname, "../.env") });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
 
-// CORS configuration
 const allowedOrigins = [
   "http://localhost:3007",
   "http://localhost:3010",
@@ -47,7 +50,6 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// Health check route
 app.get("/", (_req: Request, res: Response) => {
   res.json({
     message: "QuantumBallot Backend API is running!",
@@ -57,7 +59,6 @@ app.get("/", (_req: Request, res: Response) => {
   });
 });
 
-// Health check endpoint
 app.get("/health", (_req: Request, res: Response) => {
   res.json({
     status: "ok",
@@ -66,33 +67,27 @@ app.get("/health", (_req: Request, res: Response) => {
   });
 });
 
-// Initialize blockchain and routes
 let blockchain: BlockChain;
-const allNodes = [PORT.toString()]; // Single node for now
+const allNodes = [PORT.toString()];
 
-// Start server
 const startServer = async () => {
   try {
     console.log("Starting QuantumBallot Backend...");
 
-    // Connect to LevelDB
     console.log("Connecting to database...");
     await connectToDB();
     console.log("Database connected successfully");
 
-    // Initialize blockchain
     console.log("Initializing blockchain...");
     blockchain = new BlockChain();
     blockchain.setNodeAddress(PORT.toString());
     console.log("Blockchain initialized");
 
-    // Import and mount API routes
     const apiRouter = require("./api/index")(blockchain, allNodes);
     app.use("/api", apiRouter);
     console.log("API routes mounted");
 
-    // Error handling middleware
-    app.use((err: Error, _req: Request, res: Response, _next: any) => {
+    app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
       console.error("Error:", err.message);
       res.status(500).json({
         success: false,
@@ -101,7 +96,6 @@ const startServer = async () => {
       });
     });
 
-    // 404 handler
     app.use((req: Request, res: Response) => {
       res.status(404).json({
         success: false,
@@ -110,7 +104,7 @@ const startServer = async () => {
       });
     });
 
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log("=".repeat(50));
       console.log(`✓ QuantumBallot Backend Server`);
       console.log(`✓ Environment: ${process.env.NODE_ENV || "development"}`);
@@ -119,21 +113,23 @@ const startServer = async () => {
       console.log(`✓ API endpoint: http://localhost:${PORT}/api`);
       console.log("=".repeat(50));
     });
+
+    const gracefulShutdown = async (signal: string) => {
+      console.log(`\nReceived ${signal}, shutting down gracefully...`);
+      server.close(async () => {
+        try {
+          await closeDB();
+        } catch (_e) {}
+        process.exit(0);
+      });
+    };
+
+    process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+    process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
   } catch (error: any) {
     console.error("Failed to start server:", error);
     process.exit(1);
   }
 };
-
-// Handle graceful shutdown
-process.on("SIGINT", async () => {
-  console.log("\nShutting down gracefully...");
-  process.exit(0);
-});
-
-process.on("SIGTERM", async () => {
-  console.log("\nShutting down gracefully...");
-  process.exit(0);
-});
 
 startServer();

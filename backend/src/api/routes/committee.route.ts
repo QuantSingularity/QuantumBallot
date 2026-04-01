@@ -1,27 +1,38 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import Committee from "../../committee/committee";
 import { PROVINCES_PORT } from "../../committee/data_types";
 import emailTemplate from "../../email_center/emailTemplate";
 import sendEmail from "../../email_center/sendEmail";
 
 const jwt = require("jsonwebtoken");
-
-const _axios = require("axios");
-const _LOCALHOST = "http://localhost:";
-const _NODE_ADDRESS = "?"; //Let's assume we already know comming from the higher level.
-
 const dotenv = require("dotenv");
 dotenv.config();
 
 const express = require("express");
 const router = express.Router();
+const cookieParser = require("cookie-parser");
+
+const verifyJWT = require("../../middleware/verifyJWT");
+const verifyJWTWeb = require("../../middleware/verifyJWTWeb");
+const credentials = require("../../middleware/credentials");
+
+router.use(cookieParser());
+router.use(credentials);
 
 const committee = new Committee();
 
-const cookieParser = require("cookie-parser");
-
-// middleware for cookies
-express().use(cookieParser());
+// Async handler to catch errors in async routes
+const asyncHandler =
+  (fn: Function) => (req: Request, res: Response, next: NextFunction) => {
+    Promise.resolve(fn(req, res, next)).catch((err: any) => {
+      console.error(`API Error: ${err.message}`, err);
+      return res.status(500).json({
+        success: false,
+        message: "Internal server error",
+        error: process.env.NODE_ENV === "development" ? err.message : undefined,
+      });
+    });
+  };
 
 router.get("/", (_req: Request, res: Response) => {
   res.status(401).json({});
@@ -34,407 +45,454 @@ router.get("/registers", (_req: Request, res: Response) => {
   });
 });
 
-router.get("/generate-identifiers", async (_req: Request, res: Response) => {
-  const ans = await committee.generateIdentifiers();
-  res.json({ voters: ans, note: "Request accepted ..." });
-});
+router.get(
+  "/generate-identifiers",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const ans = await committee.generateIdentifiers();
+    res.json({ voters: ans, note: "Request accepted ..." });
+  }),
+);
 
-router.post("/add-candidate", async (req: Request, res: Response) => {
-  const data = req.body;
-  if (!data.name || !data.party || !data.code)
-    return res.status(400).json({ note: "Rejected." }); // Changed status code to 400 for client errors
+router.post(
+  "/add-candidate",
+  asyncHandler(async (req: Request, res: Response) => {
+    const data = req.body;
+    if (!data.name || !data.party || !data.code)
+      return res.status(400).json({ note: "Rejected." });
 
-  const name = data.name;
-  const code = parseInt(data.code, 10);
-  const party = data.party;
-  const acronym = data.acronym;
-  const status = data.status;
+    const name = data.name;
+    const code = parseInt(data.code, 10);
+    const party = data.party;
+    const acronym = data.acronym;
+    const status = data.status;
 
-  const ans = await committee.addCandidateCommittee(
-    name,
-    code,
-    party,
-    acronym,
-    status,
-  );
-  if (ans !== null && ans !== undefined) {
-    res.status(200).send({
-      note: "Request accepted, candidate added.",
-      candidates: ans,
-    });
-  } else {
-    res.status(401).send({ note: "Rejected. Something went wrong ..." });
-  }
-});
+    const ans = await committee.addCandidateCommittee(
+      name,
+      code,
+      party,
+      acronym,
+      status,
+    );
+    if (ans !== null && ans !== undefined) {
+      res.status(200).send({
+        note: "Request accepted, candidate added.",
+        candidates: ans,
+      });
+    } else {
+      res.status(500).send({ note: "Rejected. Something went wrong ..." });
+    }
+  }),
+);
 
-router.post("/add-user", async (req: Request, res: Response) => {
-  const data = req.body;
-  if (!data.name || !data.username || !data.role || !data.password)
-    return res.status(400).json({ note: "Rejected." }); // Changed status code to 400 for client errors
+router.post(
+  "/add-user",
+  asyncHandler(async (req: Request, res: Response) => {
+    const data = req.body;
+    if (!data.name || !data.username || !data.role || !data.password)
+      return res.status(400).json({ note: "Rejected." });
 
-  const ans = await committee.addUser(data);
-  if (ans !== null && ans !== undefined) {
-    res.send({
-      note: "Request accepted, user added.",
-      users: ans,
-    });
-  } else {
-    res.send({ note: "Rejected. Something went wrong ..." });
-  }
-});
-
-router.get("/clear-candidates", async (_req: Request, res: Response) => {
-  res.json({
-    candidates: committee.clearCandidates(),
-    note: "Request accepted ...",
-  });
-});
-
-router.get("/candidates", async (_req: Request, res: Response) => {
-  const ans = await committee.getCandidates();
-  if (ans !== null && ans !== undefined) {
-    res.json({ candidates: ans, note: "Request accepted ..." });
-  } else {
-    res.send({ note: "Rejected. Something went wrong ..." });
-  }
-});
-
-// status(400)
-router.get("/announcement", async (_req: Request, res: Response) => {
-  const ans = await committee.getAnnouncement();
-  if (ans !== null && ans !== undefined) {
-    res.json({ announcement: ans, note: "Request accepted ..." });
-  } else {
-    res.send({ note: "Rejected. Something went wrong ..." });
-  }
-});
-
-router.post("/deploy-announcement", async (req: Request, res: Response) => {
-  const data = req.body;
-  if (
-    !data.startTimeVoting ||
-    !data.endTimeVoting ||
-    !data.dateResults ||
-    !data.numOfCandidates ||
-    !data.numOfVoters
-  )
-    return res.status(400).json({ note: "Rejected." }); // Changed status code to 400 for client errors
-
-  const ans = await committee.deployAnnouncement(data);
-  if (ans !== null && ans !== undefined) {
-    res.status(201).send({
-      note: "Request accepted, user added.",
-    });
-  } else {
-    res.status(400).send({ note: "Rejected. Something went wrong ..." });
-  }
-});
-
-router.get("/users", async (_req: Request, res: Response) => {
-  const ans = await committee.getUsers();
-  if (ans !== null && ans !== undefined) {
-    res.json({ users: ans, note: "Request accepted ..." });
-  } else {
-    res.send({ note: "Rejected. Something went wrong ..." });
-  }
-});
-
-router.get("/voter-identifiers", async (_req: Request, res: Response) => {
-  const ans = await committee.getVotersGenerated();
-  res.json({ registers: ans, note: "Request accepted ..." });
-});
-
-router.get("/clear-registers", (_req: Request, res: Response) => {
-  res.json({
-    registers: committee.eraseCitzens(),
-    note: "Request accepted ...",
-  });
-});
-
-router.get("/clear-users", (_req: Request, res: Response) => {
-  res.json({ users: committee.eraseUsers(), note: "Request accepted ..." });
-});
-
-router.post("/delete-user", async (req: Request, res: Response) => {
-  const data = req.body;
-  if (!data.username) return res.status(400).json({ note: "Rejected." }); // Changed status code to 400 for client errors
-  const username = data.username;
-  const ans = await committee.eraseUser(username);
-  if (ans !== null && ans !== undefined) {
-    const users = await committee.getUsers();
-    res.send({ users: users, note: "Request accepted ..." });
-  } else {
-    res.send({ note: "Rejected. Something went wrong ..." });
-  }
-});
-
-router.post("/delete-register", async (req: Request, res: Response) => {
-  const data = req.body;
-  if (!data.electoralId) return res.status(400).json({ note: "Rejected." }); // Changed status code to 400 for client errors
-  const electoralId = data.electoralId;
-  const ans = await committee.eraseRegister(electoralId);
-  if (ans !== null && ans !== undefined) {
-    const citizens = await committee.getCitizens();
-    res.status(200).send({ registers: citizens, note: "Request accepted ..." });
-  } else {
-    res.send({ note: "Rejected. Something went wrong ..." });
-  }
-});
-
-router.post("/register-voter", async (req: Request, res: Response) => {
-  const data = req.body;
-  if (
-    !data.electoralId ||
-    !data.name ||
-    !data.email ||
-    !data.address ||
-    !data.province ||
-    !data.password
-  )
-    return res.status(400).json({ note: "Rejected." });
-
-  try {
-    if (await committee.addCitzen(data)) {
+    const ans = await committee.addUser(data);
+    if (ans !== null && ans !== undefined) {
       res.status(201).send({
-        note: "Request accepted, citzen registered.",
-        message:
-          "Please hold on there, you might get an e-mail with details on how to access your account, otherwise contact the voter committee.",
+        note: "Request accepted, user added.",
+        users: ans,
+      });
+    } else {
+      res.status(409).send({ note: "Rejected. User already exists." });
+    }
+  }),
+);
+
+router.get(
+  "/clear-candidates",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const candidates = await committee.clearCandidates();
+    res.json({ candidates, note: "Request accepted ..." });
+  }),
+);
+
+router.get(
+  "/candidates",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const ans = await committee.getCandidates();
+    if (ans !== null && ans !== undefined) {
+      res.json({ candidates: ans, note: "Request accepted ..." });
+    } else {
+      res.status(500).send({ note: "Rejected. Something went wrong ..." });
+    }
+  }),
+);
+
+router.get(
+  "/announcement",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const ans = await committee.getAnnouncement();
+    if (ans !== null && ans !== undefined) {
+      res.json({ announcement: ans, note: "Request accepted ..." });
+    } else {
+      res.status(404).send({ note: "No announcement found." });
+    }
+  }),
+);
+
+router.post(
+  "/deploy-announcement",
+  asyncHandler(async (req: Request, res: Response) => {
+    const data = req.body;
+    if (
+      !data.startTimeVoting ||
+      !data.endTimeVoting ||
+      !data.dateResults ||
+      !data.numOfCandidates ||
+      !data.numOfVoters
+    )
+      return res.status(400).json({ note: "Rejected." });
+
+    const ans = await committee.deployAnnouncement(data);
+    if (ans !== null && ans !== undefined) {
+      res.status(201).send({
+        note: "Request accepted, announcement deployed.",
+      });
+    } else {
+      res.status(400).send({ note: "Rejected. Something went wrong ..." });
+    }
+  }),
+);
+
+router.get(
+  "/users",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const ans = await committee.getUsers();
+    if (ans !== null && ans !== undefined) {
+      res.json({ users: ans, note: "Request accepted ..." });
+    } else {
+      res.status(500).send({ note: "Rejected. Something went wrong ..." });
+    }
+  }),
+);
+
+router.get(
+  "/voter-identifiers",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const ans = await committee.getVotersGenerated();
+    res.json({ registers: ans, note: "Request accepted ..." });
+  }),
+);
+
+router.get(
+  "/clear-registers",
+  asyncHandler(async (_req: Request, res: Response) => {
+    await committee.eraseCitzens();
+    res.json({
+      registers: committee.getCitizens(),
+      note: "Request accepted ...",
+    });
+  }),
+);
+
+router.get(
+  "/clear-users",
+  asyncHandler(async (_req: Request, res: Response) => {
+    await committee.eraseUsers();
+    res.json({ users: committee.getUsers(), note: "Request accepted ..." });
+  }),
+);
+
+router.post(
+  "/delete-user",
+  asyncHandler(async (req: Request, res: Response) => {
+    const data = req.body;
+    if (!data.username) return res.status(400).json({ note: "Rejected." });
+    const username = data.username;
+    const ans = await committee.eraseUser(username);
+    if (ans !== null && ans !== undefined) {
+      const users = await committee.getUsers();
+      res.send({ users: users, note: "Request accepted ..." });
+    } else {
+      res.status(500).send({ note: "Rejected. Something went wrong ..." });
+    }
+  }),
+);
+
+router.post(
+  "/delete-register",
+  asyncHandler(async (req: Request, res: Response) => {
+    const data = req.body;
+    if (!data.electoralId) return res.status(400).json({ note: "Rejected." });
+    const electoralId = data.electoralId;
+    const ans = await committee.eraseRegister(electoralId);
+    if (ans !== null && ans !== undefined) {
+      const citizens = await committee.getCitizens();
+      res
+        .status(200)
+        .send({ registers: citizens, note: "Request accepted ..." });
+    } else {
+      res.status(500).send({ note: "Rejected. Something went wrong ..." });
+    }
+  }),
+);
+
+router.post(
+  "/register-voter",
+  asyncHandler(async (req: Request, res: Response) => {
+    const data = req.body;
+    if (
+      !data.electoralId ||
+      !data.name ||
+      !data.email ||
+      !data.address ||
+      !data.province ||
+      !data.password
+    )
+      return res.status(400).json({ note: "Rejected." });
+
+    try {
+      if (await committee.addCitzen(data)) {
+        res.status(201).send({
+          note: "Request accepted, citizen registered.",
+          message:
+            "Please hold on there, you might get an e-mail with details on how to access your account, otherwise contact the voter committee.",
+          registers: committee.getCitizens(),
+        });
+      } else {
+        res
+          .status(409)
+          .send({ note: "Rejected. Citizen already exists or invalid data." });
+      }
+    } catch (e: any) {
+      console.log(e);
+      res.status(500).send({ note: "Rejected. Something went wrong ..." });
+    }
+  }),
+);
+
+router.post(
+  "/update-citizen",
+  asyncHandler(async (req: Request, res: Response) => {
+    const data = req.body;
+    if (
+      !data.electoralId ||
+      !data.name ||
+      !data.email ||
+      !data.address ||
+      !data.province ||
+      !data.status
+    )
+      return res.status(400).json({ note: "Rejected." });
+
+    const ans = await committee.updateCitizen(data);
+    if (ans !== null && ans !== undefined) {
+      res.send({
+        note: "Request accepted, citizen updated.",
+        message: "Success!",
         registers: committee.getCitizens(),
       });
     } else {
-      res.status(401).send({ note: "Rejected. Something went wrong ..." });
+      res.status(500).send({ note: "Rejected. Something went wrong ..." });
     }
-  } catch (e: any) {
-    console.log(e);
-    res.status(401).send({ note: "Rejected. Something went wrong ..." });
-  }
-});
+  }),
+);
 
-router.post("/update-citizen", async (req: Request, res: Response) => {
-  const data = req.body;
-  if (
-    !data.electoralId ||
-    !data.name ||
-    !data.email ||
-    !data.address ||
-    !data.province ||
-    !data.status
-  )
-    return res.status(400).json({ note: "Rejected." }); // Changed status code to 400 for client errors
+router.post(
+  "/update-user",
+  asyncHandler(async (req: Request, res: Response) => {
+    const data = req.body;
+    if (!data.name || !data.username || !data.role)
+      return res.status(400).json({ note: "Rejected." });
 
-  const ans = await committee.updateCitizen(data);
-  if (ans !== null && ans !== undefined) {
-    res.send({
-      note: "Request accepted, citzen updated.",
-      message: "Success!",
-      registers: committee.getCitizens(),
-    });
-  } else {
-    res.send({ note: "Rejected. Something went wrong ..." });
-  }
-});
+    const ans = await committee.updateUser(data);
+    if (ans !== null && ans !== undefined) {
+      res.send({
+        note: "Request accepted, user updated.",
+        message: "Success!",
+        users: committee.getUsers(),
+      });
+    } else {
+      res.status(500).send({ note: "Rejected. Something went wrong ..." });
+    }
+  }),
+);
 
-const verifyJWT = require("../../middleware/verifyJWT");
-const verifyJWTWeb = require("../../middleware/verifyJWTWeb");
-const credentials = require("../../middleware/credentials");
+router.post(
+  "/send-email",
+  asyncHandler(async (req: Request, res: Response) => {
+    const data = req.body;
 
-express().use(credentials);
-
-router.post("/update-user", async (req: Request, res: Response) => {
-  const data = req.body;
-  if (!data.name || !data.username || !data.role)
-    return res.status(400).json({ note: "Rejected." }); // Changed status code to 400 for client errors
-
-  const ans = await committee.updateUser(data);
-  if (ans !== null && ans !== undefined) {
-    res.send({
-      note: "Request accepted, user updated.",
-      message: "Success!",
-      users: committee.getUsers(),
-    });
-  } else {
-    res.send({ note: "Rejected. Something went wrong ..." });
-  }
-});
-
-router.post("/send-email", async (req: Request, res: Response) => {
-  const data = req.body;
-
-  if (!data.email)
-    return res.status(400).json({ note: "Rejected. Email is required." }); // Changed status code to 400 for client errors
-
-  try {
-    const email = data.email;
-    const citizen = committee
-      .getCitizens()
-      .find((x) => x.email.localeCompare(email) === 0);
-
-    if (!citizen)
-      return res.status(404).json({ note: "Rejected. Citizen not found." }); // Return 404 if citizen not found
-
-    const otp = citizen.otp;
-    const textContent = `Your otp details: ${JSON.stringify(otp)}`;
-
-    let textQRCode = "";
-    let htmlContent = "";
+    if (!data.email)
+      return res.status(400).json({ note: "Rejected. Email is required." });
 
     try {
-      const qrCodeData = await committee.generateQRCode(otp.otpauth_url);
-      if (qrCodeData) {
-        textQRCode = qrCodeData;
-        htmlContent = emailTemplate(otp, citizen.name, textQRCode);
+      const email = data.email;
+      const citizen = committee
+        .getCitizens()
+        .find((x) => x.email.localeCompare(email) === 0);
+
+      if (!citizen)
+        return res.status(404).json({ note: "Rejected. Citizen not found." });
+
+      const otp = citizen.otp;
+      const textContent = `Your otp details: ${JSON.stringify(otp)}`;
+
+      let textQRCode = "";
+      let htmlContent = "";
+
+      try {
+        const qrCodeData = await committee.generateQRCode(otp.otpauth_url);
+        if (qrCodeData) {
+          textQRCode = qrCodeData;
+          htmlContent = emailTemplate(otp, citizen.name, textQRCode);
+        }
+      } catch (_error: any) {}
+
+      let emailSent = true;
+
+      try {
+        await sendEmail(email, textContent, htmlContent);
+      } catch (_error: any) {
+        emailSent = false;
+      }
+
+      if (emailSent) {
+        res.status(200).json({ note: "Success" });
       } else {
-        console.log("Failed to generate QR code.");
+        res.status(500).json({ note: "Rejected. Failed to send email." });
       }
     } catch (_error: any) {
-      // console.error("Error generating QR code:", error);
+      res.status(500).json({ note: "Rejected. Internal server error." });
     }
+  }),
+);
 
-    let ans = true;
+router.post(
+  "/verify-otp",
+  verifyJWT,
+  asyncHandler(async (req: Request, res: Response) => {
+    const data = req.body;
+
+    if (!data.email || !data.token || !data.otpCode)
+      return res
+        .status(400)
+        .json({ note: "Rejected. Required fields missing." });
 
     try {
-      await sendEmail(email, textContent, htmlContent);
-    } catch (_error: any) {
-      // console.error(error);
-      ans = false;
-    }
+      const email = data.email;
+      const otpCode = data.otpCode;
+      const citizen = committee
+        .getCitizens()
+        .find((x) => x.email.localeCompare(email) === 0);
 
-    if (ans !== null && ans !== undefined) {
-      res.status(200).json({ note: "Success" });
-    } else {
-      res.status(500).json({ note: "Rejected. Failed to send email." });
-    }
-  } catch (_error: any) {
-    // console.error(error);
-    res.status(500).json({ note: "Rejected. Internal server error." });
-  }
-});
+      if (!citizen)
+        return res.status(404).json({ note: "Rejected. Citizen not found." });
 
-router.post("/verify-otp", verifyJWT, async (req, res) => {
-  const data = req.body;
+      const ans = committee.verifyOtp(citizen.otp.base32, otpCode);
 
-  if (!data.email || !data.token || !data.otpCode)
-    return res.status(400).json({ note: "Rejected. Email is required." }); // Changed status code to 400 for client errors
+      await new Promise<void>((resolve) => setTimeout(resolve, 1000));
 
-  // Lets pretend for a while that all the requests are good, just for testing purpose ...
-
-  try {
-    const email = data.email;
-    const _token = data.token; // I only needed to pass the jwt verification.
-    const otpCode = data.otpCode;
-    const citizen = committee
-      .getCitizens()
-      .find((x) => x.email.localeCompare(email) === 0);
-
-    console.log("Verify-OTP: ", citizen);
-
-    if (!citizen)
-      return res.status(404).json({ note: "Rejected. Citizen not found." }); // Return 404 if citizen not found
-
-    const ans = committee.verifyOtp(citizen.otp.base32, otpCode);
-    console.log("OTP Valid? => ", ans);
-
-    setTimeout(() => {
-      if (ans !== null && ans !== undefined) {
+      if (ans) {
         res.status(200).json({ note: "Verified" });
       } else {
         res.status(401).json({ note: "Failed." });
       }
-    }, 1000);
-  } catch (error: any) {
-    console.error(error);
-    res.status(500).json({ note: "Rejected." });
-  }
-});
+    } catch (error: any) {
+      console.error(error);
+      res.status(500).json({ note: "Rejected." });
+    }
+  }),
+);
 
-express().use(verifyJWT);
+router.post(
+  "/auth-mobile",
+  asyncHandler(async (req: Request, res: Response) => {
+    const data = req.body;
+    const electoralId = data.electoralId;
+    const password = data.password;
 
-router.post("/auth-mobile", async (req: Request, res: Response) => {
-  const data = req.body;
-  const electoralId = data.electoralId;
-  const password = data.password;
+    if (!electoralId || !password)
+      return res
+        .status(400)
+        .json({ message: "Electoral ID and password are required." });
 
-  if (!electoralId || !password)
-    return res.status(500).json({ message: "Something went wrong." });
+    try {
+      const ans = await committee.authMobile(electoralId, password);
 
-  try {
-    const ans = await committee.authMobile(electoralId, password);
-    // create JWTs
-    const accessToken = jwt.sign(
-      {
-        electoralId: ans.electoralId,
-      },
-      process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: "10m" },
-    );
+      if (!ans) {
+        return res.status(401).send({ note: "Rejected. Invalid credentials." });
+      }
 
-    const refreshToken = jwt.sign(
-      { electoralId: ans.electoralId },
-      process.env.REFRESH_TOKEN_SECRET,
-      { expiresIn: "5d" },
-    );
+      const accessToken = jwt.sign(
+        { electoralId: ans.electoralId },
+        process.env.ACCESS_TOKEN_SECRET,
+        { expiresIn: "10m" },
+      );
 
-    // Saving refreshToken with current user
-    await committee.updateTokenCitzen(electoralId, refreshToken);
+      const refreshToken = jwt.sign(
+        { electoralId: ans.electoralId },
+        process.env.REFRESH_TOKEN_SECRET,
+        { expiresIn: "5d" },
+      );
 
-    res.cookie("jwt", refreshToken, {
-      httpOnly: true,
-      sameSite: "none",
-      secure: true,
-      maxAge: 24 * 60 * 60 * 1000,
-    }); // Let's set secure: false for now.
+      await committee.updateTokenCitzen(electoralId, refreshToken);
 
-    if (ans !== null) {
+      res.cookie("jwt", refreshToken, {
+        httpOnly: true,
+        sameSite: "none",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 24 * 60 * 60 * 1000,
+      });
+
+      const province = ans.province as keyof typeof PROVINCES_PORT;
+
       return res.status(201).send({
         accessToken: accessToken,
         email: ans.email,
-        port: PROVINCES_PORT[province as keyof typeof PROVINCES_PORT],
+        port: PROVINCES_PORT[province] || null,
       });
-    } else {
-      return res.send({ note: "Rejected. Something went wrong ..." });
+    } catch (_error: any) {
+      res.status(500).send({ note: "Internal server error" });
     }
-  } catch (_error: any) {
-    res.status(500).send({ note: "Internal server error" });
-  }
-});
+  }),
+);
 
-express().use(verifyJWTWeb);
-router.post("/auth-web", async (req: Request, res: Response) => {
-  const data = req.body;
-  const username = data.username;
-  const password = data.password;
+router.post(
+  "/auth-web",
+  asyncHandler(async (req: Request, res: Response) => {
+    const data = req.body;
+    const username = data.username;
+    const password = data.password;
 
-  if (!username || !password)
-    return res.status(500).json({ message: "Something went wrong." });
+    if (!username || !password)
+      return res
+        .status(400)
+        .json({ message: "Username and password are required." });
 
-  try {
-    const ans = await committee.authWeb(username, password);
+    try {
+      const ans = await committee.authWeb(username, password);
 
-    // Create JWTs
-    const accessToken = jwt.sign(
-      {
-        username: ans.username,
-      },
-      process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: "60m" },
-    );
+      if (!ans) {
+        return res.status(401).send({ note: "Rejected. Invalid credentials." });
+      }
 
-    const refreshToken = jwt.sign(
-      { username: ans.username },
-      process.env.REFRESH_TOKEN_SECRET,
-      { expiresIn: "5d" },
-    );
+      const accessToken = jwt.sign(
+        { username: ans.username },
+        process.env.ACCESS_TOKEN_SECRET,
+        { expiresIn: "60m" },
+      );
 
-    await committee.updateTokenUser(username, refreshToken);
+      const refreshToken = jwt.sign(
+        { username: ans.username },
+        process.env.REFRESH_TOKEN_SECRET,
+        { expiresIn: "5d" },
+      );
 
-    res.cookie("jwt", refreshToken, {
-      httpOnly: true,
-      sameSite: "Strict",
-      secure: false,
-      maxAge: 24 * 60 * 60 * 1000,
-    }); // Let's set secure: false for now.
+      await committee.updateTokenUser(username, refreshToken);
 
-    if (ans !== null) {
+      res.cookie("jwt", refreshToken, {
+        httpOnly: true,
+        sameSite: "Strict",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 24 * 60 * 60 * 1000,
+      });
+
       return res.status(201).send({
         accessToken: accessToken,
         refreshToken: refreshToken,
@@ -442,23 +500,21 @@ router.post("/auth-web", async (req: Request, res: Response) => {
         name: ans.name,
         role: ans.role,
       });
-    } else {
-      return res.send({ note: "Rejected. Something went wrong ..." });
+    } catch (_error: any) {
+      res.status(500).send({ note: "Internal server error" });
     }
-  } catch (_error: any) {
-    res.status(500).send({ note: "Internal server error" });
-  }
-});
+  }),
+);
 
-router.get("/refresh-token", verifyJWT, (req, res) => {
+router.get("/refresh-token", verifyJWT, (req: Request, res: Response) => {
   try {
-    if (req.headers.cookie === null) return res.sendStatus(403);
+    const cookieHeader = req.headers.cookie;
+    if (!cookieHeader) return res.sendStatus(403);
 
-    let cookie = req.headers.cookie;
-    cookie = cookie.split("=")[1];
-    const cookies = {
-      jwt: cookie,
-    };
+    const cookieParts = cookieHeader.split("=");
+    if (cookieParts.length < 2) return res.sendStatus(403);
+
+    const cookies = { jwt: cookieParts.slice(1).join("=") };
 
     if (!cookies?.jwt) return res.sendStatus(401);
     const refreshToken = cookies.jwt;
@@ -466,14 +522,14 @@ router.get("/refresh-token", verifyJWT, (req, res) => {
     const foundUser = committee
       .getCitizens()
       .find((x) => x.refreshToken.localeCompare(refreshToken) === 0);
-    if (!foundUser) return res.sendStatus(403); //Forbidden
+    if (!foundUser) return res.sendStatus(403);
 
     return jwt.verify(
       refreshToken,
       process.env.REFRESH_TOKEN_SECRET,
       (err: any, decoded: any) => {
         if (err || foundUser.electoralId !== decoded.electoralId)
-          res.sendStatus(403);
+          return res.sendStatus(403);
 
         const accessToken = jwt.sign(
           { electoralId: decoded.electoralId },
@@ -481,82 +537,77 @@ router.get("/refresh-token", verifyJWT, (req, res) => {
           { expiresIn: "60m" },
         );
 
-        return res.status(200).json({ accessToken }); // Send JSON response containing access token
+        return res.status(200).json({ accessToken });
       },
     );
   } catch (_error: any) {
-    return res.sendStatus(500); // Forbidden
+    return res.sendStatus(500);
   }
 });
 
-router.get("/refresh-token-web", async (req: Request, res: Response) => {
-  const authHeader = req.headers.authorization;
-  const token = authHeader?.split(" ")[1];
-  // console.log("token: ", token);
+router.get(
+  "/refresh-token-web",
+  asyncHandler(async (req: Request, res: Response) => {
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.split(" ")[1];
 
-  if (token == null) return res.sendStatus(401);
+    if (!token) return res.sendStatus(401);
 
-  try {
-    const cookies = {
-      jwt: token,
-    };
+    try {
+      const refreshToken = token;
+      const foundUser = committee
+        .getUsers()
+        .find((x) => x.refreshToken === refreshToken);
 
-    const refreshToken = cookies.jwt;
-    const foundUser = committee
-      .getUsers()
-      .find((x) => x.refreshToken === refreshToken);
+      if (!foundUser) return res.sendStatus(403);
 
-    if (!foundUser) return res.sendStatus(403); //Forbidden
+      return jwt.verify(
+        refreshToken,
+        process.env.REFRESH_TOKEN_SECRET,
+        async (err: any, decoded: any) => {
+          if (err || foundUser.username !== decoded.username) {
+            return res.sendStatus(403);
+          }
 
-    // Evaluate jwt
-    return jwt.verify(
-      refreshToken,
-      process.env.REFRESH_TOKEN_SECRET,
-      async (err: any, decoded: any) => {
-        if (err) {
-          // console.log("Session has expired.");
-        }
+          const newAccessToken = jwt.sign(
+            { username: decoded.username },
+            process.env.ACCESS_TOKEN_SECRET,
+            { expiresIn: "600s" },
+          );
 
-        if (err || foundUser.username !== decoded.username) {
-          return res.sendStatus(403);
-        }
+          const newRefreshToken = jwt.sign(
+            { username: decoded.username },
+            process.env.REFRESH_TOKEN_SECRET,
+            { expiresIn: "1d" },
+          );
 
-        const accessToken = jwt.sign(
-          { username: decoded.username },
-          process.env.ACCESS_TOKEN_SECRET,
-          { expiresIn: "600s" },
-        );
+          await committee.updateTokenUser(foundUser.username, newRefreshToken);
 
-        const refreshToken = jwt.sign(
-          { username: decoded.username },
-          process.env.REFRESH_TOKEN_SECRET,
-          { expiresIn: "1d" },
-        );
-
-        await committee.updateTokenUser(foundUser.username, refreshToken);
-
-        res.cookie("jwt", accessToken, {
-          httpOnly: true,
-          sameSite: "Strict",
-          secure: false,
-          maxAge: 24 * 60 * 60 * 1000,
-        });
-        return res
-          .status(201)
-          .send({ accessToken: accessToken, refreshToken: refreshToken });
-      },
-    );
-  } catch (_error: any) {
-    return res.sendStatus(500); //Forbidden
-  }
-});
+          res.cookie("jwt", newAccessToken, {
+            httpOnly: true,
+            sameSite: "Strict",
+            secure: process.env.NODE_ENV === "production",
+            maxAge: 24 * 60 * 60 * 1000,
+          });
+          return res
+            .status(200)
+            .send({
+              accessToken: newAccessToken,
+              refreshToken: newRefreshToken,
+            });
+        },
+      );
+    } catch (_error: any) {
+      return res.sendStatus(500);
+    }
+  }),
+);
 
 router.get("/log-out", (req: Request, res: Response) => {
   const cookies = req.cookies;
-  if (!cookies?.jwt) return res.sendStatus(204); //No content
+  if (!cookies?.jwt) return res.sendStatus(204);
   const refreshToken = cookies.jwt;
 
-  // Is refreshToken in db?
   const foundUser = committee
     .getCitizens()
     .find((x) => x.refreshToken === refreshToken);
@@ -565,7 +616,6 @@ router.get("/log-out", (req: Request, res: Response) => {
     return res.sendStatus(204);
   }
 
-  // Delete refreshToken in db
   committee.updateTokenCitzen(foundUser.electoralId, "");
 
   res.clearCookie("jwt", { httpOnly: true, sameSite: "none", secure: true });
@@ -573,13 +623,10 @@ router.get("/log-out", (req: Request, res: Response) => {
 });
 
 router.get("/log-out-web", (req: Request, res: Response) => {
-  // On client, also delete the accessToken
-
   const cookies = req.cookies;
-  if (!cookies?.jwt) return res.sendStatus(204); //No content
+  if (!cookies?.jwt) return res.sendStatus(204);
   const refreshToken = cookies.jwt;
 
-  // Is refreshToken in db?
   const foundUser = committee
     .getUsers()
     .find((x) => x.refreshToken === refreshToken);
@@ -588,7 +635,6 @@ router.get("/log-out-web", (req: Request, res: Response) => {
     return res.sendStatus(204);
   }
 
-  // Delete refreshToken in db
   committee.updateTokenUser(foundUser.username, "");
 
   res.clearCookie("jwt", { httpOnly: true, sameSite: "none", secure: true });

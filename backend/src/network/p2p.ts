@@ -7,14 +7,18 @@ export interface Data {
 
 class P2P {
   peers: Map<string, Data>;
-  myPeer: Data;
+  myPeer!: Data;
 
   constructor() {
     this.peers = new Map<string, Data>();
   }
 
   public addPeer(data: Data) {
-    if (!this.containsPeer(data.peerId) && data.peerId !== this.myPeer.peerId) {
+    if (
+      this.myPeer &&
+      !this.containsPeer(data.peerId) &&
+      data.peerId !== this.myPeer.peerId
+    ) {
       this.peers.set(data.peerId, data);
     }
   }
@@ -23,7 +27,7 @@ class P2P {
     this.myPeer = data;
   }
 
-  public removePeer(peerId) {
+  public removePeer(peerId: string) {
     this.peers.delete(peerId);
   }
 
@@ -45,11 +49,11 @@ class P2P {
     this.addPeer(data);
 
     const peers = Array.from(this.peers.values());
-    const requests = [];
+    const requests: Promise<any>[] = [];
     peers.forEach((x) => {
       const opt = {
         url: `${x.url}/register-node`,
-        method: "post",
+        method: "post" as const,
         data: data,
       };
 
@@ -57,22 +61,15 @@ class P2P {
     });
 
     try {
-      await Promise.all(requests)
-        .then((_x) => {
-          const opt = {
-            url: `${newNodeUrl}/register-nodes-bulk`,
-            method: "post",
-            data: { nodes: [...peers, this.myPeer] },
-          };
+      await Promise.all(requests);
 
-          return axios(opt);
-        })
-        .then((_x) => {
-          //console.log(x);
-        })
-        .catch((error) => {
-          console.log("Error: ", error);
-        });
+      const opt = {
+        url: `${newNodeUrl}/register-nodes-bulk`,
+        method: "post" as const,
+        data: { nodes: [...peers, this.myPeer] },
+      };
+
+      await axios(opt);
     } catch (error: any) {
       console.error("Error occurred during the broadcast:", error);
     }

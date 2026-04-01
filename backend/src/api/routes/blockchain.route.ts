@@ -5,8 +5,7 @@ import type { Block } from "../../blockchain/data_types";
 
 const axios = require("axios");
 const LOCALHOST = "http://localhost:";
-const OFFSET = "/api/blockchain"; // Adjust the offset based on the way to structured the blockchain, for now It starts from api/blockchain
-const NODE_ADDRESS = "?"; //Let's assume we already know comming from the higher level.
+const OFFSET = "/api/blockchain";
 
 const dotenv = require("dotenv");
 dotenv.config();
@@ -16,7 +15,6 @@ const router = express.Router();
 
 const verifyJWTWeb = require("../../middleware/verifyJWTWeb");
 
-// Error response helper function
 const errorResponse = (
   res: Response,
   status: number,
@@ -36,7 +34,6 @@ const errorResponse = (
   return res.status(status).json(response);
 };
 
-// Success response helper function
 const successResponse = (
   res: Response,
   status: number,
@@ -51,7 +48,6 @@ const successResponse = (
   });
 };
 
-// Async handler to catch errors in async routes
 const asyncHandler =
   (fn: Function) => (req: Request, res: Response, next: NextFunction) => {
     Promise.resolve(fn(req, res, next)).catch((err: any) => {
@@ -66,7 +62,8 @@ const asyncHandler =
   };
 
 module.exports = (blockchain: BlockChain, allNodes: string[]) => {
-  // Input validation middleware
+  const NODE_ADDRESS = blockchain.nodeAddress || "?";
+
   const validateTransaction = (
     req: Request,
     res: Response,
@@ -92,7 +89,10 @@ module.exports = (blockchain: BlockChain, allNodes: string[]) => {
   router.get(
     "/",
     asyncHandler(async (_req: Request, res: Response) => {
-      return successResponse(res, 200, blockchain);
+      return successResponse(res, 200, {
+        chain: blockchain.getChain(),
+        length: blockchain.getLengthChain(),
+      });
     }),
   );
 
@@ -142,7 +142,10 @@ module.exports = (blockchain: BlockChain, allNodes: string[]) => {
   router.get(
     "/chain",
     asyncHandler(async (_req: Request, res: Response) => {
-      return successResponse(res, 200, blockchain);
+      return successResponse(res, 200, {
+        chain: blockchain.getChain(),
+        length: blockchain.getLengthChain(),
+      });
     }),
   );
 
@@ -189,7 +192,6 @@ module.exports = (blockchain: BlockChain, allNodes: string[]) => {
       try {
         if (checkVote(data.identifier, parseInt(data.choiceCode, 10))) {
           const electoralId: string = data.identifier;
-          console.log("identifier: ", electoralId);
 
           const identifier =
             await blockchain.getCitizenRelatedIdentifier(electoralId);
@@ -205,7 +207,7 @@ module.exports = (blockchain: BlockChain, allNodes: string[]) => {
           const electoralIdEncrypted = blockchain.encryptDataIdentifier(
             electoralId.toString(),
           );
-          const secret: string = data.secret || ""; // Add default value
+          const secret: string = data.secret || "";
 
           const ans = blockchain.addPendingTransaction(
             identifier,
@@ -245,11 +247,9 @@ module.exports = (blockchain: BlockChain, allNodes: string[]) => {
 
   router.post(
     "/transaction/broadcast",
-    validateTransaction,
     asyncHandler(async (req: Request, res: Response) => {
       const data = req.body;
 
-      // Validate required fields
       if (
         !data.identifier ||
         !data.electoralId ||
@@ -274,7 +274,7 @@ module.exports = (blockchain: BlockChain, allNodes: string[]) => {
       }
 
       try {
-        await broadcastData("/receive-new-block", data, res);
+        await broadcastData("/receive-new-block", data);
         return successResponse(
           res,
           200,
@@ -308,7 +308,7 @@ module.exports = (blockchain: BlockChain, allNodes: string[]) => {
     }),
   );
 
-  router.get(
+  router.delete(
     "/clear-voters",
     asyncHandler(async (_req: Request, res: Response) => {
       await blockchain.smartContract.eraseVoters();
@@ -322,7 +322,7 @@ module.exports = (blockchain: BlockChain, allNodes: string[]) => {
     }),
   );
 
-  router.get(
+  router.delete(
     "/clear-results",
     asyncHandler(async (_req: Request, res: Response) => {
       await blockchain.smartContract.eraseResults();
@@ -330,7 +330,7 @@ module.exports = (blockchain: BlockChain, allNodes: string[]) => {
     }),
   );
 
-  router.get(
+  router.delete(
     "/clear-chains",
     asyncHandler(async (_req: Request, res: Response) => {
       const result = await blockchain.clearChainsFromStorage();
@@ -356,7 +356,7 @@ module.exports = (blockchain: BlockChain, allNodes: string[]) => {
     }),
   );
 
-  router.get(
+  router.post(
     "/deploy-voters",
     asyncHandler(async (_req: Request, res: Response) => {
       const ans = await blockchain.deployVoters();
@@ -375,7 +375,7 @@ module.exports = (blockchain: BlockChain, allNodes: string[]) => {
     }),
   );
 
-  router.get(
+  router.post(
     "/deploy-candidates",
     asyncHandler(async (_req: Request, res: Response) => {
       const ans = await blockchain.deployCandidatesBlockchain();
@@ -400,15 +400,14 @@ module.exports = (blockchain: BlockChain, allNodes: string[]) => {
     asyncHandler(async (req: Request, res: Response) => {
       const block = req.body;
 
-      // Validate block data
-      if (!block?.hash) {
+      if (!block?.blockHeader?.blockHash) {
         return errorResponse(res, 400, "Invalid block data");
       }
 
       const ans: boolean = blockchain.addBlock(block);
 
       try {
-        await runConsensus(res);
+        await runConsensus();
 
         if (ans) {
           return successResponse(
@@ -437,7 +436,6 @@ module.exports = (blockchain: BlockChain, allNodes: string[]) => {
   const broadcastData = async (
     endpoint: string,
     data: any,
-    _res: Response,
   ): Promise<any[] | undefined> => {
     try {
       const requests = allNodes
@@ -457,22 +455,35 @@ module.exports = (blockchain: BlockChain, allNodes: string[]) => {
       return allResp;
     } catch (error: any) {
       console.error("Broadcast error:", error);
-      // Don't throw, just log the error and continue
       return undefined;
     }
   };
 
-  router.get(
+  router.post(
     "/mine",
     asyncHandler(async (_req: Request, res: Response) => {
       const block: Block | null = blockchain.mineBlock();
 
       if (!block) {
-        return errorResponse(res, 500, "Mining failed");
+        return errorResponse(
+          res,
+          400,
+          "Mining failed: no pending transactions or invalid pool",
+        );
+      }
+
+      const added = blockchain.addBlock(block);
+
+      if (!added) {
+        return errorResponse(
+          res,
+          500,
+          "Block mined but could not be added to chain",
+        );
       }
 
       try {
-        await broadcastData("/receive-new-block", block, res);
+        await broadcastData("/receive-new-block", block);
         return successResponse(
           res,
           200,
@@ -481,13 +492,11 @@ module.exports = (blockchain: BlockChain, allNodes: string[]) => {
         );
       } catch (error: any) {
         console.error("Mining broadcast error:", error);
-        return errorResponse(
+        return successResponse(
           res,
-          500,
-          "Block mined but broadcast failed",
-          process.env.NODE_ENV === "development"
-            ? (error as Error).message
-            : null,
+          200,
+          { block },
+          "Block mined successfully (broadcast failed)",
         );
       }
     }),
@@ -498,8 +507,8 @@ module.exports = (blockchain: BlockChain, allNodes: string[]) => {
     asyncHandler(async (req: Request, res: Response) => {
       const data = req.body;
 
-      if (!data.chain) {
-        return errorResponse(res, 400, "Missing chain data");
+      if (!data.chain || !Array.isArray(data.chain)) {
+        return errorResponse(res, 400, "Missing or invalid chain data");
       }
 
       const chain: Block[] = data.chain;
@@ -518,9 +527,8 @@ module.exports = (blockchain: BlockChain, allNodes: string[]) => {
     }),
   );
 
-  const runConsensus = async (res: Response) => {
+  const runConsensus = async () => {
     try {
-      // Here we apply the longest chain rule.
       const requests = allNodes
         .filter((url: string) => url !== NODE_ADDRESS)
         .map((url: string) => {
@@ -528,26 +536,28 @@ module.exports = (blockchain: BlockChain, allNodes: string[]) => {
           return axios.get(URI);
         });
 
+      if (requests.length === 0) return;
+
       const responses = await Promise.all(requests);
 
-      const blockchains: BlockChain[] = [blockchain];
+      let longestChain: Block[] = blockchain.getChain();
+
       responses.forEach((element: any) => {
-        blockchains.push(element.data);
+        const remoteData = element.data?.data;
+        if (
+          remoteData?.chain &&
+          Array.isArray(remoteData.chain) &&
+          remoteData.chain.length > longestChain.length
+        ) {
+          longestChain = remoteData.chain;
+        }
       });
 
-      const longestBlockchain = blockchains.reduce(
-        (prev: BlockChain, cur: BlockChain) => {
-          const condition = cur.getLengthChain >= prev.getLengthChain;
-          return condition ? cur : prev;
-        },
-        new BlockChain(),
-      );
-
-      await broadcastData("/synchronize-chain", longestBlockchain, res);
-      return longestBlockchain;
+      if (longestChain !== blockchain.getChain()) {
+        await broadcastData("/synchronize-chain", { chain: longestChain });
+      }
     } catch (error: any) {
       console.error("Consensus error:", error);
-      // Don't throw, just log the error and continue
     }
   };
 
