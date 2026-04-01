@@ -589,12 +589,10 @@ router.get(
             secure: process.env.NODE_ENV === "production",
             maxAge: 24 * 60 * 60 * 1000,
           });
-          return res
-            .status(200)
-            .send({
-              accessToken: newAccessToken,
-              refreshToken: newRefreshToken,
-            });
+          return res.status(200).send({
+            accessToken: newAccessToken,
+            refreshToken: newRefreshToken,
+          });
         },
       );
     } catch (_error: any) {
