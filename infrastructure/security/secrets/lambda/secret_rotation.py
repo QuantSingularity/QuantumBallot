@@ -6,7 +6,6 @@ Implements secure password rotation for database credentials
 import json
 import logging
 import os
-import random
 import secrets
 import string
 
@@ -56,7 +55,10 @@ def lambda_handler(event, context):
 
     except Exception as e:
         logger.error(f"Error in secret rotation: {str(e)}")
-        send_notification(f"Rotation failed at step {event.get('Step', 'unknown')}: {str(e)}", event.get("SecretId", "unknown"))
+        send_notification(
+            f"Rotation failed at step {event.get('Step', 'unknown')}: {str(e)}",
+            event.get("SecretId", "unknown"),
+        )
         raise
 
 

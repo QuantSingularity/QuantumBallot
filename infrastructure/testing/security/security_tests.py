@@ -5,25 +5,18 @@ Implements financial-grade security testing and vulnerability assessment
 """
 
 import json
-import os
 import socket
 import ssl
 import subprocess
 import sys
-import time
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
+from datetime import datetime
+from typing import Dict
 
 import boto3
 import docker
 import nmap
-import pytest
 import requests
-import sqlparse
-import yaml
 from botocore.exceptions import ClientError
-from cryptography import x509
-from cryptography.hazmat.backends import default_backend
 from kubernetes import client, config
 
 
@@ -345,9 +338,7 @@ class SecurityTestSuite:
                 user = img_config.get("User", "root")
 
                 if user in ("", "root", "0"):
-                    results["warnings"].append(
-                        f"Image {image_name} may run as root"
-                    )
+                    results["warnings"].append(f"Image {image_name} may run as root")
                 else:
                     results["passed"].append(
                         f"Image {image_name} runs as non-root user: {user}"
@@ -394,9 +385,7 @@ class SecurityTestSuite:
                 # Check capability drops
                 cap_drop = host_config.get("CapDrop", [])
                 if "ALL" in cap_drop:
-                    results["passed"].append(
-                        f"Container {name} drops all capabilities"
-                    )
+                    results["passed"].append(f"Container {name} drops all capabilities")
                 else:
                     results["warnings"].append(
                         f"Container {name} does not drop all capabilities"
@@ -436,7 +425,10 @@ class SecurityTestSuite:
                 for container in spec.containers:
                     container_name = container.name
                     if container.security_context:
-                        if container.security_context.allow_privilege_escalation is False:
+                        if (
+                            container.security_context.allow_privilege_escalation
+                            is False
+                        ):
                             results["passed"].append(
                                 f"Container {container_name} disallows privilege escalation"
                             )
@@ -450,9 +442,7 @@ class SecurityTestSuite:
                         )
 
         except Exception as e:
-            results["warnings"].append(
-                f"Could not test Kubernetes security: {str(e)}"
-            )
+            results["warnings"].append(f"Could not test Kubernetes security: {str(e)}")
 
         return results
 
@@ -616,11 +606,12 @@ class SecurityTestSuite:
                         )
 
                 if endpoint.startswith("http://") and response.status_code not in (
-                    301, 302, 307, 308
+                    301,
+                    302,
+                    307,
+                    308,
                 ):
-                    results["warnings"].append(
-                        f"{endpoint} does not redirect to HTTPS"
-                    )
+                    results["warnings"].append(f"{endpoint} does not redirect to HTTPS")
 
             except requests.RequestException as e:
                 results["warnings"].append(f"Could not test {endpoint}: {str(e)}")
@@ -648,16 +639,20 @@ class SecurityTestSuite:
                         break
 
                 if not rate_limited:
-                    results["warnings"].append(
-                        f"{endpoint} may not have rate limiting"
-                    )
+                    results["warnings"].append(f"{endpoint} may not have rate limiting")
 
                 # Test for SQL injection patterns
                 sql_payloads = ["'", "1' OR '1'='1", "'; DROP TABLE users; --"]
                 for payload in sql_payloads:
                     try:
                         resp = requests.get(f"{endpoint}?id={payload}", timeout=5)
-                        error_patterns = ("sql", "mysql", "postgresql", "oracle", "syntax error")
+                        error_patterns = (
+                            "sql",
+                            "mysql",
+                            "postgresql",
+                            "oracle",
+                            "syntax error",
+                        )
                         if any(p in resp.text.lower() for p in error_patterns):
                             results["failed"].append(
                                 f"{endpoint} may be vulnerable to SQL injection"
@@ -698,9 +693,7 @@ class SecurityTestSuite:
     def test_authentication_security(self) -> Dict:
         """Test authentication security"""
         results: Dict = {"passed": [], "failed": [], "warnings": []}
-        results["warnings"].append(
-            "Authentication security tests need implementation"
-        )
+        results["warnings"].append("Authentication security tests need implementation")
         return results
 
     def test_compliance(self) -> Dict:
@@ -740,9 +733,7 @@ class SecurityTestSuite:
         results["passed"].append(
             "Log retention tests covered in infrastructure security"
         )
-        results["warnings"].append(
-            "Backup retention policies need manual verification"
-        )
+        results["warnings"].append("Backup retention policies need manual verification")
         return results
 
     def test_vulnerabilities(self) -> Dict:
@@ -790,9 +781,15 @@ class SecurityTestSuite:
                         f"Found {high_vulns} high npm vulnerabilities"
                     )
                 else:
-                    results["passed"].append("No high/critical npm vulnerabilities found")
+                    results["passed"].append(
+                        "No high/critical npm vulnerabilities found"
+                    )
 
-        except (subprocess.TimeoutExpired, FileNotFoundError, json.JSONDecodeError) as e:
+        except (
+            subprocess.TimeoutExpired,
+            FileNotFoundError,
+            json.JSONDecodeError,
+        ) as e:
             results["warnings"].append(f"Could not run npm audit: {str(e)}")
 
         return results

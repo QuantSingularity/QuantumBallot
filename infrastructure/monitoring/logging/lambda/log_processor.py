@@ -248,6 +248,7 @@ def send_to_elasticsearch(security_events):
         bulk_body = "\n".join(bulk_lines) + "\n"
 
         import urllib.request
+
         req = urllib.request.Request(
             f"{es_endpoint.rstrip('/')}/_bulk",
             data=bulk_body.encode("utf-8"),
@@ -295,9 +296,7 @@ def send_security_alert(high_severity_events):
             ]
 
         if len(high_severity_events) > 5:
-            alert_lines.append(
-                f"... and {len(high_severity_events) - 5} more event(s)"
-            )
+            alert_lines.append(f"... and {len(high_severity_events) - 5} more event(s)")
 
         alert_message = "\n".join(alert_lines)
 

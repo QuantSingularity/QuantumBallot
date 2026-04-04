@@ -5,16 +5,14 @@ Implements comprehensive compliance checking for financial standards
 """
 
 import json
-import os
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
 import boto3
 import requests
-import yaml
 
 
 class ComplianceLevel(Enum):
