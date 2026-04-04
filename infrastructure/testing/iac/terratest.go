@@ -185,7 +185,7 @@ func TestKubernetesDeployment(t *testing.T) {
 	t.Parallel()
 
 	// Configure kubectl options
-	kubectlOptions := k8s.NewKubectlOptions("", "", "monitoring")
+	kubectlOptions := k8s.NewKubectlOptions("", "", "quantumballot")
 
 	// Test namespace creation
 	t.Run("Namespace_Creation", func(t *testing.T) {
@@ -252,7 +252,7 @@ func TestDockerSecurity(t *testing.T) {
 		}
 
 		// Build the image
-		docker.Build(t, "../docker", buildOptions)
+		docker.Build(t, "../../docker", buildOptions)
 		defer docker.RemoveImage(t, "QuantumBallot-backend:test")
 
 		// Test image for vulnerabilities (would integrate with Trivy or similar)
@@ -277,7 +277,7 @@ func TestDockerSecurity(t *testing.T) {
 			Tags: []string{"QuantumBallot-frontend:test"},
 		}
 
-		docker.Build(t, "../docker", buildOptions)
+		docker.Build(t, "../../docker", buildOptions)
 		defer docker.RemoveImage(t, "QuantumBallot-frontend:test")
 
 		imageInfo := docker.Inspect(t, "QuantumBallot-frontend:test")
@@ -308,7 +308,7 @@ func TestEndToEndSecurity(t *testing.T) {
 
 	// Test security headers
 	t.Run("Security_Headers", func(t *testing.T) {
-		response := http_helper.HttpGet(t, baseURL, nil)
+		statusCode, _ := http_helper.HttpGetE(t, baseURL, nil)
 
 		// Verify security headers are present
 		assert.Contains(t, response.Header, "X-Frame-Options", "X-Frame-Options header should be present")

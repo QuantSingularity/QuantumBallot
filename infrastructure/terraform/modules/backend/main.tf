@@ -1,6 +1,5 @@
 # Terraform main configuration for the backend module
 
-# ECS Cluster for running the backend API
 resource "aws_ecs_cluster" "backend_cluster" {
   name = "${var.environment_name}-QuantumBallot-backend-cluster"
 
@@ -16,24 +15,51 @@ resource "aws_ecs_cluster" "backend_cluster" {
   }
 }
 
-# Security Group for the backend service
-resource "aws_security_group" "backend_sg" {
-  name        = "${var.environment_name}-backend-sg"
-  description = "Allow traffic to backend service"
+# ALB security group — accepts HTTP/HTTPS from the internet
+resource "aws_security_group" "alb_sg" {
+  name        = "${var.environment_name}-alb-sg"
+  description = "Allow HTTP/HTTPS inbound to ALB"
   vpc_id      = var.vpc_id
 
   ingress {
-    from_port   = var.backend_port
-    to_port     = var.backend_port
+    from_port   = 80
+    to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # In production, restrict this to CloudFront IPs or VPC CIDR
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
-    from_port   = 22 # SSH
-    to_port     = 22
+    from_port   = 443
+    to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # In production, restrict this to your IP or bastion host
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name        = "${var.environment_name}-alb-sg"
+    Environment = var.environment_name
+    Project     = "QuantumBallot"
+  }
+}
+
+# Backend service security group — only accepts traffic from the ALB
+resource "aws_security_group" "backend_sg" {
+  name        = "${var.environment_name}-backend-sg"
+  description = "Allow traffic to backend service from ALB only"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    from_port       = var.backend_port
+    to_port         = var.backend_port
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb_sg.id]
   }
 
   egress {
@@ -50,13 +76,16 @@ resource "aws_security_group" "backend_sg" {
   }
 }
 
-# ECR Repository for the backend Docker image
 resource "aws_ecr_repository" "backend_ecr" {
   name                 = "${var.environment_name}/QuantumBallot-backend"
-  image_tag_mutability = "MUTABLE"
+  image_tag_mutability = "IMMUTABLE"
 
   image_scanning_configuration {
     scan_on_push = true
+  }
+
+  encryption_configuration {
+    encryption_type = "KMS"
   }
 
   tags = {
@@ -65,7 +94,37 @@ resource "aws_ecr_repository" "backend_ecr" {
   }
 }
 
-# IAM Role for ECS Task Execution
+resource "aws_ecr_lifecycle_policy" "backend_ecr_policy" {
+  repository = aws_ecr_repository.backend_ecr.name
+
+  policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Keep last 10 production images"
+        selection = {
+          tagStatus     = "tagged"
+          tagPrefixList = ["prod-"]
+          countType     = "imageCountMoreThan"
+          countNumber   = 10
+        }
+        action = { type = "expire" }
+      },
+      {
+        rulePriority = 2
+        description  = "Expire untagged images older than 7 days"
+        selection = {
+          tagStatus   = "untagged"
+          countType   = "sinceImagePushed"
+          countUnit   = "days"
+          countNumber = 7
+        }
+        action = { type = "expire" }
+      }
+    ]
+  })
+}
+
 resource "aws_iam_role" "ecs_task_execution_role" {
   name = "${var.environment_name}-QuantumBallot-ecs-task-execution-role"
 
@@ -88,13 +147,11 @@ resource "aws_iam_role" "ecs_task_execution_role" {
   }
 }
 
-# Attach the Amazon ECS Task Execution Role policy to the task execution role
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
   role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
-# ECS Task Definition for the backend service
 resource "aws_ecs_task_definition" "backend_task" {
   family                   = "${var.environment_name}-QuantumBallot-backend"
   network_mode             = "awsvpc"
@@ -129,6 +186,7 @@ resource "aws_ecs_task_definition" "backend_task" {
           value = var.environment_name
         }
       ]
+      readonlyRootFilesystem = true
       logConfiguration = {
         logDriver = "awslogs"
         options = {
@@ -146,10 +204,9 @@ resource "aws_ecs_task_definition" "backend_task" {
   }
 }
 
-# CloudWatch Log Group for the backend service
 resource "aws_cloudwatch_log_group" "backend_logs" {
   name              = "/ecs/${var.environment_name}-QuantumBallot-backend"
-  retention_in_days = 30
+  retention_in_days = 90
 
   tags = {
     Environment = var.environment_name
@@ -157,15 +214,15 @@ resource "aws_cloudwatch_log_group" "backend_logs" {
   }
 }
 
-# Application Load Balancer for the backend service
 resource "aws_lb" "backend_alb" {
   name               = "${var.environment_name}-backend-alb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.backend_sg.id]
+  security_groups    = [aws_security_group.alb_sg.id]
   subnets            = var.subnet_ids
 
-  enable_deletion_protection = false # Set to true for production
+  enable_deletion_protection = true
+  drop_invalid_header_fields = true
 
   tags = {
     Environment = var.environment_name
@@ -173,7 +230,6 @@ resource "aws_lb" "backend_alb" {
   }
 }
 
-# ALB Target Group
 resource "aws_lb_target_group" "backend_tg" {
   name        = "${var.environment_name}-backend-tg"
   port        = var.backend_port
@@ -199,25 +255,37 @@ resource "aws_lb_target_group" "backend_tg" {
   }
 }
 
-# ALB Listener
-resource "aws_lb_listener" "backend_listener" {
+# HTTP listener — redirects all traffic to HTTPS
+resource "aws_lb_listener" "backend_http_listener" {
   load_balancer_arn = aws_lb.backend_alb.arn
   port              = 80
   protocol          = "HTTP"
 
   default_action {
+    type = "redirect"
+
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
+  }
+}
+
+# HTTPS listener — forwards to the backend target group
+resource "aws_lb_listener" "backend_https_listener" {
+  load_balancer_arn = aws_lb.backend_alb.arn
+  port              = 443
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+  certificate_arn   = var.certificate_arn
+
+  default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.backend_tg.arn
   }
-
-  # For production, use HTTPS with ACM certificate
-  # port              = 443
-  # protocol          = "HTTPS"
-  # ssl_policy        = "ELBSecurityPolicy-2016-08"
-  # certificate_arn   = var.certificate_arn
 }
 
-# ECS Service
 resource "aws_ecs_service" "backend_service" {
   name            = "${var.environment_name}-QuantumBallot-backend-service"
   cluster         = aws_ecs_cluster.backend_cluster.id
@@ -228,7 +296,7 @@ resource "aws_ecs_service" "backend_service" {
   network_configuration {
     subnets          = var.subnet_ids
     security_groups  = [aws_security_group.backend_sg.id]
-    assign_public_ip = true # Set to false for production with proper VPC setup
+    assign_public_ip = false
   }
 
   load_balancer {
@@ -237,7 +305,7 @@ resource "aws_ecs_service" "backend_service" {
     container_port   = var.backend_port
   }
 
-  depends_on = [aws_lb_listener.backend_listener]
+  depends_on = [aws_lb_listener.backend_https_listener]
 
   tags = {
     Environment = var.environment_name
@@ -245,5 +313,4 @@ resource "aws_ecs_service" "backend_service" {
   }
 }
 
-# Get current AWS region
 data "aws_region" "current" {}

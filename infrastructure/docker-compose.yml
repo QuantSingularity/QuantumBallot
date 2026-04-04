@@ -1,0 +1,5 @@
+# Root-level docker-compose entry point for QuantumBallot
+# Delegates to the full compose configuration in infrastructure/docker/
+
+include:
+  - path: infrastructure/docker/docker-compose.yml

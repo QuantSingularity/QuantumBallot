@@ -1,17 +1,14 @@
 # Docker Compose for QuantumBallot
 # Implements financial-grade security and comprehensive monitoring
 
-version: "3.8"
-
 networks:
-  QuantumBallot-network:
+  app-network:
     driver: bridge
     ipam:
       config:
         - subnet: 172.20.0.0/16
     driver_opts:
-      com.docker.network.bridge.name: QuantumBallot-br0
-      com.docker.network.bridge.enable_icc: "false"
+      com.docker.network.bridge.name: quantumballot-br0
       com.docker.network.bridge.enable_ip_masquerade: "true"
 
   monitoring-network:
@@ -66,10 +63,10 @@ services:
     container_name: QuantumBallot-postgres
     restart: unless-stopped
     networks:
-      - QuantumBallot-network
+      - app-network
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-QuantumBallot}
-      POSTGRES_USER: ${POSTGRES_USER:-QuantumBallot}
+      POSTGRES_DB: ${POSTGRES_DB:-quantumballot}
+      POSTGRES_USER: ${POSTGRES_USER:-quantumballot}
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
       POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
     secrets:
@@ -95,7 +92,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "pg_isready -U ${POSTGRES_USER:-QuantumBallot} -d ${POSTGRES_DB:-QuantumBallot}",
+          "pg_isready -U ${POSTGRES_USER:-quantumballot} -d ${POSTGRES_DB:-quantumballot}",
         ]
       interval: 30s
       timeout: 10s
@@ -103,7 +100,6 @@ services:
       start_period: 60s
     security_opt:
       - no-new-privileges:true
-    read_only: true
     tmpfs:
       - /tmp
       - /var/run/postgresql
@@ -113,12 +109,13 @@ services:
     cap_add:
       - SETUID
       - SETGID
+      - DAC_READ_SEARCH
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-        labels: "service=postgres,environment=${ENVIRONMENT:-development}"
+        tag: "service=postgres,environment=${ENVIRONMENT:-development}"
 
   # Cache Service
   redis:
@@ -126,10 +123,10 @@ services:
     container_name: QuantumBallot-redis
     restart: unless-stopped
     networks:
-      - QuantumBallot-network
+      - app-network
     command: >
-      redis-server
-      --requirepass-file /run/secrets/redis_password
+      sh -c "redis-server
+      --requirepass $$(cat /run/secrets/redis_password)
       --appendonly yes
       --appendfsync everysec
       --save 900 1
@@ -140,24 +137,19 @@ services:
       --tcp-keepalive 60
       --timeout 300
       --databases 1
-      --logfile ""
-      --syslog-enabled no
+      --logfile ''
+      --syslog-enabled no"
     secrets:
       - redis_password
     volumes:
       - redis-data:/data
-      - ./config/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
     ports:
       - "127.0.0.1:6379:6379"
     healthcheck:
       test:
         [
-          "CMD",
-          "redis-cli",
-          "--no-auth-warning",
-          "-a",
-          "$(cat /run/secrets/redis_password)",
-          "ping",
+          "CMD-SHELL",
+          "redis-cli -a $$(cat /run/secrets/redis_password) ping | grep -q PONG",
         ]
       interval: 30s
       timeout: 10s
@@ -165,7 +157,6 @@ services:
       start_period: 30s
     security_opt:
       - no-new-privileges:true
-    read_only: true
     tmpfs:
       - /tmp
     user: "999:999"
@@ -176,7 +167,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-        labels: "service=redis,environment=${ENVIRONMENT:-development}"
+        tag: "service=redis,environment=${ENVIRONMENT:-development}"
 
   # Backend API Service
   backend:
@@ -184,25 +175,31 @@ services:
       context: ../..
       dockerfile: infrastructure/docker/backend.Dockerfile
       args:
-        BUILD_DATE: ${BUILD_DATE}
-        VCS_REF: ${VCS_REF}
+        BUILD_DATE: ${BUILD_DATE:-}
+        VCS_REF: ${VCS_REF:-}
         VERSION: ${VERSION:-latest}
     container_name: QuantumBallot-backend
     restart: unless-stopped
     networks:
-      - QuantumBallot-network
+      - app-network
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       NODE_PORT: 3000
       SERVER_PORT: 3002
-      DATABASE_URL: postgresql://${POSTGRES_USER:-QuantumBallot}:$(cat /run/secrets/postgres_password)@postgres:5432/${POSTGRES_DB:-QuantumBallot}
-      REDIS_URL: redis://:$(cat /run/secrets/redis_password)@redis:6379/0
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB:-quantumballot}
+      DB_USER: ${POSTGRES_USER:-quantumballot}
+      DB_PASSWORD_FILE: /run/secrets/postgres_password
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD_FILE: /run/secrets/redis_password
       JWT_SECRET_FILE: /run/secrets/jwt_secret
       LOG_LEVEL: ${LOG_LEVEL:-info}
       LOG_FORMAT: json
-      RATE_LIMIT_ENABLED: true
-      HELMET_ENABLED: true
-      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+      RATE_LIMIT_ENABLED: "true"
+      HELMET_ENABLED: "true"
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:8080}
     secrets:
       - postgres_password
       - redis_password
@@ -233,7 +230,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-        labels: "service=backend,environment=${ENVIRONMENT:-development}"
+        tag: "service=backend,environment=${ENVIRONMENT:-development}"
 
   # Frontend Web Service
   frontend:
@@ -241,19 +238,19 @@ services:
       context: ../..
       dockerfile: infrastructure/docker/frontend-web.Dockerfile
       args:
-        BUILD_DATE: ${BUILD_DATE}
-        VCS_REF: ${VCS_REF}
+        BUILD_DATE: ${BUILD_DATE:-}
+        VCS_REF: ${VCS_REF:-}
         VERSION: ${VERSION:-latest}
         VITE_API_URL: ${VITE_API_URL:-/api}
     container_name: QuantumBallot-frontend
     restart: unless-stopped
     networks:
-      - QuantumBallot-network
+      - app-network
     environment:
       NGINX_WORKER_PROCESSES: auto
       NGINX_WORKER_CONNECTIONS: 1024
     ports:
-      - "127.0.0.1:8080:8080"
+      - "0.0.0.0:8080:8080"
     depends_on:
       backend:
         condition: service_healthy
@@ -278,7 +275,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-        labels: "service=frontend,environment=${ENVIRONMENT:-development}"
+        tag: "service=frontend,environment=${ENVIRONMENT:-development}"
 
   # Prometheus Monitoring
   prometheus:
@@ -287,7 +284,7 @@ services:
     restart: unless-stopped
     networks:
       - monitoring-network
-      - QuantumBallot-network
+      - app-network
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
@@ -295,7 +292,6 @@ services:
       - "--web.console.templates=/etc/prometheus/consoles"
       - "--storage.tsdb.retention.time=30d"
       - "--web.enable-lifecycle"
-      - "--web.enable-admin-api"
       - "--web.external-url=http://localhost:9090"
     volumes:
       - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
@@ -327,7 +323,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-        labels: "service=prometheus,environment=${ENVIRONMENT:-development}"
+        tag: "service=prometheus,environment=${ENVIRONMENT:-development}"
 
   # Grafana Dashboard
   grafana:
@@ -337,17 +333,17 @@ services:
     networks:
       - monitoring-network
     environment:
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin123}
-      GF_USERS_ALLOW_SIGN_UP: false
-      GF_SECURITY_DISABLE_GRAVATAR: true
-      GF_SECURITY_COOKIE_SECURE: true
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-changeme_in_production}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SECURITY_DISABLE_GRAVATAR: "true"
+      GF_SECURITY_COOKIE_SECURE: "true"
       GF_SECURITY_COOKIE_SAMESITE: strict
-      GF_SECURITY_STRICT_TRANSPORT_SECURITY: true
-      GF_SECURITY_X_CONTENT_TYPE_OPTIONS: true
-      GF_SECURITY_X_XSS_PROTECTION: true
+      GF_SECURITY_STRICT_TRANSPORT_SECURITY: "true"
+      GF_SECURITY_X_CONTENT_TYPE_OPTIONS: "true"
+      GF_SECURITY_X_XSS_PROTECTION: "true"
       GF_SERVER_ROOT_URL: http://localhost:3001
-      GF_ANALYTICS_REPORTING_ENABLED: false
-      GF_ANALYTICS_CHECK_FOR_UPDATES: false
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
       GF_LOG_MODE: console
       GF_LOG_LEVEL: info
     volumes:
@@ -375,7 +371,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-        labels: "service=grafana,environment=${ENVIRONMENT:-development}"
+        tag: "service=grafana,environment=${ENVIRONMENT:-development}"
 
   # Node Exporter for System Metrics
   node-exporter:
@@ -407,7 +403,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-        labels: "service=node-exporter,environment=${ENVIRONMENT:-development}"
+        tag: "service=node-exporter,environment=${ENVIRONMENT:-development}"
 
   # cAdvisor for Container Metrics
   cadvisor:
@@ -437,7 +433,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-        labels: "service=cadvisor,environment=${ENVIRONMENT:-development}"
+        tag: "service=cadvisor,environment=${ENVIRONMENT:-development}"
 
   # Log Aggregator
   fluentd:
@@ -446,7 +442,7 @@ services:
     restart: unless-stopped
     networks:
       - monitoring-network
-      - QuantumBallot-network
+      - app-network
     volumes:
       - ./config/fluentd/fluent.conf:/fluentd/etc/fluent.conf:ro
       - /var/log:/var/log:ro
@@ -455,10 +451,9 @@ services:
       - "127.0.0.1:24224:24224/udp"
     environment:
       FLUENTD_CONF: fluent.conf
-      FLUENTD_OPT: -v
     security_opt:
       - no-new-privileges:true
-    user: "fluent:fluent"
+    user: "100:101"
     cap_drop:
       - ALL
     logging:
@@ -466,4 +461,4 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-        labels: "service=fluentd,environment=${ENVIRONMENT:-development}"
+        tag: "service=fluentd,environment=${ENVIRONMENT:-development}"

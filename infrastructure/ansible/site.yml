@@ -33,77 +33,10 @@
   vars:
     app_name: QuantumBallot-web
     app_port: 80
-    api_url: "{{ backend_api_url | default('https://api.QuantumBallot.io') }}"
+    api_url: "{{ backend_api_url | default('https://api.quantumballot.io') }}"
     node_env: "{{ environment | default('production') }}"
   roles:
     - role: frontend_web
       tags:
         - frontend
         - web
-
-- name: Deploy Mobile Frontend Build Environment
-  hosts: build_servers
-  become: yes
-  vars:
-    app_name: QuantumBallot-mobile
-    api_url: "{{ backend_api_url | default('https://api.QuantumBallot.io') }}"
-    build_type: "{{ build_type | default('release') }}"
-  roles:
-    - role: mobile_build
-      tags:
-        - mobile
-        - build
-
-- name: Configure Monitoring and Logging
-  hosts: monitoring_servers
-  become: yes
-  vars:
-    grafana_admin_password: "{{ lookup('env', 'GRAFANA_ADMIN_PASSWORD') }}"
-    prometheus_retention_days: 15
-  roles:
-    - role: monitoring
-      tags:
-        - monitoring
-
-- name: Configure Blockchain Node
-  hosts: blockchain_nodes
-  become: yes
-  vars:
-    node_type: "{{ node_type | default('validator') }}"
-    network: "{{ network | default('mainnet') }}"
-    p2p_port: 26656
-    rpc_port: 26657
-  roles:
-    - role: blockchain_node
-      tags:
-        - blockchain
-        - node
-
-- name: Configure Load Balancers
-  hosts: load_balancers
-  become: yes
-  vars:
-    backend_servers: "{{ groups['backend_servers'] }}"
-    web_servers: "{{ groups['web_servers'] }}"
-    ssl_cert_path: "/etc/ssl/certs/QuantumBallot.crt"
-    ssl_key_path: "/etc/ssl/private/QuantumBallot.key"
-  roles:
-    - role: load_balancer
-      tags:
-        - lb
-        - networking
-
-- name: Configure Backup System
-  hosts: backup_servers
-  become: yes
-  vars:
-    backup_retention_days: 30
-    backup_schedule: "0 2 * * *" # Daily at 2 AM
-    backup_destinations:
-      - type: s3
-        bucket: "QuantumBallot-backups"
-        region: "us-west-2"
-  roles:
-    - role: backup
-      tags:
-        - backup

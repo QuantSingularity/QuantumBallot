@@ -1,7 +1,12 @@
 # Terraform outputs for the backend module
 
-output "security_group_id" {
-  description = "ID of the backend security group"
+output "alb_security_group_id" {
+  description = "ID of the ALB security group"
+  value       = aws_security_group.alb_sg.id
+}
+
+output "backend_security_group_id" {
+  description = "ID of the backend ECS task security group"
   value       = aws_security_group.backend_sg.id
 }
 

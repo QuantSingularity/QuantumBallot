@@ -1,0 +1,48 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+
+namespace: quantumballot-prod
+
+patchesStrategicMerge:
+  - backend-deployment-patch.yaml
+  - frontend-web-deployment-patch.yaml
+
+patches:
+  - path: backend-ingress-patch.yaml
+  - path: frontend-web-ingress-patch.yaml
+
+commonLabels:
+  environment: prod
+  tier: application
+
+images:
+  - name: ${REGISTRY_URL}/QuantumBallot-backend
+    newName: ${REGISTRY_URL}/QuantumBallot-backend
+    newTag: prod-${BUILD_ID}
+  - name: ${REGISTRY_URL}/QuantumBallot-frontend-web
+    newName: ${REGISTRY_URL}/QuantumBallot-frontend-web
+    newTag: prod-${BUILD_ID}
+
+configMapGenerator:
+  - name: backend-config
+    behavior: merge
+    literals:
+      - node_env=production
+      - log_level=info
+      - blockchain_node_url=http://blockchain-node-service.quantumballot-prod:26657
+
+  - name: frontend-config
+    behavior: merge
+    literals:
+      - api_url=https://api.quantumballot.io
+      - environment=production
+      - blockchain_node_url=https://node.quantumballot.io
+
+replicas:
+  - name: backend-deployment
+    count: 3
+  - name: frontend-web-deployment
+    count: 3

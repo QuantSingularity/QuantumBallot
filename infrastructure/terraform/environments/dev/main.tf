@@ -1,14 +1,24 @@
 # Terraform main configuration for the dev environment
 
+terraform {
+  required_version = ">= 1.6.0, < 2.0.0"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
+
 provider "aws" {
   region = var.aws_region
 }
 
-# Data source to get AWS Account ID
 data "aws_caller_identity" "current" {}
+data "aws_availability_zones" "available" {}
 
 # --- Networking --- #
-# Create a new VPC or use an existing one
 resource "aws_vpc" "main" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_support   = true
@@ -21,13 +31,12 @@ resource "aws_vpc" "main" {
   }
 }
 
-# Public Subnets
 resource "aws_subnet" "public" {
-  count                   = 2 # Create two public subnets in different AZs
+  count                   = 2
   vpc_id                  = aws_vpc.main.id
   cidr_block              = cidrsubnet(aws_vpc.main.cidr_block, 8, count.index)
   availability_zone       = data.aws_availability_zones.available.names[count.index]
-  map_public_ip_on_launch = true
+  map_public_ip_on_launch = false
 
   tags = {
     Name        = "${var.environment_name}-QuantumBallot-public-subnet-${count.index}"
@@ -36,7 +45,19 @@ resource "aws_subnet" "public" {
   }
 }
 
-# Internet Gateway
+resource "aws_subnet" "private" {
+  count             = 2
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = cidrsubnet(aws_vpc.main.cidr_block, 8, count.index + 10)
+  availability_zone = data.aws_availability_zones.available.names[count.index]
+
+  tags = {
+    Name        = "${var.environment_name}-QuantumBallot-private-subnet-${count.index}"
+    Environment = var.environment_name
+    Project     = "QuantumBallot"
+  }
+}
+
 resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.main.id
 
@@ -47,7 +68,6 @@ resource "aws_internet_gateway" "gw" {
   }
 }
 
-# Public Route Table
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
 
@@ -63,29 +83,22 @@ resource "aws_route_table" "public" {
   }
 }
 
-# Associate Public Subnets with Public Route Table
 resource "aws_route_table_association" "public" {
   count          = length(aws_subnet.public)
   subnet_id      = aws_subnet.public[count.index].id
   route_table_id = aws_route_table.public.id
 }
 
-# Get available Availability Zones
-data "aws_availability_zones" "available" {}
-
 # --- Backend Module --- #
 module "backend" {
   source = "../../modules/backend"
 
   environment_name = var.environment_name
-
-  vpc_id       = aws_vpc.main.id
-  subnet_ids   = aws_subnet.public[*].id
-  backend_port = var.backend_port
-  # Construct ECR image URI
+  vpc_id           = aws_vpc.main.id
+  subnet_ids       = aws_subnet.private[*].id
+  backend_port     = var.backend_port
+  certificate_arn  = var.frontend_certificate_arn
   docker_image_uri = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.environment_name}/QuantumBallot-backend:${var.backend_docker_image_tag}"
-
-  # Pass other backend variables if needed
 }
 
 # --- Frontend Web Module --- #
@@ -95,9 +108,7 @@ module "frontend_web" {
   environment_name = var.environment_name
   domain_name      = var.frontend_domain_name
   certificate_arn  = var.frontend_certificate_arn
-  backend_api_url  = module.backend.alb_dns_name # Assuming backend module outputs ALB DNS name
-
-  # Pass other frontend variables if needed
+  backend_api_url  = module.backend.alb_dns_name
 }
 
 # --- Outputs --- #
