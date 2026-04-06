@@ -3,29 +3,31 @@ import type { NextFunction, Request, Response } from "express";
 const jwt = require("jsonwebtoken");
 
 interface AuthRequest extends Request {
-  user?: string;
+  user?: any;
   roles?: string[];
 }
 
 const verifyJWT = (req: AuthRequest, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization || req.headers.Authorization;
 
-  if (
-    !authHeader ||
-    typeof authHeader !== "string" ||
-    !authHeader.startsWith("Bearer ")
-  ) {
+  if (!authHeader || typeof authHeader !== "string") {
     return res.sendStatus(401);
   }
 
-  const token = authHeader.split(" ")[1];
+  const token = authHeader.startsWith("Bearer ")
+    ? authHeader.split(" ")[1]
+    : authHeader;
+
+  if (!token) {
+    return res.sendStatus(401);
+  }
 
   jwt.verify(
     token,
     process.env.ACCESS_TOKEN_SECRET,
     (err: any, decoded: any) => {
-      if (err) return res.sendStatus(403); // Invalid token
-      req.user = decoded.username;
+      if (err) return res.sendStatus(403);
+      req.user = decoded;
       req.roles = decoded.roles;
       next();
     },

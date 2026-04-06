@@ -57,13 +57,17 @@ class Committee {
   public async loadCitizens() {
     try {
       this.citizens = await readCitizens();
-    } catch (_error: any) {}
+    } catch (error: any) {
+      console.error("Error loading citizens:", error);
+    }
   }
 
   public async loadUsers() {
     try {
       this.users = await readUsers();
-    } catch (_error: any) {}
+    } catch (error: any) {
+      console.error("Error loading users:", error);
+    }
   }
 
   public async generateIdentifiers() {
@@ -95,7 +99,9 @@ class Committee {
 
       this.votersGenerated = voters;
       return voters;
-    } catch (_e: any) {}
+    } catch (e: any) {
+      console.error("Error generating identifiers:", e);
+    }
 
     return [];
   }
@@ -106,7 +112,9 @@ class Committee {
       await clearCandidates();
       this.candidates = [];
       return this.candidates;
-    } catch (_e: any) {}
+    } catch (e: any) {
+      console.error("Error clearing candidates:", e);
+    }
 
     return [];
   }
@@ -128,9 +136,12 @@ class Committee {
         status: status,
       };
 
-      await writeCandidateTemp(code.toString(), obj);
+      await writeCandidateTemp(code, obj);
       this.candidates = await readCandidatesTemp();
-    } catch (_e: any) {}
+    } catch (e: any) {
+      console.error("Error adding candidate:", e);
+      return [];
+    }
 
     return this.candidates;
   }
@@ -150,7 +161,9 @@ class Committee {
           province: response.province,
         };
       }
-    } catch (_error: any) {}
+    } catch (error: any) {
+      console.error("Authentication error:", error);
+    }
 
     return null;
   }
@@ -169,7 +182,9 @@ class Committee {
           role: response.role,
         };
       }
-    } catch (_error: any) {}
+    } catch (error: any) {
+      console.error("Authentication error:", error);
+    }
     return null;
   }
 
@@ -177,14 +192,18 @@ class Committee {
     try {
       await clearCitizens();
       await this.loadCitizens();
-    } catch (_error: any) {}
+    } catch (error: any) {
+      console.error("Error erasing citizens:", error);
+    }
   }
 
   public async eraseUsers() {
     try {
       await clearUsers();
       await this.loadUsers();
-    } catch (_error: any) {}
+    } catch (error: any) {
+      console.error("Error erasing users:", error);
+    }
 
     return this.users;
   }
@@ -193,7 +212,9 @@ class Committee {
     try {
       await removeUser(key);
       await this.loadUsers();
-    } catch (_error: any) {}
+    } catch (error: any) {
+      console.error("Error erasing user:", error);
+    }
 
     return this.users;
   }
@@ -202,21 +223,27 @@ class Committee {
     try {
       await removeCitizen(key);
       await this.loadCitizens();
-    } catch (_error: any) {}
+    } catch (error: any) {
+      console.error("Error erasing citizen:", error);
+    }
 
     return this.citizens;
   }
 
-  private async saveCitizen(citizen: Citizen) {
+  public async saveCitizen(citizen: Citizen) {
     try {
       await writeCitizen(citizen.electoralId, citizen);
-    } catch (_e: any) {}
+    } catch (e: any) {
+      console.error("Error saving citizen:", e);
+    }
   }
 
-  private async saveUser(user: User) {
+  public async saveUser(user: User) {
     try {
       await writeUser(user.username, user);
-    } catch (_e: any) {}
+    } catch (e: any) {
+      console.error("Error saving user:", e);
+    }
   }
 
   public async updateTokenCitzen(electoralId: string, refreshToken: string) {
@@ -224,13 +251,18 @@ class Committee {
       (x) => x.electoralId.localeCompare(electoralId) === 0,
     );
 
-    if (!citizen) return;
+    if (!citizen) {
+      console.error("Citizen not found for token update:", electoralId);
+      return;
+    }
 
     citizen.refreshToken = refreshToken;
 
     try {
       await this.saveCitizen(citizen);
-    } catch (_e: any) {}
+    } catch (e: any) {
+      console.error("Error updating citizen token:", e);
+    }
 
     const tmp = this.citizens.filter(
       (x) => x.electoralId.localeCompare(citizen.electoralId) !== 0,
@@ -249,7 +281,9 @@ class Committee {
 
     try {
       await this.saveUser(user);
-    } catch (_e: any) {}
+    } catch (e: any) {
+      console.error("Error updating user token:", e);
+    }
 
     const tmp = this.users.filter(
       (x) => x.username.localeCompare(user.username) !== 0,
@@ -305,7 +339,9 @@ class Committee {
         await this.saveCitizen(oldCitizen);
         return true;
       }
-    } catch (_e: any) {}
+    } catch (e: any) {
+      console.error("Error updating citizen:", e);
+    }
 
     return false;
   }
@@ -330,7 +366,9 @@ class Committee {
         await this.saveUser(oldUser);
         return true;
       }
-    } catch (_e: any) {}
+    } catch (e: any) {
+      console.error("Error updating user:", e);
+    }
 
     return false;
   }
@@ -371,7 +409,9 @@ class Committee {
       await writeAnnouncement(announcement);
       this.announcement = announcement;
       return this.announcement;
-    } catch (_e: any) {}
+    } catch (e: any) {
+      console.error("Error deploying announcement:", e);
+    }
 
     return null;
   }
@@ -379,7 +419,9 @@ class Committee {
   public async getAnnouncement() {
     try {
       this.announcement = await readAnnouncement();
-    } catch (_error: any) {}
+    } catch (error: any) {
+      console.error("Error getting announcement:", error);
+    }
 
     return this.announcement;
   }
@@ -399,10 +441,10 @@ class Committee {
     return this.citizens.map((x) => x.refreshToken);
   }
 
-  private generateOtp(): Otp {
+  public generateOtp(): Otp {
     const secret = speakeasy.generateSecret({
       name: "Election QuantumBallot",
-      length: 20,
+      length: 6,
       step: 300,
     });
 
@@ -417,14 +459,18 @@ class Committee {
   }
 
   public verifyOtp(secret: string, token: string): boolean {
-    const verified = speakeasy.totp.verify({
-      secret: secret,
-      encoding: "base32",
-      token: token,
-      window: 1,
-    });
+    try {
+      const verified = speakeasy.totp.verify({
+        secret: secret,
+        encoding: "base32",
+        token: token,
+      });
 
-    return verified;
+      return verified;
+    } catch (error: any) {
+      console.error("Error verifying OTP:", error);
+      return false;
+    }
   }
 
   public generateQRCode = async (
@@ -442,7 +488,8 @@ class Committee {
       });
 
       return qrCodeData;
-    } catch (_error: any) {
+    } catch (error: any) {
+      console.error("Failed to generate QR code:", error);
       return null;
     }
   };
@@ -454,7 +501,9 @@ class Committee {
   public async getVotersGenerated() {
     try {
       this.votersGenerated = await readVoterGenerated();
-    } catch (_error: any) {}
+    } catch (error: any) {
+      console.error("Error getting voters generated:", error);
+    }
 
     return this.votersGenerated;
   }
@@ -462,7 +511,9 @@ class Committee {
   public async getCandidates() {
     try {
       this.candidates = await readCandidatesTemp();
-    } catch (_error: any) {}
+    } catch (error: any) {
+      console.error("Error getting candidates:", error);
+    }
 
     return this.candidates;
   }

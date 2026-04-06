@@ -5,3 +5,7 @@ process.env.SECRET_IV_IDENTIFIER = "0123456789abcdef0123456789abcdef";
 process.env.SECRET_KEY_VOTES =
   "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 process.env.SECRET_IV_VOTES = "0123456789abcdef0123456789abcdef";
+process.env.ACCESS_TOKEN_SECRET = "test-access-token-secret";
+process.env.REFRESH_TOKEN_SECRET = "test-refresh-token-secret";
+process.env.NODE_ENV = "test";
+process.env.DB_PATH = "/tmp/test_quantumballot_db";

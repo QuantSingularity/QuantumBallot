@@ -34,21 +34,25 @@ class BlockChain {
 
     try {
       this.smartContract = new SmartContract();
-    } catch (_e: any) {}
+    } catch (e: any) {
+      console.error("Error initializing smart contract:", e);
+    }
   }
 
-  public setNodeAddress(nodeAddress: string) {
+  public async setNodeAddress(nodeAddress: string) {
     this.nodeAddress = nodeAddress;
-    this.loadChain();
+    await this.loadChain();
   }
 
-  private async loadChain() {
+  public async loadChain() {
     try {
       const chain = await readChain();
       if (Array.isArray(chain) && chain.length > 0) {
         this.chain = chain;
       }
-    } catch (_e: any) {}
+    } catch (e: any) {
+      console.error("Error loading chain:", e);
+    }
   }
 
   public async clearChainsFromStorage() {
@@ -58,19 +62,25 @@ class BlockChain {
       this.transactionPool = [];
       try {
         this.smartContract = new SmartContract();
-      } catch (_e: any) {}
-    } catch (_error: any) {}
+      } catch (e: any) {
+        console.error("Error initializing smart contract:", e);
+      }
+    } catch (error: any) {
+      console.error("Error clearing chains:", error);
+    }
 
     return [];
   }
 
-  private saveChain() {
+  public saveChain() {
     try {
       writeChain(this.chain);
-    } catch (_e: any) {}
+    } catch (e: any) {
+      console.error("Error saving chain:", e);
+    }
   }
 
-  private getGenesisBlock(): Block {
+  public getGenesisBlock(): Block {
     return this.createGenesisBlock();
   }
 
@@ -108,7 +118,9 @@ class BlockChain {
 
         return true;
       }
-    } catch (_e: any) {}
+    } catch (e: any) {
+      console.error("Error adding block:", e);
+    }
 
     return false;
   }
@@ -128,7 +140,7 @@ class BlockChain {
     );
   }
 
-  private isValidBlock(block: Block): boolean {
+  public isValidBlock(block: Block): boolean {
     if (!block) return false;
 
     if (!this.isBlockLast(block)) {
@@ -255,7 +267,9 @@ class BlockChain {
     try {
       const ans = await this.smartContract.getVoters();
       return ans;
-    } catch (_e: any) {}
+    } catch (e: any) {
+      console.error("Error getting smart contract voters:", e);
+    }
 
     return null;
   }
@@ -264,7 +278,9 @@ class BlockChain {
     try {
       const ans = await this.smartContract.getCandidates();
       return ans;
-    } catch (_e: any) {}
+    } catch (e: any) {
+      console.error("Error getting smart contract candidates:", e);
+    }
 
     return null;
   }
@@ -275,10 +291,14 @@ class BlockChain {
 
       try {
         this.smartContract = new SmartContract();
-      } catch (_e: any) {}
+      } catch (e: any) {
+        console.error("Error initializing smart contract:", e);
+      }
 
       return ans;
-    } catch (_e: any) {}
+    } catch (e: any) {
+      console.error("Error deploying voters:", e);
+    }
 
     return null;
   }
@@ -287,7 +307,9 @@ class BlockChain {
     try {
       const ans = await deployCandidates();
       return ans;
-    } catch (_e: any) {}
+    } catch (e: any) {
+      console.error("Error deploying candidates:", e);
+    }
 
     return null;
   }
@@ -337,7 +359,7 @@ class BlockChain {
     return transaction;
   }
 
-  private hashData(data: string): string {
+  public hashData(data: string): string {
     return sha256(data).toString();
   }
 
@@ -347,7 +369,7 @@ class BlockChain {
     return a === b;
   }
 
-  private isValidChain(chain: Block[]): boolean {
+  public isValidChain(chain: Block[]): boolean {
     if (!chain || chain.length === 0) return false;
 
     const genesisBlock: Block = this.getGenesisBlock();
@@ -407,12 +429,12 @@ class BlockChain {
     return candidateBlock;
   }
 
-  private isSHA256(str: string): boolean {
+  public isSHA256(str: string): boolean {
     const regExp: RegExp = /^[0-9a-fA-F]{64}$/;
     return regExp.test(str);
   }
 
-  private isValidVote(vote: Voter): boolean {
+  public isValidVote(vote: Voter): boolean {
     const length: number = vote.identifier.length;
     if (length <= 5 || length >= 50) return false;
 
@@ -423,7 +445,7 @@ class BlockChain {
     return true;
   }
 
-  private isValidTransactionPool(transactions: Transaction[]): boolean {
+  public isValidTransactionPool(transactions: Transaction[]): boolean {
     if (!transactions || transactions.length === 0) return false;
     const mapped = transactions.map((x) => this.isValidTransaction(x));
     return mapped.every((x) => x);
@@ -554,13 +576,11 @@ class BlockChain {
 
   public async getCitizenRelatedIdentifier(electoralId: string) {
     try {
-      const electoralIdEncrypted =
-        CryptoBlockIdentifier.encryptData(electoralId);
-      const identifier = await readVoterCitizenRelation(
-        electoralIdEncrypted.CIPHER_TEXT,
-      );
+      const identifier = await readVoterCitizenRelation(electoralId);
       return identifier;
-    } catch (_e: any) {}
+    } catch (e: any) {
+      console.error("Error getting citizen identifier:", e);
+    }
 
     return null;
   }

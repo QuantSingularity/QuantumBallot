@@ -1,8 +1,9 @@
-import * as leveldb from "../../src/leveldb";
-import SmartContract from "../../src/smart_contract/smart_contract";
+const leveldb = require("../../dist/leveldb");
+const SmartContract =
+  require("../../dist/smart_contract/smart_contract").default;
 
 // Mock the dependencies
-jest.mock("../../src/crypto/cryptoBlockchain", () => {
+jest.mock("../../dist/crypto/cryptoBlockchain", () => {
   return jest.fn().mockImplementation(() => {
     return {
       decryptData: jest.fn((data) => {
@@ -15,7 +16,7 @@ jest.mock("../../src/crypto/cryptoBlockchain", () => {
   });
 });
 
-jest.mock("../../src/leveldb", () => ({
+jest.mock("../../dist/leveldb", () => ({
   readAnnouncement: jest.fn(),
   readCandidates: jest.fn(),
   readCitizens: jest.fn(),
@@ -34,10 +35,11 @@ describe("SmartContract", () => {
   let mockCitizens;
 
   beforeEach(() => {
-    // Setup mock data
+    jest.clearAllMocks();
+
     mockAnnouncement = {
-      startTimeVoting: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-      endTimeVoting: new Date(Date.now() + 3600000).toISOString(), // 1 hour from now
+      startTimeVoting: new Date(Date.now() - 3600000).toISOString(),
+      endTimeVoting: new Date(Date.now() + 3600000).toISOString(),
       numOfVoters: 100,
       numOfCandidates: 3,
     };
@@ -64,14 +66,15 @@ describe("SmartContract", () => {
       { electoralId: "decrypted_electoral_id", province: "Luanda" },
     ];
 
-    // Setup mocks
     leveldb.readAnnouncement.mockResolvedValue(mockAnnouncement);
     leveldb.readCandidates.mockResolvedValue(mockCandidates);
     leveldb.readVoters.mockResolvedValue(mockVoters);
     leveldb.readCitizens.mockResolvedValue(mockCitizens);
     leveldb.readResults.mockResolvedValue(null);
+    leveldb.writeResults.mockResolvedValue(undefined);
+    leveldb.clearVoters.mockResolvedValue(undefined);
+    leveldb.clearResults.mockResolvedValue(undefined);
 
-    // Create instance
     smartContract = new SmartContract();
   });
 
@@ -83,20 +86,22 @@ describe("SmartContract", () => {
     it("should initialize with correct state", async () => {
       expect(smartContract.electionState).toBeDefined();
       expect(smartContract.provinces).toHaveLength(18);
-      expect(await smartContract.getAnnouncement()).toEqual(mockAnnouncement);
+      const announcement = await smartContract.getAnnouncement();
+      expect(announcement).toEqual(mockAnnouncement);
     });
   });
 
   describe("isValidElectionTime", () => {
-    it("should return true when current time is within election period", () => {
+    it("should return true when current time is within election period", async () => {
+      await smartContract.getAnnouncement();
       expect(smartContract.isValidElectionTime()).toBe(true);
     });
 
     it("should return false when current time is outside election period", async () => {
       const pastAnnouncement = {
         ...mockAnnouncement,
-        startTimeVoting: new Date(Date.now() - 7200000).toISOString(), // 2 hours ago
-        endTimeVoting: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
+        startTimeVoting: new Date(Date.now() - 7200000).toISOString(),
+        endTimeVoting: new Date(Date.now() - 3600000).toISOString(),
       };
 
       leveldb.readAnnouncement.mockResolvedValue(pastAnnouncement);
@@ -130,6 +135,7 @@ describe("SmartContract", () => {
 
   describe("winningCandidate", () => {
     it("should return null when there is no winner", () => {
+      smartContract.candidates = mockCandidates;
       expect(smartContract.winningCandidate()).toBeNull();
     });
 
@@ -179,19 +185,14 @@ describe("SmartContract", () => {
 
   describe("getResults", () => {
     it("should process votes and return results", async () => {
-      // This is a complex test that would require more mocking
-      // For now, we'll just verify it calls the right methods
       await smartContract.getResults();
       expect(leveldb.writeResults).toHaveBeenCalled();
     });
   });
 
-  // Add more tests for edge cases and error handling
   describe("error handling", () => {
     it("should handle errors when loading data", async () => {
       leveldb.readCandidates.mockRejectedValue(new Error("Database error"));
-
-      // Should not throw an error
       await expect(smartContract.loadCandidates()).resolves.toEqual([]);
     });
   });

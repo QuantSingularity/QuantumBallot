@@ -1,11 +1,34 @@
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
-import { jest } from "@jest/globals";
+
+// Mock leveldb before importing blockchain
+jest.mock("../leveldb", () => ({
+  readChain: jest.fn().mockResolvedValue([]),
+  writeChain: jest.fn(),
+  clearChains: jest.fn().mockResolvedValue([]),
+  updateVoter: jest.fn(),
+  deployVotersGenerated: jest.fn().mockResolvedValue([]),
+  deployCandidates: jest.fn().mockResolvedValue([]),
+  readVoterCitizenRelation: jest.fn().mockResolvedValue("test-identifier"),
+}));
+
+// Mock smart contract
+jest.mock("../smart_contract/smart_contract", () => {
+  return {
+    default: jest.fn().mockImplementation(() => ({
+      update: jest.fn(),
+      isValidElectionTime: jest.fn().mockReturnValue(true),
+      getVoters: jest.fn().mockResolvedValue([]),
+      getCandidates: jest.fn().mockResolvedValue([]),
+    })),
+  };
+});
+
 import BlockChain from "../blockchain/blockchain";
 import CryptoBlockchain from "../crypto/cryptoBlockchain";
 
 describe("BlockChain", () => {
-  let blockchain;
+  let blockchain: any;
 
   beforeEach(() => {
     blockchain = new BlockChain();
@@ -15,10 +38,10 @@ describe("BlockChain", () => {
     expect(blockchain).toBeInstanceOf(BlockChain);
   });
 
-  test("Check existence of the one block, the GenesisBlock and eturns the chain of blocks", () => {
+  test("Check existence of the one block, the GenesisBlock and returns the chain of blocks", () => {
     const chain = blockchain.getChain();
     expect(chain).toBeInstanceOf(Array);
-    expect(chain.length).toBe(1); // Assuming genesis block is always present
+    expect(chain.length).toBe(1);
   });
 
   test("Encrypt and Decrypt Data Identifier", () => {
@@ -41,7 +64,6 @@ describe("BlockChain", () => {
     const data = "We are performing a unit testing.";
     const hash = blockchain.hashData(data);
 
-    // The result should be a string of 64 hexadecimal characters
     expect(hash).toMatch(/^[0-9a-fA-F]{64}$/);
   });
 });
@@ -56,17 +78,15 @@ describe("Network", () => {
 });
 
 describe("Secret generation Tests", () => {
-  let cyptoChain;
+  let cyptoChain: any;
 
   beforeEach(() => {
-    cyptoChain = new CryptoBlockchain("", ""); // Pass empty strings for KEY_VAR and IV_VAR
+    cyptoChain = new CryptoBlockchain("", "");
   });
 
   it("Generate a secret key and IV", () => {
-    const consoleSpy = jest.spyOn(console, "log");
-
-    // Mock fs.writeFileSync
-    fs.writeFileSync = jest.fn();
+    const consoleSpy = jest.spyOn(console, "log").mockImplementation();
+    jest.spyOn(fs, "writeFileSync").mockImplementation(() => {});
 
     cyptoChain.generateSecret();
 
@@ -75,5 +95,8 @@ describe("Secret generation Tests", () => {
       expect.any(String),
     );
     expect(consoleSpy).toHaveBeenCalledTimes(3);
+
+    consoleSpy.mockRestore();
+    (fs.writeFileSync as jest.Mock).mockRestore?.();
   });
 });

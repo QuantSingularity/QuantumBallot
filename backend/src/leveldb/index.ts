@@ -119,8 +119,8 @@ export async function writeVoterCitizenRelation(key: string, value: any) {
   await votercitizenrelationdb.put(key, value);
 }
 
-export async function writeCandidateTemp(key: string, value: any) {
-  await candidatesTempDb.put(key, value);
+export async function writeCandidateTemp(key: string | number, value: any) {
+  await candidatesTempDb.put(String(key), value);
 }
 
 export async function updateVoter(key: string, value: any) {

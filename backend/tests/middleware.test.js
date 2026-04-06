@@ -23,6 +23,7 @@ describe("Middleware", () => {
       sendStatus: jest.fn(),
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
+      header: jest.fn(),
     };
     next = jest.fn();
     jest.clearAllMocks();

@@ -53,27 +53,27 @@ enum ElectionState {
 }
 
 class SmartContract {
-  private candidates!: Candidate[];
-  private candidatesTest!: Candidate[];
+  public candidates!: Candidate[];
+  public candidatesTest!: Candidate[];
 
-  private voters!: Voter[];
-  private votersTest!: Voter[];
+  public voters!: Voter[];
+  public votersTest!: Voter[];
 
-  private citizens!: Citizen[];
+  public citizens!: Citizen[];
 
-  private hashCandidates!: HashMap<Candidate>;
-  private hashVoters!: HashMap<Voter>;
+  public hashCandidates!: HashMap<Candidate>;
+  public hashVoters!: HashMap<Voter>;
 
-  private electionState: ElectionState;
-  private announcement!: Announcement;
+  public electionState: ElectionState;
+  public announcement!: Announcement;
 
-  private provinces!: string[];
-  private results!: Results;
+  public provinces!: string[];
+  public results!: Results;
 
-  private statsPerProvince!: HashMap<HashMap<number>>;
+  public statsPerProvince!: HashMap<HashMap<number>>;
 
   // Track processed votes to prevent double voting
-  private processedVotes: Set<string>;
+  public processedVotes: Set<string>;
 
   constructor() {
     this.electionState = ElectionState.Created;
@@ -87,7 +87,7 @@ class SmartContract {
     this.electionState = ElectionState.Started;
   }
 
-  private async initVariables() {
+  public async initVariables() {
     this.candidates = [];
     this.voters = [];
     this.citizens = [];
@@ -144,7 +144,7 @@ class SmartContract {
     });
   }
 
-  private async loadCitizens() {
+  public async loadCitizens() {
     try {
       this.citizens = await readCitizens();
       return this.citizens;
@@ -155,7 +155,7 @@ class SmartContract {
     }
   }
 
-  private async loadAnnouncement() {
+  public async loadAnnouncement() {
     try {
       this.announcement = await readAnnouncement();
       return this.announcement;
@@ -165,7 +165,7 @@ class SmartContract {
     }
   }
 
-  private async loadResults() {
+  public async loadResults() {
     try {
       this.results = await readResults();
       return this.results;
@@ -175,7 +175,7 @@ class SmartContract {
     }
   }
 
-  private async loadVoters(): Promise<Voter[]> {
+  public async loadVoters(): Promise<Voter[]> {
     try {
       this.voters = await readVoters();
       return this.voters;
@@ -186,7 +186,7 @@ class SmartContract {
     }
   }
 
-  private async loadCandidates(): Promise<Candidate[]> {
+  public async loadCandidates(): Promise<Candidate[]> {
     try {
       this.candidates = await readCandidates();
       return this.candidates;
@@ -227,7 +227,7 @@ class SmartContract {
     );
   }
 
-  private isElectionState(): boolean {
+  public isElectionState(): boolean {
     return (
       this.electionState >= ElectionState.Started &&
       this.electionState <= ElectionState.Ended
@@ -302,17 +302,17 @@ class SmartContract {
     }
   }
 
-  private async existsVoter(voter: Voter): Promise<boolean> {
+  public async existsVoter(voter: Voter): Promise<boolean> {
     if (!voter?.identifier) return false;
     return voter.identifier in this.hashVoters;
   }
 
-  private existsCandidate(code: string): boolean {
+  public existsCandidate(code: string): boolean {
     if (!code) return false;
     return code in this.hashCandidates;
   }
 
-  private async processVotes(): Promise<void> {
+  public async processVotes(): Promise<void> {
     if (!this.candidates || !this.voters || !this.announcement) {
       console.error("Missing required data for vote processing");
       throw new Error("Cannot process votes: missing data");
@@ -465,7 +465,7 @@ class SmartContract {
     }
   }
 
-  private async placeVote(voter: Voter) {
+  public async placeVote(voter: Voter) {
     // Validate voter exists
     if (!(await this.existsVoter(voter))) {
       console.log("Voter does not exist.");
