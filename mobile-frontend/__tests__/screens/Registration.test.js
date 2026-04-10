@@ -3,218 +3,103 @@
  */
 
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
-import { AuthProvider } from "src/context/AuthContext";
-import Registration from "src/screens/Registration";
-import { mockAxios } from "../fixtures/mockAxios";
+import React from "react";
+import { Alert } from "react-native";
+import { Registration } from "src/screens/Registration";
 
-// Mock navigation
 const mockNavigate = jest.fn();
-const mockGoBack = jest.fn();
-jest.mock("@react-navigation/native", () => {
-  return {
-    ...jest.requireActual("@react-navigation/native"),
-    useNavigation: () => ({
-      navigate: mockNavigate,
-      goBack: mockGoBack,
+jest.mock("@react-navigation/native", () => ({
+  ...jest.requireActual("@react-navigation/native"),
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
+jest.mock("src/context/AuthContext", () => ({
+  AuthProvider: ({ children }) => children,
+  useAuth: () => ({
+    onRegister: jest.fn().mockResolvedValue({
+      success: true,
+      message: "Registration successful!",
     }),
-  };
-});
+    authState: { authenticated: false },
+    isLoading: false,
+    imageList: {},
+    setImageList: jest.fn(),
+  }),
+}));
+
+jest.spyOn(Alert, "alert");
 
 describe("Registration Screen", () => {
   beforeEach(() => {
-    mockAxios.mockClear();
     mockNavigate.mockClear();
-    mockGoBack.mockClear();
+    Alert.alert.mockClear();
   });
 
   test("renders registration form correctly", () => {
-    const { getByPlaceholderText, getByText } = render(
-      <AuthProvider>
-        <Registration />
-      </AuthProvider>,
-    );
-
-    expect(getByPlaceholderText("Electoral ID")).toBeTruthy();
-    expect(getByPlaceholderText("Full Name")).toBeTruthy();
-    expect(getByPlaceholderText("Email")).toBeTruthy();
-    expect(getByPlaceholderText("Address")).toBeTruthy();
-    expect(getByPlaceholderText("Province")).toBeTruthy();
-    expect(getByPlaceholderText("Password")).toBeTruthy();
-    expect(getByPlaceholderText("Confirm Password")).toBeTruthy();
-    expect(getByText("Register")).toBeTruthy();
-    expect(getByText("Back to Login")).toBeTruthy();
+    const { getByText } = render(<Registration />);
+    expect(getByText("Create Account")).toBeTruthy();
+    expect(getByText("Join QuantumBallot Voting System")).toBeTruthy();
+    expect(getByText("Create Account")).toBeTruthy();
   });
 
-  test("handles input changes", () => {
-    const { getByPlaceholderText } = render(
-      <AuthProvider>
-        <Registration />
-      </AuthProvider>,
-    );
+  test("shows error alert when required fields are missing", async () => {
+    const { getByText } = render(<Registration />);
 
-    const electoralIdInput = getByPlaceholderText("Electoral ID");
-    const nameInput = getByPlaceholderText("Full Name");
-    const emailInput = getByPlaceholderText("Email");
-    const addressInput = getByPlaceholderText("Address");
-    const provinceInput = getByPlaceholderText("Province");
-    const passwordInput = getByPlaceholderText("Password");
-    const confirmPasswordInput = getByPlaceholderText("Confirm Password");
-
-    fireEvent.changeText(electoralIdInput, "test-id");
-    fireEvent.changeText(nameInput, "Test User");
-    fireEvent.changeText(emailInput, "test@example.com");
-    fireEvent.changeText(addressInput, "123 Test St");
-    fireEvent.changeText(provinceInput, "Test Province");
-    fireEvent.changeText(passwordInput, "password123");
-    fireEvent.changeText(confirmPasswordInput, "password123");
-
-    expect(electoralIdInput.props.value).toBe("test-id");
-    expect(nameInput.props.value).toBe("Test User");
-    expect(emailInput.props.value).toBe("test@example.com");
-    expect(addressInput.props.value).toBe("123 Test St");
-    expect(provinceInput.props.value).toBe("Test Province");
-    expect(passwordInput.props.value).toBe("password123");
-    expect(confirmPasswordInput.props.value).toBe("password123");
-  });
-
-  test("navigates back to login when back button is pressed", () => {
-    const { getByText } = render(
-      <AuthProvider>
-        <Registration />
-      </AuthProvider>,
-    );
-
-    const backButton = getByText("Back to Login");
-    fireEvent.press(backButton);
-
-    expect(mockGoBack).toHaveBeenCalled();
-  });
-
-  test("validates required fields before submission", async () => {
-    const { getByText, findByText } = render(
-      <AuthProvider>
-        <Registration />
-      </AuthProvider>,
-    );
-
-    const registerButton = getByText("Register");
-    fireEvent.press(registerButton);
-
-    const errorMessage = await findByText("All fields are required");
-    expect(errorMessage).toBeTruthy();
-    expect(mockAxios.post).not.toHaveBeenCalled();
-  });
-
-  test("validates password match before submission", async () => {
-    const { getByText, getByPlaceholderText, findByText } = render(
-      <AuthProvider>
-        <Registration />
-      </AuthProvider>,
-    );
-
-    const electoralIdInput = getByPlaceholderText("Electoral ID");
-    const nameInput = getByPlaceholderText("Full Name");
-    const emailInput = getByPlaceholderText("Email");
-    const addressInput = getByPlaceholderText("Address");
-    const provinceInput = getByPlaceholderText("Province");
-    const passwordInput = getByPlaceholderText("Password");
-    const confirmPasswordInput = getByPlaceholderText("Confirm Password");
-    const registerButton = getByText("Register");
-
-    fireEvent.changeText(electoralIdInput, "test-id");
-    fireEvent.changeText(nameInput, "Test User");
-    fireEvent.changeText(emailInput, "test@example.com");
-    fireEvent.changeText(addressInput, "123 Test St");
-    fireEvent.changeText(provinceInput, "Test Province");
-    fireEvent.changeText(passwordInput, "password123");
-    fireEvent.changeText(confirmPasswordInput, "different-password");
-    fireEvent.press(registerButton);
-
-    const errorMessage = await findByText("Passwords do not match");
-    expect(errorMessage).toBeTruthy();
-    expect(mockAxios.post).not.toHaveBeenCalled();
-  });
-
-  test("submits registration form with valid data", async () => {
-    const { getByText, getByPlaceholderText } = render(
-      <AuthProvider>
-        <Registration />
-      </AuthProvider>,
-    );
-
-    const electoralIdInput = getByPlaceholderText("Electoral ID");
-    const nameInput = getByPlaceholderText("Full Name");
-    const emailInput = getByPlaceholderText("Email");
-    const addressInput = getByPlaceholderText("Address");
-    const provinceInput = getByPlaceholderText("Province");
-    const passwordInput = getByPlaceholderText("Password");
-    const confirmPasswordInput = getByPlaceholderText("Confirm Password");
-    const registerButton = getByText("Register");
-
-    fireEvent.changeText(electoralIdInput, "test-id");
-    fireEvent.changeText(nameInput, "Test User");
-    fireEvent.changeText(emailInput, "test@example.com");
-    fireEvent.changeText(addressInput, "123 Test St");
-    fireEvent.changeText(provinceInput, "Test Province");
-    fireEvent.changeText(passwordInput, "password123");
-    fireEvent.changeText(confirmPasswordInput, "password123");
-    fireEvent.press(registerButton);
+    const submitButton = getByText("Create Account");
+    fireEvent.press(submitButton);
 
     await waitFor(() => {
-      expect(mockAxios.post).toHaveBeenCalledWith(
-        "/committee/register-voter",
-        expect.objectContaining({
-          electoralId: "test-id",
-          name: "Test User",
-          email: "test@example.com",
-          address: "123 Test St",
-          province: "Test Province",
-          password: "password123",
-        }),
+      expect(Alert.alert).toHaveBeenCalledWith(
+        "Error",
+        "Please fill in all fields",
       );
-      expect(mockNavigate).toHaveBeenCalledWith("Login");
     });
   });
 
-  test("handles registration failure", async () => {
-    // Mock registration failure
-    mockAxios.post.mockImplementationOnce(() =>
-      Promise.reject({
-        response: {
-          status: 400,
-          data: {
-            msg: "Registration failed",
-          },
-        },
-      }),
-    );
+  test("navigates to Login when already have account link pressed", () => {
+    const { getByText } = render(<Registration />);
 
-    const { getByText, getByPlaceholderText, findByText } = render(
-      <AuthProvider>
-        <Registration />
-      </AuthProvider>,
-    );
+    const loginLink = getByText("Login here");
+    fireEvent.press(loginLink);
 
-    const electoralIdInput = getByPlaceholderText("Electoral ID");
-    const nameInput = getByPlaceholderText("Full Name");
-    const emailInput = getByPlaceholderText("Email");
-    const addressInput = getByPlaceholderText("Address");
-    const provinceInput = getByPlaceholderText("Province");
-    const passwordInput = getByPlaceholderText("Password");
-    const confirmPasswordInput = getByPlaceholderText("Confirm Password");
-    const registerButton = getByText("Register");
+    expect(mockNavigate).toHaveBeenCalledWith("Login");
+  });
 
-    fireEvent.changeText(electoralIdInput, "test-id");
-    fireEvent.changeText(nameInput, "Test User");
-    fireEvent.changeText(emailInput, "test@example.com");
-    fireEvent.changeText(addressInput, "123 Test St");
-    fireEvent.changeText(provinceInput, "Test Province");
-    fireEvent.changeText(passwordInput, "password123");
-    fireEvent.changeText(confirmPasswordInput, "password123");
-    fireEvent.press(registerButton);
+  test("navigates to Login via back button", () => {
+    const { getByText } = render(<Registration />);
 
-    const errorMessage = await findByText("Registration failed");
-    expect(errorMessage).toBeTruthy();
-    expect(mockNavigate).not.toHaveBeenCalled();
+    const backButton = getByText("← Back to Login");
+    fireEvent.press(backButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith("Login");
+  });
+
+  test("shows password validation error", async () => {
+    const { getByText, getAllByRole } = render(<Registration />);
+
+    // Fill all inputs except we'll use short password
+    const inputs = getAllByRole("text");
+    // Fill fields with test data
+    inputs.forEach((input, i) => {
+      const values = [
+        "ELECT001",
+        "Test User",
+        "test@test.com",
+        "12345",
+        "12345",
+        "123 Main St",
+      ];
+      if (i < values.length) {
+        fireEvent.changeText(input, values[i]);
+      }
+    });
+
+    fireEvent.press(getByText("Create Account"));
+
+    await waitFor(() => {
+      const calls = Alert.alert.mock.calls;
+      const hasError = calls.some(([title]) => title === "Error");
+      expect(hasError).toBeTruthy();
+    });
   });
 });

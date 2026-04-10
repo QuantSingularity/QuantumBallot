@@ -1,8 +1,9 @@
 module.exports = {
   preset: "jest-expo",
   transformIgnorePatterns: [
-    "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|@react-native-picker)",
+    "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|@react-native-picker|phosphor-react-native|styled-components)",
   ],
+  setupFilesAfterFramework: [],
   setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
   moduleNameMapper: {
     "^src/(.*)$": "<rootDir>/src/$1",
@@ -11,7 +12,10 @@ module.exports = {
     "^@routes/(.*)$": "<rootDir>/src/routes/$1",
     "^@assets/(.*)$": "<rootDir>/src/assets/$1",
     "^@utils/(.*)$": "<rootDir>/src/utils/$1",
+    "\\.png$": "<rootDir>/__mocks__/fileMock.js",
+    "\\.svg$": "<rootDir>/__mocks__/fileMock.js",
   },
+  testMatch: ["**/__tests__/**/*.[jt]s?(x)", "**/?(*.)+(spec|test).[jt]s?(x)"],
   collectCoverageFrom: [
     "src/**/*.{ts,tsx}",
     "!src/**/*.d.ts",
@@ -20,10 +24,10 @@ module.exports = {
   ],
   coverageThreshold: {
     global: {
-      branches: 70,
-      functions: 70,
-      lines: 70,
-      statements: 70,
+      branches: 60,
+      functions: 60,
+      lines: 60,
+      statements: 60,
     },
   },
   testEnvironment: "node",

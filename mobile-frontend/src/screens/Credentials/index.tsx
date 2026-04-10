@@ -12,63 +12,49 @@ import {
 } from "react-native";
 import theme from "src/theme";
 
-interface ErrorHash {
-  electoralId?: string;
-  name?: string;
-  email?: string;
-  address?: string;
-  password?: string;
-  confirmPassword?: string;
-}
-
 export function Credentials({ navigation }: any) {
-  const [_facing, _setFacing] = useState("back");
-  const [_permission, _requestPermission] = useCameraPermissions();
-  const [secret, setSecret] = useState<string>("x34o43nfkktj");
+  const [, requestPermission] = useCameraPermissions();
+  const [secret, setSecret] = useState<string>("");
+  const [eyeOn, setEyesOn] = useState<boolean>(false);
 
   const onPressEyes = () => {
-    setEyesOn(!eyeOn);
+    setEyesOn((prev) => !prev);
   };
 
-  const onPressVerify = () => {
-    navigation.navigate("CameraQR", { secret });
+  const onPressVerify = async () => {
+    const permission = await requestPermission();
+    if (permission.granted) {
+      navigation.navigate("CameraQR", { secret });
+    } else {
+      // Permission denied — navigate anyway so user sees the camera screen with its own message
+      navigation.navigate("CameraQR", { secret });
+    }
   };
 
-  const [eyeOn, setEyesOn] = useState<boolean>(false);
-  const eyeSize = 45;
+  const eyeSize = 40;
 
   return (
     <View style={styles.container}>
       <View style={styles.topBar}>
-        <View
-          style={{ flex: 1, alignItems: "flex-end", justifyContent: "center" }}
-        >
-          <TouchableOpacity onPress={onPressEyes}>
-            {eyeOn ? <Eye size={eyeSize} /> : <EyeClosed size={eyeSize} />}
+        <View style={styles.topBarRight}>
+          <TouchableOpacity onPress={onPressEyes} style={styles.eyeButton}>
+            {eyeOn ? (
+              <Eye size={eyeSize} color="#333" />
+            ) : (
+              <EyeClosed size={eyeSize} color="#333" />
+            )}
           </TouchableOpacity>
         </View>
       </View>
-      <View
-        style={{
-          gap: 4,
-          marginTop: 5,
-          marginLeft: 10,
-          marginRight: 10,
-          flex: 1,
-          backgroundColor: "transparent",
-          justifyContent: "space-between",
-        }}
-      >
+
+      <View style={styles.content}>
         <View>
-          <Text style={{ textAlign: "left", fontSize: 20, fontWeight: "600" }}>
-            Credentials
-          </Text>
-          <Text>
-            Please generate a pair of keys If you did not yet, or load it. Thank
-            you!
+          <Text style={styles.pageTitle}>Credentials</Text>
+          <Text style={styles.pageSubtitle}>
+            Load your certificate to verify your vote on the blockchain.
           </Text>
 
-          <View style={{ gap: 5, paddingTop: 10 }}>
+          <View style={styles.credentialsSection}>
             <GenerateSaveAndLoad
               secret={secret}
               setSecret={setSecret}
@@ -76,15 +62,20 @@ export function Credentials({ navigation }: any) {
             />
           </View>
         </View>
-        <View>
-          <View style={styles.verifyContainer}>
-            <TouchableOpacity
-              style={styles.buttonStyleVerify}
-              onPress={onPressVerify}
-            >
-              <Text style={styles.textButtonVerify}>Scan QR and Verify</Text>
-            </TouchableOpacity>
-          </View>
+
+        <View style={styles.verifyContainer}>
+          <TouchableOpacity
+            style={[styles.buttonStyleVerify, !secret && styles.buttonDisabled]}
+            onPress={onPressVerify}
+            disabled={!secret}
+          >
+            <Text style={styles.textButtonVerify}>📷 Scan QR & Verify</Text>
+          </TouchableOpacity>
+          {!secret && (
+            <Text style={styles.hintText}>
+              Load a certificate to enable verification
+            </Text>
+          )}
         </View>
       </View>
     </View>
@@ -93,109 +84,89 @@ export function Credentials({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#ffffff",
-    width: "100%",
-    height: "100%",
-    flexDirection: "column",
-  },
-  textTitleInput: {
-    color: "#969696",
-    fontWeight: "500",
-  },
-  textInput: {
-    width: "100%",
-    borderRadius: 7,
-    color: "#666666",
-    fontSize: 15,
-    borderColor: theme.COLORS.GRAY_BORDER_INPUT_TEXT,
-    paddingLeft: 15,
-    borderWidth: 0.7,
-    height: 50,
-  },
-  containerLevel: {
-    width: "100%",
-    paddingTop: 0,
-    alignItems: "center",
-    justifyContent: "flex-end",
-    paddingBottom: 40,
-    alignSelf: "flex-end",
-    backgroundColor: "transparent",
+    backgroundColor: "#f8fafc",
     flex: 1,
-  },
-  buttonView: {
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "transparent",
-    width: "90%",
-    gap: 9,
-    paddingBottom: 10,
-    paddingTop: 5,
-  },
-  button: {
-    width: "85%",
-    alignItems: "center",
-    backgroundColor: "#a9a9a9",
-    borderColor: "#a8a8a8",
-    padding: 15,
-    borderWidth: 1,
-    borderRadius: 8,
-    elevation: 55,
-    shadowColor: "black",
-    shadowOffset: {
-      width: 6,
-      height: 6,
-    },
-    shadowOpacity: 0.12,
-  },
-  textConfirm: {
-    color: "#ffffff",
-    fontSize: 18,
-    textAlign: "center", // Center the text horizontally
-    textAlignVertical: "center",
-    fontWeight: "700",
+    flexDirection: "column",
   },
   topBar: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
     backgroundColor: "transparent",
-    marginRight: 10,
-    marginTop: Platform.OS === "android" ? StatusBar.currentHeight : 40,
+    paddingRight: 16,
+    marginTop: Platform.OS === "android" ? (StatusBar.currentHeight ?? 0) : 40,
   },
-  errorText: {
-    color: "red",
-    marginBottom: 10,
+  topBarRight: {
+    alignItems: "flex-end",
+    justifyContent: "center",
+  },
+  eyeButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: "#fff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  content: {
+    flex: 1,
+    marginHorizontal: 16,
+    marginTop: 8,
+    justifyContent: "space-between",
+  },
+  pageTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#1a1a2e",
+    marginBottom: 6,
+  },
+  pageSubtitle: {
+    fontSize: 14,
+    color: "#6b7280",
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  credentialsSection: {
+    backgroundColor: "#fff",
+    borderRadius: 14,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  verifyContainer: {
+    marginBottom: 24,
+    alignItems: "center",
   },
   buttonStyleVerify: {
-    width: "50%",
+    width: "70%",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#202020",
-    borderColor: "#171717",
-    padding: 10,
-    borderWidth: 1,
-    borderRadius: 8,
-    elevation: 55,
-    shadowColor: "black",
-    shadowOffset: {
-      width: 6,
-      height: 6,
-    },
+    backgroundColor: "#1a1a2e",
+    padding: 14,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  buttonDisabled: {
+    backgroundColor: "#9ca3af",
+    shadowOpacity: 0,
+    elevation: 0,
   },
   textButtonVerify: {
     color: "#ffffff",
-    fontSize: 16,
-    textAlign: "center", // Center the text horizontally
-    textAlignVertical: "center",
+    fontSize: 15,
     fontWeight: "700",
-    justifyContent: "center",
   },
-  verifyContainer: {
-    marginBottom: 10,
-    backgroundColor: "transparent",
-    width: "100%",
-    height: "auto",
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
+  hintText: {
+    marginTop: 8,
+    fontSize: 12,
+    color: theme.colors.textSecondary,
   },
 });

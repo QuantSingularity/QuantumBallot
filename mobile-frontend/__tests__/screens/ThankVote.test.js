@@ -3,21 +3,23 @@
  */
 
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
-import { AuthProvider } from "src/context/AuthContext";
+import React from "react";
 import ThankVote from "src/screens/ThankVote";
 
-// Mock navigation
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
-jest.mock("@react-navigation/native", () => {
-  return {
-    ...jest.requireActual("@react-navigation/native"),
-    useNavigation: () => ({
-      navigate: mockNavigate,
-      reset: mockReset,
-    }),
-  };
-});
+
+jest.mock("@react-navigation/native", () => ({
+  ...jest.requireActual("@react-navigation/native"),
+  useNavigation: () => ({ navigate: mockNavigate, reset: mockReset }),
+  useRoute: () => ({
+    params: { data: "0xabc123def456", transactionHash: "0xabc123def456" },
+  }),
+}));
+
+jest.mock("expo-clipboard", () => ({
+  setStringAsync: jest.fn().mockResolvedValue(undefined),
+}));
 
 describe("ThankVote Screen", () => {
   beforeEach(() => {
@@ -26,23 +28,20 @@ describe("ThankVote Screen", () => {
   });
 
   test("renders thank you message correctly", () => {
-    const { getByText } = render(
-      <AuthProvider>
-        <ThankVote />
-      </AuthProvider>,
-    );
+    const { getByText } = render(<ThankVote />);
 
     expect(getByText("Thank You for Voting!")).toBeTruthy();
     expect(getByText("Your vote has been securely recorded.")).toBeTruthy();
     expect(getByText("Return to Home")).toBeTruthy();
   });
 
+  test("displays transaction id from route params", () => {
+    const { getByText } = render(<ThankVote />);
+    expect(getByText("0xabc123def456")).toBeTruthy();
+  });
+
   test("navigates to home screen when button is pressed", async () => {
-    const { getByText } = render(
-      <AuthProvider>
-        <ThankVote />
-      </AuthProvider>,
-    );
+    const { getByText } = render(<ThankVote />);
 
     const homeButton = getByText("Return to Home");
     fireEvent.press(homeButton);
@@ -50,42 +49,44 @@ describe("ThankVote Screen", () => {
     await waitFor(() => {
       expect(mockReset).toHaveBeenCalledWith({
         index: 0,
-        routes: [{ name: "Candidates" }],
+        routes: [{ name: "Menu" }],
       });
     });
   });
 
-  test("displays confetti animation", () => {
-    const { getByTestId } = render(
-      <AuthProvider>
-        <ThankVote />
-      </AuthProvider>,
-    );
-
+  test("renders confetti animation container", () => {
+    const { getByTestId } = render(<ThankVote />);
     expect(getByTestId("confetti-animation")).toBeTruthy();
   });
 
   test("handles automatic navigation after timeout", async () => {
-    // Mock setTimeout
     jest.useFakeTimers();
 
-    render(
-      <AuthProvider>
-        <ThankVote />
-      </AuthProvider>,
-    );
+    render(<ThankVote />);
 
-    // Fast-forward timer
-    jest.advanceTimersByTime(10000);
+    jest.advanceTimersByTime(10001);
 
     await waitFor(() => {
       expect(mockReset).toHaveBeenCalledWith({
         index: 0,
-        routes: [{ name: "Candidates" }],
+        routes: [{ name: "Menu" }],
       });
     });
 
-    // Restore timers
     jest.useRealTimers();
+  });
+
+  test("copies transaction id to clipboard", async () => {
+    const { Clipboard } = require("expo-clipboard");
+    const { getByText } = render(<ThankVote />);
+
+    const copyButton = getByText("Copy");
+    fireEvent.press(copyButton);
+
+    await waitFor(() => {
+      expect(require("expo-clipboard").setStringAsync).toHaveBeenCalledWith(
+        "0xabc123def456",
+      );
+    });
   });
 });

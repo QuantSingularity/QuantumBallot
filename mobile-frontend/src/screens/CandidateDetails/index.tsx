@@ -1,8 +1,8 @@
 import { CaretLeft } from "phosphor-react-native";
-import { useState } from "react";
 import {
   Image,
   Platform,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -11,153 +11,198 @@ import {
 } from "react-native";
 
 export function CandidateDetails({ navigation, route }: any) {
-  const { name, party, photo, src } = route.params;
-
-  const [candidatePhoto, _setCandidatePhoto] = useState(photo);
-
-  const onPressOK = () => {
-    navigation.goBack();
-  };
+  const { name, party, photo, src, acronym } = route.params ?? {};
 
   const onPressBack = () => {
-    navigation.navigate("Candidates");
+    navigation.goBack();
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.topBar}>
-        <TouchableOpacity onPress={onPressBack}>
-          <CaretLeft size={32} />
+        <TouchableOpacity onPress={onPressBack} style={styles.backButton}>
+          <CaretLeft size={32} color="#333" />
         </TouchableOpacity>
       </View>
-      <View style={styles.containerContent}>
-        <Image
-          source={{ uri: candidatePhoto }}
-          width={200}
-          style={styles.imgCandidate}
-        />
 
-        <Text style={styles.textCandidate}>{name}</Text>
-        <Text
-          style={{
-            textAlign: "justify",
-            fontSize: 18,
-            marginTop: 5,
-            color: "black",
-          }}
-        >
-          {party}
-        </Text>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.photoContainer}>
+          {photo ? (
+            <Image source={{ uri: photo }} style={styles.imgCandidate} />
+          ) : (
+            <View style={styles.photoPlaceholder}>
+              <Text style={styles.photoPlaceholderText}>
+                {name ? name.charAt(0).toUpperCase() : "?"}
+              </Text>
+            </View>
+          )}
+          {src ? <Image source={{ uri: src }} style={styles.imgParty} /> : null}
+        </View>
 
-        <Image source={{ uri: src }} width={100} style={styles.imgParty} />
+        <Text style={styles.textCandidate}>{name ?? "Unknown"}</Text>
+        <Text style={styles.textParty}>{party ?? ""}</Text>
+        {acronym ? <Text style={styles.textAcronym}>{acronym}</Text> : null}
+
+        <View style={styles.divider} />
+
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Party</Text>
+          <Text style={styles.infoValue}>{party ?? "—"}</Text>
+        </View>
+        {acronym ? (
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Acronym</Text>
+            <Text style={styles.infoValue}>{acronym}</Text>
+          </View>
+        ) : null}
 
         <View style={styles.containerLevel}>
-          <TouchableOpacity style={styles.buttonOK} onPress={onPressOK}>
-            <Text style={styles.textOK}>OK</Text>
+          <TouchableOpacity style={styles.buttonOK} onPress={onPressBack}>
+            <Text style={styles.textOK}>Back</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#ffffff",
-    width: "100%",
-    height: "100%",
+    backgroundColor: "#f8fafc",
+    flex: 1,
     flexDirection: "column",
   },
-  containerContent: {
-    backgroundColor: "#ffffff",
-    height: "100%",
-    width: "100%",
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    padding: 30,
-    paddingLeft: 20,
-    paddingRight: 20,
-    alignItems: "center",
-    justifyContent: "center",
+  topBar: {
+    marginTop: Platform.OS === "android" ? (StatusBar.currentHeight ?? 0) : 45,
+    paddingHorizontal: 16,
   },
-  containerLevel: {
-    width: "100%",
+  backButton: {
+    width: 44,
+    height: 44,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 22,
+    backgroundColor: "#fff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  scrollContent: {
+    alignItems: "center",
+    paddingHorizontal: 24,
+    paddingBottom: 40,
     paddingTop: 20,
-    alignItems: "center",
-    justifyContent: "flex-end",
-    paddingBottom: 10,
-    alignSelf: "flex-end",
-    backgroundColor: "transparent",
-    gap: 15,
   },
-  buttonNotify: {
-    width: "75%",
-    alignItems: "center",
-    backgroundColor: "#ffffff",
-    borderColor: "#fbfbfb",
-    padding: 15,
-    borderWidth: 1,
-    borderRadius: 8,
-    elevation: 60,
-    shadowColor: "black",
-    shadowOffset: {
-      width: 8,
-      height: 6,
-    },
-  },
-  buttonOK: {
-    width: "75%",
-    alignItems: "center",
-    backgroundColor: "#202020",
-    borderColor: "#171717",
-    padding: 15,
-    borderWidth: 1,
-    borderRadius: 8,
-    elevation: 55,
-    shadowColor: "black",
-    shadowOffset: {
-      width: 6,
-      height: 6,
-    },
-  },
-  textNotify: {
-    color: "#1b1b1b",
-    fontSize: 18,
-    textAlign: "center", // Center the text horizontally
-    textAlignVertical: "center",
-    fontWeight: "700",
-  },
-  textOK: {
-    color: "#ffffff",
-    fontSize: 18,
-    textAlign: "center", // Center the text horizontally
-    textAlignVertical: "center",
-    fontWeight: "700",
-  },
-  textCandidate: {
-    textAlign: "center",
-    fontSize: 36,
-    paddingTop: 5,
-    fontWeight: "600",
-    color: "black",
-  },
-  containerEncrypt: {
-    flexDirection: "row",
-    width: "100%",
-    justifyContent: "center",
-    resizeMode: "contain",
+  photoContainer: {
+    position: "relative",
+    marginBottom: 20,
   },
   imgCandidate: {
     resizeMode: "contain",
-    height: 200,
-    borderRadius: 50,
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    borderWidth: 3,
+    borderColor: "#2196F3",
+  },
+  photoPlaceholder: {
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    backgroundColor: "#2196F3",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  photoPlaceholderText: {
+    fontSize: 64,
+    color: "#fff",
+    fontWeight: "bold",
   },
   imgParty: {
     resizeMode: "contain",
-    height: 80,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    backgroundColor: "#fff",
+    borderWidth: 2,
+    borderColor: "#fff",
   },
-  topBar: {
-    gap: 2,
-    marginTop: Platform.OS === "android" ? StatusBar.currentHeight : 45,
+  textCandidate: {
+    textAlign: "center",
+    fontSize: 28,
+    fontWeight: "700",
+    color: "#1a1a2e",
+    marginBottom: 6,
+  },
+  textParty: {
+    textAlign: "center",
+    fontSize: 16,
+    color: "#4b5563",
+    marginBottom: 4,
+  },
+  textAcronym: {
+    textAlign: "center",
+    fontSize: 14,
+    color: "#9ca3af",
+    marginBottom: 4,
+  },
+  divider: {
+    width: "100%",
+    height: 1,
+    backgroundColor: "#e5e7eb",
+    marginVertical: 20,
+  },
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    marginBottom: 8,
+  },
+  infoLabel: {
+    fontSize: 14,
+    color: "#6b7280",
+    fontWeight: "600",
+  },
+  infoValue: {
+    fontSize: 14,
+    color: "#1a1a2e",
+    fontWeight: "500",
+    maxWidth: "65%",
+    textAlign: "right",
+  },
+  containerLevel: {
+    width: "100%",
+    paddingTop: 24,
+    alignItems: "center",
+  },
+  buttonOK: {
+    width: "80%",
+    alignItems: "center",
+    backgroundColor: "#2196F3",
+    padding: 16,
+    borderRadius: 12,
+    shadowColor: "#2196F3",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  textOK: {
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "700",
+    letterSpacing: 0.5,
   },
 });

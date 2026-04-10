@@ -1,26 +1,9 @@
 import { CandidatesList } from "@components/CandidatesList";
 import { HeaderElection } from "@components/HeaderElection";
 import { LiveProjection } from "@components/LiveProjection";
-import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import { useAuth } from "src/context/AuthContext";
 
 export function Candidates({ navigation }: any) {
-  const { authState, isLoggedIn } = useAuth();
-  const [_activeScreen, setActiveScreen] = useState("Login");
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      if (isLoggedIn) {
-        await isLoggedIn();
-      }
-      if (!authState?.authenticated) {
-        setActiveScreen("Login");
-      }
-    };
-    checkAuth();
-  }, [authState, isLoggedIn]);
-
   return (
     <View style={styles.container}>
       <HeaderElection />

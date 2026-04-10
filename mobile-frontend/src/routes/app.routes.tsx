@@ -7,43 +7,36 @@ import {
 import { CandidateDetails } from "@screens/CandidateDetails";
 import { Login } from "@screens/Login";
 import { Registration } from "@screens/Registration";
-import { ThankVote } from "@screens/ThankVote";
+import ThankVote from "@screens/ThankVote";
 import { TwoFactor } from "@screens/TwoFactor";
-import { useEffect, useState } from "react";
-import { Button } from "react-native-paper";
+import { useEffect, useRef } from "react";
 import { useAuth } from "src/context/AuthContext";
 
 const { Navigator, Screen } = createStackNavigator();
 
 export function AppRoutes() {
-  const { authState, onLogOut, isLoggedIn } = useAuth();
-  const [activeScreen, setActiveScreen] = useState("Login");
+  const { authState, isLoggedIn } = useAuth();
+  const hasCheckedAuth = useRef(false);
 
   useEffect(() => {
-    isLoggedIn?.();
-    if (!authState?.authenticated) {
-      setActiveScreen("Login");
-    } else {
-      setActiveScreen("Menu");
+    if (!hasCheckedAuth.current) {
+      hasCheckedAuth.current = true;
+      isLoggedIn?.();
     }
-  }, [authState?.authenticated, isLoggedIn]);
+  }, [isLoggedIn]);
+
+  const initialRoute = authState?.authenticated ? "Menu" : "Login";
 
   return (
     <Navigator
-      initialRouteName={activeScreen}
+      initialRouteName={initialRoute}
       screenOptions={{
         headerShown: false,
       }}
     >
       <Screen name="Login" component={Login} />
 
-      <Screen
-        name="Menu"
-        component={BottomNavigation}
-        options={{
-          headerLeft: () => <Button onPress={onLogOut}>Logout</Button>,
-        }}
-      />
+      <Screen name="Menu" component={BottomNavigation} />
 
       <Screen name="Registration" component={Registration} />
 

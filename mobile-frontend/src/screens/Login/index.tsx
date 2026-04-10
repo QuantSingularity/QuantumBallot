@@ -2,7 +2,6 @@ import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -15,17 +14,19 @@ import { TextInput } from "react-native-paper";
 import { useAuth } from "../../context/AuthContext";
 
 export function Login() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const { onLogin } = useAuth();
 
   const [electoralId, setElectoralId] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [secureTextEntry, setSecureTextEntry] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const handleLogin = async () => {
-    if (!electoralId || !password) {
-      Alert.alert("Error", "Please enter both Electoral ID and password");
+    setErrorMsg("");
+    if (!electoralId.trim() || !password) {
+      setErrorMsg("Electoral ID and password are required");
       return;
     }
 
@@ -33,18 +34,15 @@ export function Login() {
     try {
       const result = await onLogin?.(electoralId.trim(), password);
 
-      if (result.success) {
-        // Navigation will be handled by the auth state change
-        (navigation as any).navigate("Menu");
+      if (result?.success) {
+        navigation.navigate("Menu");
       } else {
-        Alert.alert(
-          "Login Failed",
-          result.message || "Invalid credentials. Please try again.",
+        setErrorMsg(
+          result?.message || "Invalid credentials. Please try again.",
         );
       }
     } catch (error: any) {
-      Alert.alert(
-        "Error",
+      setErrorMsg(
         error.message || "An unexpected error occurred. Please try again.",
       );
     } finally {
@@ -53,7 +51,7 @@ export function Login() {
   };
 
   const navigateToRegistration = () => {
-    (navigation as any).navigate("Registration");
+    navigation.navigate("Registration");
   };
 
   return (
@@ -66,29 +64,46 @@ export function Login() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.headerContainer}>
+          <View style={styles.logoCircle}>
+            <Text style={styles.logoText}>QB</Text>
+          </View>
           <Text style={styles.title}>QuantumBallot</Text>
           <Text style={styles.subtitle}>Secure Blockchain Voting</Text>
         </View>
 
         <View style={styles.formContainer}>
+          {errorMsg ? (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{errorMsg}</Text>
+            </View>
+          ) : null}
+
           <TextInput
             label="Electoral ID"
             value={electoralId}
-            onChangeText={setElectoralId}
+            onChangeText={(t) => {
+              setElectoralId(t);
+              setErrorMsg("");
+            }}
             mode="outlined"
             style={styles.input}
             autoCapitalize="none"
             autoCorrect={false}
             disabled={loading}
+            left={<TextInput.Icon icon="card-account-details-outline" />}
           />
 
           <TextInput
             label="Password"
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(t) => {
+              setPassword(t);
+              setErrorMsg("");
+            }}
             mode="outlined"
             style={styles.input}
             secureTextEntry={secureTextEntry}
+            left={<TextInput.Icon icon="lock-outline" />}
             right={
               <TextInput.Icon
                 icon={secureTextEntry ? "eye-off" : "eye"}
@@ -129,62 +144,106 @@ export function Login() {
   );
 }
 
+export default Login;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#f0f4f8",
   },
   scrollContent: {
     flexGrow: 1,
     justifyContent: "center",
-    padding: 20,
+    padding: 24,
   },
   headerContainer: {
     alignItems: "center",
-    marginBottom: 40,
+    marginBottom: 36,
+  },
+  logoCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: "#2196F3",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 14,
+    shadowColor: "#2196F3",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  logoText: {
+    color: "#fff",
+    fontSize: 26,
+    fontWeight: "bold",
+    letterSpacing: 1,
   },
   title: {
-    fontSize: 32,
+    fontSize: 30,
     fontWeight: "bold",
-    color: "#2196F3",
-    marginBottom: 10,
+    color: "#1a1a2e",
+    marginBottom: 6,
+    letterSpacing: 0.5,
   },
   subtitle: {
-    fontSize: 18,
-    color: "#666",
+    fontSize: 15,
+    color: "#6b7280",
   },
   formContainer: {
     width: "100%",
-    maxWidth: 400,
+    maxWidth: 420,
     alignSelf: "center",
     backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 10,
+    padding: 24,
+    borderRadius: 16,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  errorContainer: {
+    backgroundColor: "#fef2f2",
+    borderWidth: 1,
+    borderColor: "#fca5a5",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: "#dc2626",
+    fontSize: 13,
+    textAlign: "center",
   },
   input: {
-    marginBottom: 15,
+    marginBottom: 14,
     backgroundColor: "#fff",
   },
   button: {
     backgroundColor: "#2196F3",
-    height: 50,
-    borderRadius: 5,
+    height: 52,
+    borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 10,
+    marginTop: 8,
+    shadowColor: "#2196F3",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
   buttonDisabled: {
-    backgroundColor: "#B0BEC5",
+    backgroundColor: "#93c5fd",
+    shadowOpacity: 0,
+    elevation: 0,
   },
   buttonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
+    letterSpacing: 0.5,
   },
   registerContainer: {
     flexDirection: "row",
@@ -193,7 +252,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   registerText: {
-    color: "#666",
+    color: "#6b7280",
     fontSize: 14,
   },
   registerLink: {
@@ -203,9 +262,10 @@ const styles = StyleSheet.create({
   },
   footer: {
     textAlign: "center",
-    color: "#999",
+    color: "#9ca3af",
     fontSize: 12,
-    marginTop: 30,
+    marginTop: 28,
     paddingHorizontal: 20,
+    lineHeight: 18,
   },
 });

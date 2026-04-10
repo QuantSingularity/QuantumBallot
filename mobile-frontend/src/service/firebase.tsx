@@ -1,51 +1,54 @@
 /**
  * Asset Loading Service
  * Manages candidate images and other assets
- * Replaces Firebase with direct API-based asset management
  */
 
 import axios from "../api/axios";
 import { Config } from "../constants/config";
 
 /**
- * Load candidate images from the API or local assets
- * Returns a map of candidate codes to their image URIs
+ * Load candidate images from the API and populate the imageList state via callback.
+ * Accepts an optional setState callback (for compatibility with BottomNavigation).
  */
-export async function loadImages(): Promise<Record<string, any>> {
+export async function loadImages(
+  setImageList?: (map: Record<string, any>) => void,
+): Promise<Record<string, any>> {
   try {
-    // Attempt to fetch candidate images from the backend
     const response = await axios.get(Config.ENDPOINTS.CANDIDATES);
 
     if (response.data?.candidates) {
       const imageMap: Record<string, any> = {};
 
-      // Map candidates to their image URIs
       response.data.candidates.forEach((candidate: any) => {
-        if (candidate.code && candidate.imageUrl) {
-          imageMap[candidate.code.toString()] = {
-            uri: candidate.imageUrl,
-            code: candidate.code,
-            name: candidate.name,
-          };
+        if (candidate.name) {
+          const key = candidate.name.toLowerCase().split(" ").join(".");
+          if (candidate.imageUrl) {
+            imageMap[key] = candidate.imageUrl;
+          }
+        }
+        if (candidate.party) {
+          const partyKey = candidate.party.toLowerCase().split(" ").join(".");
+          if (candidate.partyLogoUrl) {
+            imageMap[partyKey] = candidate.partyLogoUrl;
+          }
         }
       });
 
+      setImageList?.(imageMap);
       return imageMap;
     }
 
+    setImageList?.({});
     return {};
   } catch (error) {
     if (Config.APP.SHOW_LOGS) {
       console.error("Error loading candidate images:", error);
     }
-    // Return empty map on error - components should handle missing images gracefully
+    setImageList?.({});
     return {};
   }
 }
 
-/**
- * Get image URI for a specific candidate by code
- */
 export async function getCandidateImage(code: number): Promise<string | null> {
   try {
     const images = await loadImages();
@@ -58,23 +61,10 @@ export async function getCandidateImage(code: number): Promise<string | null> {
   }
 }
 
-/**
- * Load party/political organization logos
- */
 export async function loadPartyLogos(): Promise<Record<string, string>> {
-  try {
-    // In a production system, this would fetch from an API endpoint
-    // For now, return empty map - components will use fallback images
-    return {};
-  } catch (error) {
-    if (Config.APP.SHOW_LOGS) {
-      console.error("Error loading party logos:", error);
-    }
-    return {};
-  }
+  return {};
 }
 
-// Export null implementations for backwards compatibility (if needed)
 export const storage = null;
 export const ref = () => null;
 export const getDownloadURL = async () => "";

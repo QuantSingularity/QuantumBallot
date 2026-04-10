@@ -15,7 +15,6 @@ import {
 import { TextInput } from "react-native-paper";
 import { useAuth } from "../../context/AuthContext";
 
-// US States for American elections
 const US_STATES = [
   "Alabama",
   "Alaska",
@@ -70,7 +69,7 @@ const US_STATES = [
 ];
 
 export function Registration() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const { onRegister } = useAuth();
 
   const [electoralId, setElectoralId] = useState("");
@@ -84,7 +83,7 @@ export function Registration() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const validateForm = () => {
+  const validateForm = (): boolean => {
     if (
       !electoralId ||
       !name ||
@@ -97,31 +96,23 @@ export function Registration() {
       Alert.alert("Error", "Please fill in all fields");
       return false;
     }
-
-    // Validate electoral ID format (basic validation)
     if (electoralId.length < 5) {
       Alert.alert("Error", "Electoral ID must be at least 5 characters");
       return false;
     }
-
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       Alert.alert("Error", "Please enter a valid email address");
       return false;
     }
-
-    // Password validation
     if (password.length < 6) {
       Alert.alert("Error", "Password must be at least 6 characters");
       return false;
     }
-
     if (password !== confirmPassword) {
       Alert.alert("Error", "Passwords do not match");
       return false;
     }
-
     return true;
   };
 
@@ -129,33 +120,27 @@ export function Registration() {
     if (!validateForm()) return;
 
     setIsLoading(true);
-
     try {
       const result = await onRegister?.({
         electoralId: electoralId.trim(),
         name: name.trim(),
         email: email.trim().toLowerCase(),
-        password: password,
+        password,
         address: address.trim(),
-        province: province,
+        province,
       });
 
-      if (result.success) {
+      if (result?.success) {
         Alert.alert(
           "Success",
           result.message ||
             "Registration successful! Please check your email for further instructions.",
-          [
-            {
-              text: "OK",
-              onPress: () => (navigation as any).navigate("Login"),
-            },
-          ],
+          [{ text: "OK", onPress: () => navigation.navigate("Login") }],
         );
       } else {
         Alert.alert(
           "Error",
-          result.message || "Registration failed. Please try again.",
+          result?.message || "Registration failed. Please try again.",
         );
       }
     } catch (error: any) {
@@ -176,7 +161,16 @@ export function Registration() {
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.navigate("Login")}
+          disabled={isLoading}
+        >
+          <Text style={styles.backButtonText}>← Back to Login</Text>
+        </TouchableOpacity>
+
         <Text style={styles.title}>Create Account</Text>
         <Text style={styles.subtitle}>Join QuantumBallot Voting System</Text>
 
@@ -190,6 +184,7 @@ export function Registration() {
             autoCapitalize="none"
             autoCorrect={false}
             disabled={isLoading}
+            left={<TextInput.Icon icon="card-account-details-outline" />}
           />
 
           <TextInput
@@ -200,6 +195,7 @@ export function Registration() {
             style={styles.input}
             autoCapitalize="words"
             disabled={isLoading}
+            left={<TextInput.Icon icon="account-outline" />}
           />
 
           <TextInput
@@ -212,6 +208,7 @@ export function Registration() {
             autoCapitalize="none"
             autoCorrect={false}
             disabled={isLoading}
+            left={<TextInput.Icon icon="email-outline" />}
           />
 
           <TextInput
@@ -221,6 +218,7 @@ export function Registration() {
             mode="outlined"
             style={styles.input}
             secureTextEntry={!showPassword}
+            left={<TextInput.Icon icon="lock-outline" />}
             right={
               <TextInput.Icon
                 icon={showPassword ? "eye-off" : "eye"}
@@ -237,6 +235,7 @@ export function Registration() {
             mode="outlined"
             style={styles.input}
             secureTextEntry={!showConfirmPassword}
+            left={<TextInput.Icon icon="lock-check-outline" />}
             right={
               <TextInput.Icon
                 icon={showConfirmPassword ? "eye-off" : "eye"}
@@ -255,10 +254,11 @@ export function Registration() {
             multiline
             numberOfLines={2}
             disabled={isLoading}
+            left={<TextInput.Icon icon="map-marker-outline" />}
           />
 
           <View style={styles.pickerContainer}>
-            <Text style={styles.pickerLabel}>State</Text>
+            <Text style={styles.pickerLabel}>State / Province</Text>
             <Picker
               selectedValue={province}
               onValueChange={(itemValue) => setProvince(itemValue)}
@@ -280,14 +280,14 @@ export function Registration() {
             {isLoading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.buttonText}>Register</Text>
+              <Text style={styles.buttonText}>Create Account</Text>
             )}
           </TouchableOpacity>
 
           <View style={styles.loginContainer}>
             <Text style={styles.loginText}>Already have an account? </Text>
             <TouchableOpacity
-              onPress={() => (navigation as any).navigate("Login")}
+              onPress={() => navigation.navigate("Login")}
               disabled={isLoading}
             >
               <Text style={styles.loginLink}>Login here</Text>
@@ -304,77 +304,97 @@ export function Registration() {
   );
 }
 
+export default Registration;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#f0f4f8",
   },
   scrollContainer: {
     flexGrow: 1,
-    padding: 20,
-    paddingTop: 40,
+    padding: 24,
+    paddingTop: 50,
+  },
+  backButton: {
+    marginBottom: 16,
+  },
+  backButtonText: {
+    color: "#2196F3",
+    fontSize: 14,
+    fontWeight: "600",
   },
   title: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#2196F3",
+    color: "#1a1a2e",
     textAlign: "center",
-    marginBottom: 10,
+    marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
-    color: "#666",
+    fontSize: 15,
+    color: "#6b7280",
     textAlign: "center",
-    marginBottom: 30,
+    marginBottom: 28,
   },
   formContainer: {
     width: "100%",
-    maxWidth: 400,
+    maxWidth: 420,
     alignSelf: "center",
     backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 10,
+    padding: 24,
+    borderRadius: 16,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 5,
   },
   input: {
-    marginBottom: 15,
+    marginBottom: 14,
     backgroundColor: "#fff",
   },
   pickerContainer: {
-    marginBottom: 15,
+    marginBottom: 14,
     borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 5,
+    borderColor: "#d1d5db",
+    borderRadius: 8,
     backgroundColor: "#fff",
+    overflow: "hidden",
   },
   pickerLabel: {
     fontSize: 12,
-    color: "#666",
+    color: "#6b7280",
     paddingHorizontal: 12,
     paddingTop: 8,
+    fontWeight: "600",
   },
   picker: {
     height: 50,
   },
   button: {
     backgroundColor: "#2196F3",
-    height: 50,
-    borderRadius: 5,
+    height: 52,
+    borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 10,
+    marginTop: 8,
+    shadowColor: "#2196F3",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
   buttonDisabled: {
-    backgroundColor: "#B0BEC5",
+    backgroundColor: "#93c5fd",
+    shadowOpacity: 0,
+    elevation: 0,
   },
   buttonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
+    letterSpacing: 0.5,
   },
   loginContainer: {
     flexDirection: "row",
@@ -383,7 +403,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   loginText: {
-    color: "#666",
+    color: "#6b7280",
     fontSize: 14,
   },
   loginLink: {
@@ -393,9 +413,11 @@ const styles = StyleSheet.create({
   },
   footer: {
     textAlign: "center",
-    color: "#999",
+    color: "#9ca3af",
     fontSize: 12,
     marginTop: 20,
     paddingHorizontal: 20,
+    paddingBottom: 20,
+    lineHeight: 18,
   },
 });

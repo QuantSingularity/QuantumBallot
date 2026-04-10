@@ -6,16 +6,44 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Animated,
 } from "react-native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import theme from "src/theme";
 
+const AUTO_NAV_DELAY = 10000;
+
 export default function ThankVote() {
+  const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const [copied, setCopied] = useState(false);
-  const transactionId = "tx_123456789abcdef";
+  const [progress] = useState(new Animated.Value(0));
+
+  const transactionId =
+    route.params?.data || route.params?.transactionHash || "tx_unavailable";
+
+  useEffect(() => {
+    Animated.timing(progress, {
+      toValue: 1,
+      duration: AUTO_NAV_DELAY,
+      useNativeDriver: false,
+    }).start();
+
+    const timer = setTimeout(() => {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Menu" }],
+      });
+    }, AUTO_NAV_DELAY);
+
+    return () => clearTimeout(timer);
+  }, [navigation, progress]);
 
   const copyToClipboard = async () => {
-    await Clipboard.setStringAsync(transactionId);
-    setCopied(true);
+    if (transactionId !== "tx_unavailable") {
+      await Clipboard.setStringAsync(transactionId);
+      setCopied(true);
+    }
   };
 
   useEffect(() => {
@@ -27,18 +55,45 @@ export default function ThankVote() {
     }
   }, [copied]);
 
+  const handleReturnHome = () => {
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "Menu" }],
+    });
+  };
+
+  const progressWidth = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0%", "100%"],
+  });
+
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID="thank-vote-screen">
       <StatusBar barStyle="dark-content" />
-      <Text style={styles.title}>Thank You!</Text>
-      <Text style={styles.subtitle}>Your vote has been recorded</Text>
+
+      <View style={styles.successIconContainer} testID="confetti-animation">
+        <Text style={styles.successIcon}>✓</Text>
+      </View>
+
+      <Text style={styles.title}>Thank You for Voting!</Text>
+      <Text style={styles.subtitle}>Your vote has been securely recorded.</Text>
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Transaction Details</Text>
         <Text style={styles.label}>Transaction ID:</Text>
         <View style={styles.transactionContainer}>
-          <Text style={styles.transactionId}>{transactionId}</Text>
-          <TouchableOpacity onPress={copyToClipboard} style={styles.copyButton}>
+          <Text
+            style={styles.transactionId}
+            numberOfLines={1}
+            ellipsizeMode="middle"
+          >
+            {transactionId}
+          </Text>
+          <TouchableOpacity
+            onPress={copyToClipboard}
+            style={styles.copyButton}
+            disabled={transactionId === "tx_unavailable"}
+          >
             <Text style={styles.copyButtonText}>
               {copied ? "Copied!" : "Copy"}
             </Text>
@@ -50,12 +105,23 @@ export default function ThankVote() {
         </Text>
       </View>
 
-      <TouchableOpacity style={styles.button}>
+      <View style={styles.autoNavContainer}>
+        <Text style={styles.autoNavText}>Returning to home automatically…</Text>
+        <View style={styles.progressBarBg}>
+          <Animated.View
+            style={[styles.progressBarFill, { width: progressWidth }]}
+          />
+        </View>
+      </View>
+
+      <TouchableOpacity style={styles.button} onPress={handleReturnHome}>
         <Text style={styles.buttonText}>Return to Home</Text>
       </TouchableOpacity>
     </View>
   );
 }
+
+export { ThankVote };
 
 const styles = StyleSheet.create({
   container: {
@@ -63,78 +129,125 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
     alignItems: "center",
     padding: 20,
+    justifyContent: "center",
+  },
+  successIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: theme.colors.success,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  successIcon: {
+    fontSize: 40,
+    color: "#fff",
+    fontWeight: "bold",
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: "bold",
     color: theme.colors.success,
-    marginTop: 60,
-    marginBottom: 10,
+    marginBottom: 8,
+    textAlign: "center",
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: 16,
     color: theme.colors.textSecondary,
-    marginBottom: 40,
+    marginBottom: 30,
+    textAlign: "center",
   },
   card: {
     width: "100%",
     backgroundColor: "#fff",
-    borderRadius: 10,
+    borderRadius: 12,
     padding: 20,
-    marginBottom: 30,
+    marginBottom: 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   cardTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "bold",
     color: theme.colors.text,
-    marginBottom: 20,
+    marginBottom: 16,
   },
   label: {
-    fontSize: 14,
+    fontSize: 13,
     color: theme.colors.textSecondary,
-    marginBottom: 5,
+    marginBottom: 6,
+    fontWeight: "600",
   },
   transactionContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     backgroundColor: "#f5f5f5",
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 20,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
   },
   transactionId: {
-    fontSize: 14,
+    fontSize: 13,
     color: theme.colors.text,
     flex: 1,
+    fontFamily: "monospace",
   },
   copyButton: {
     backgroundColor: theme.colors.primary,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 5,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    marginLeft: 8,
   },
   copyButtonText: {
     color: "#fff",
     fontSize: 12,
+    fontWeight: "600",
   },
   info: {
-    fontSize: 14,
+    fontSize: 13,
     color: theme.colors.textSecondary,
     lineHeight: 20,
+  },
+  autoNavContainer: {
+    width: "100%",
+    marginBottom: 16,
+  },
+  autoNavText: {
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+    textAlign: "center",
+    marginBottom: 6,
+  },
+  progressBarBg: {
+    width: "100%",
+    height: 4,
+    backgroundColor: "#e0e0e0",
+    borderRadius: 2,
+    overflow: "hidden",
+  },
+  progressBarFill: {
+    height: "100%",
+    backgroundColor: theme.colors.primary,
+    borderRadius: 2,
   },
   button: {
     backgroundColor: theme.colors.primary,
     width: "100%",
-    height: 50,
-    borderRadius: 5,
+    height: 52,
+    borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   buttonText: {
     color: "#fff",

@@ -2,84 +2,62 @@ import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system";
 import { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { TextInput } from "react-native-gesture-handler";
-import theme from "src/theme";
-
-type ItemProps = {
-  title: string;
-  timestamp: string;
-  people: string;
-  src: string;
-  key: string;
-};
+import { TextInput } from "react-native-paper";
 
 interface ErrorHash {
   secret?: string;
-  publicKey?: string;
   committeePublicKey?: string;
 }
 
 export function GenerateSaveAndLoad({ secret, setSecret, eyeOn }: any) {
-  // ==== FIELDS ====
-  const [committeePublicKey, setcommitteePublicKey] =
+  const [committeePublicKey, setCommitteePublicKey] =
     useState<string>("pfjufh34o43nfkktj");
-  const [directorySave, setDirectorySave] = useState<string>(
-    "c:/blockchain/certificate.cert",
-  );
-  // ==== END FIELDS ====
-
+  const [directorySave, setDirectorySave] =
+    useState<string>("certificate.cert");
   const [errors, setErrors] = useState<ErrorHash>({});
 
   const readFile = async (uri: string) => {
-    console.log("URL: ", uri);
-
     try {
       const content = await FileSystem.readAsStringAsync(uri);
-      console.log("File content:", content);
-      setSecret(content);
+      setSecret(content.trim());
       setDirectorySave(uri);
+      if (__DEV__) {
+        console.log("Certificate loaded from:", uri);
+      }
     } catch (error) {
       console.error("Error reading file:", error);
+      setErrors({ secret: "Failed to read certificate file." });
     }
   };
 
-  const _resetValues = () => {
-    setSecret("");
-    setDirectorySave("");
-    setErrors({});
-  };
-
-  const _onPress = () => {
-    // navigation.navigate('News');
-  };
-
-  const [_pickedDocument, setPickedDocument] = useState(null);
-
   const onPressFindAndLoadCertificate = async () => {
     try {
-      const document: any = await DocumentPicker.getDocumentAsync();
+      const document: any = await DocumentPicker.getDocumentAsync({
+        copyToCacheDirectory: true,
+      });
 
-      console.log("Doc details: ", document);
-      if (document) {
-        console.log("Assets details: ", document);
-        console.log("URI: ", document.assets[0].uri);
+      if (document && document.assets && document.assets.length > 0) {
         const uri = document.assets[0].uri;
-        setPickedDocument(document);
         readFile(uri);
-      } else {
-        setPickedDocument(null);
       }
     } catch (error) {
-      console.log("Error picking document:", error);
+      console.error("Error picking document:", error);
     }
   };
 
   const onPressLoadCertificate = async () => {
     try {
-      const fileUri = `${FileSystem.documentDirectory}/certificate.cert`;
-      readFile(fileUri);
+      const fileUri = `${FileSystem.documentDirectory}certificate.cert`;
+      const info = await FileSystem.getInfoAsync(fileUri);
+      if (info.exists) {
+        readFile(fileUri);
+      } else {
+        setErrors({
+          secret: "No saved certificate found. Please find and load one.",
+        });
+      }
     } catch (error) {
-      console.log("Error picking document:", error);
+      console.error("Error loading certificate:", error);
     }
   };
 
@@ -90,50 +68,55 @@ export function GenerateSaveAndLoad({ secret, setSecret, eyeOn }: any) {
           style={styles.buttonTyle}
           onPress={onPressLoadCertificate}
         >
-          <Text style={styles.textButton}>Load Certificate</Text>
+          <Text style={styles.textButton}>Load Saved</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.buttonTyle}
           onPress={onPressFindAndLoadCertificate}
         >
-          <Text style={styles.textButton}>Find and load certificate</Text>
+          <Text style={styles.textButton}>Browse Files</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={{ gap: 5, paddingTop: 5 }}>
-        <Text style={styles.textTitleInput}>Secret</Text>
+      <View style={{ gap: 5, paddingTop: 10 }}>
+        <Text style={styles.textTitleInput}>Secret Key</Text>
         <TextInput
+          mode="outlined"
           style={styles.textInput}
           placeholder="Ex.: 12345AVSDSDSER"
           onChangeText={(text) => {
             setSecret(text.trim());
+            setErrors({});
           }}
           value={secret}
           secureTextEntry={!eyeOn}
+          dense
         />
         {errors.secret ? (
           <Text style={styles.errorText}>{errors.secret}</Text>
         ) : null}
 
-        <Text style={styles.textTitleInput}>Certificate's directory</Text>
-        <Text
-          style={styles.textCertificate} // Adjust style to visually indicate it's disabled
-        >
-          {eyeOn ? directorySave : "*".repeat(directorySave.length)}
+        <Text style={styles.textTitleInput}>Certificate Path</Text>
+        <Text style={styles.textCertificate}>
+          {eyeOn
+            ? directorySave
+            : "•".repeat(Math.min(directorySave.length, 20))}
         </Text>
       </View>
 
       <View style={{ gap: 5, paddingTop: 20 }}>
         <Text style={styles.textTitleInput}>Transaction Hash</Text>
         <TextInput
+          mode="outlined"
           style={styles.textInput}
-          placeholder="Ex.: "
+          placeholder="Enter transaction hash to verify"
           onChangeText={(text) => {
-            setcommitteePublicKey(text.trim());
+            setCommitteePublicKey(text.trim());
           }}
           value={committeePublicKey}
           secureTextEntry={!eyeOn}
+          dense
         />
         {errors.committeePublicKey ? (
           <Text style={styles.errorText}>{errors.committeePublicKey}</Text>
@@ -147,20 +130,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "#ffffff",
     width: "100%",
-    height: "auto",
     flexDirection: "column",
-  },
-  containerContent: {
-    backgroundColor: "#ffffff",
-    height: "100%",
-    width: "100%",
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    padding: 30,
-    paddingLeft: 20,
-    paddingRight: 20,
-    alignItems: "center",
-    justifyContent: "center",
   },
   containerLevel: {
     flexDirection: "row",
@@ -169,50 +139,46 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignSelf: "center",
     backgroundColor: "transparent",
-    gap: 5,
+    gap: 8,
   },
   buttonTyle: {
     flex: 1,
-    width: "auto",
     alignItems: "center",
-    backgroundColor: "#202020",
-    borderColor: "#171717",
-    padding: 4,
-    paddingLeft: 5,
-    paddingRight: 5,
-    borderWidth: 1,
+    backgroundColor: "#1a1a2e",
+    padding: 10,
     borderRadius: 8,
-    elevation: 55,
-    shadowColor: "black",
-    shadowOffset: {
-      width: 6,
-      height: 6,
-    },
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
   },
   textButton: {
     color: "#ffffff",
-    fontSize: 14,
-    textAlign: "center", // Center the text horizontally
-    textAlignVertical: "center",
+    fontSize: 13,
+    textAlign: "center",
     fontWeight: "700",
   },
   textTitleInput: {
-    color: "#969696",
-    fontWeight: "500",
+    color: "#6b7280",
+    fontWeight: "600",
+    fontSize: 12,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   textInput: {
-    width: "100%",
-    borderRadius: 7,
-    color: "#666666",
-    fontSize: 15,
-    borderColor: theme.COLORS.GRAY_BORDER_INPUT_TEXT,
-    paddingLeft: 15,
-    borderWidth: 0.7,
-    height: 40,
+    backgroundColor: "#fff",
+    fontSize: 14,
   },
   errorText: {
-    color: "red",
-    marginBottom: 10,
+    color: "#dc2626",
+    marginBottom: 8,
+    fontSize: 12,
   },
-  textCertificate: {},
+  textCertificate: {
+    color: "#4b5563",
+    fontSize: 13,
+    paddingVertical: 6,
+    paddingHorizontal: 4,
+  },
 });

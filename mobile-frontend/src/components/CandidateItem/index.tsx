@@ -1,12 +1,12 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 type ItemProps = {
   id: number;
   name: string;
   party: string;
-  acronym: string;
+  acronym?: string;
   photo: any;
   src: any;
   selected?: any;
@@ -30,14 +30,16 @@ export function CandidateItem({
   isFactor,
   navigation,
 }: ItemProps) {
-  const onPress = () => {
+  const onPress = useCallback(() => {
     setSelected(id);
-    setXtexts((prevState: any) => {
+    setXtexts((prevState: string[]) => {
       const newState = [...prevState].fill("");
-      newState[id] = "X";
+      if (id < newState.length) {
+        newState[id] = "X";
+      }
       return newState;
     });
-  };
+  }, [id, setSelected, setXtexts]);
 
   useEffect(() => {
     if (isFactor) {
@@ -47,7 +49,14 @@ export function CandidateItem({
 
   const onPressName = () => {
     if (xTexts[id] === "X") {
-      navigation.navigate("TwoFactor", { id, name, party, photo, src });
+      navigation.navigate("TwoFactor", {
+        id,
+        name,
+        party,
+        photo,
+        src,
+        acronym,
+      });
     }
   };
 
@@ -78,20 +87,14 @@ export function CandidateItem({
           <View style={styles.containerLeftImage}>
             <TouchableOpacity disabled={isFactor} onPress={onOpenDetails}>
               <Image
-                source={photo ? { uri: photo } : null}
-                style={{
-                  borderRadius: 40,
-                  resizeMode: "contain",
-                  width: 65,
-                  height: 70,
-                }}
+                source={photo ? { uri: photo } : undefined}
+                style={styles.candidatePhoto}
               />
-
               <View style={styles.badge}>
                 <Image
-                  source={src ? { uri: src } : null}
-                  style={{ resizeMode: "contain", width: 30, height: 30 }}
-                ></Image>
+                  source={src ? { uri: src } : undefined}
+                  style={styles.partyLogo}
+                />
               </View>
             </TouchableOpacity>
           </View>
@@ -110,7 +113,7 @@ export function CandidateItem({
               style={styles.button}
               onPress={onPress}
             >
-              <Text style={styles.textChecked}>{xTexts[id]}</Text>
+              <Text style={styles.textChecked}>{xTexts[id] ?? ""}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -226,7 +229,6 @@ const styles = StyleSheet.create({
   },
   badge: {
     borderRadius: 40,
-    resizeMode: "contain",
     maxWidth: 40,
     maxHeight: 40,
     backgroundColor: "transparent",
@@ -236,5 +238,16 @@ const styles = StyleSheet.create({
   },
   containerLeftImage: {
     flexDirection: "row",
+  },
+  candidatePhoto: {
+    borderRadius: 40,
+    resizeMode: "contain",
+    width: 65,
+    height: 70,
+  },
+  partyLogo: {
+    resizeMode: "contain",
+    width: 30,
+    height: 30,
   },
 });

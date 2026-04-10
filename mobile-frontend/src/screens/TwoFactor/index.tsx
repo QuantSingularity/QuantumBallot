@@ -4,7 +4,7 @@ import { PinItem } from "@components/PinItem";
 import * as FileSystem from "expo-file-system";
 import * as SecureStore from "expo-secure-store";
 import { CaretLeft } from "phosphor-react-native";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -25,10 +25,10 @@ const TOKEN_KEY = Config.STORAGE_KEYS.JWT_TOKEN;
 
 const writeFile = async (token: string) => {
   try {
-    const fileUri = `${FileSystem.documentDirectory}/certificate.cert`;
+    const fileUri = `${FileSystem.documentDirectory}certificate.cert`;
     await FileSystem.writeAsStringAsync(fileUri, token);
     if (Config.APP.SHOW_LOGS) {
-      console.log("Certificate file written successfully to:", fileUri);
+      console.log("Certificate written to:", fileUri);
     }
   } catch (error) {
     if (Config.APP.SHOW_LOGS) {
@@ -58,7 +58,7 @@ export function TwoFactor({ navigation, route }: TwoFactorProps) {
   const { id, name, party, acronym, photo, src } = route.params || {};
 
   const numColumns = 6;
-  const [candidates, _setCandidates] = useState([
+  const [candidates] = useState([
     {
       name: name || "Unknown",
       party: party || "Independent",
@@ -71,7 +71,7 @@ export function TwoFactor({ navigation, route }: TwoFactorProps) {
 
   const [numCodes, setNumCodes] = useState([11, 12, 13, 14, 15, 16]);
 
-  const [numbers, _setNumbers] = useState([
+  const [numbers] = useState([
     { number: "1", key: "1" },
     { number: "2", key: "2" },
     { number: "3", key: "3" },
@@ -86,7 +86,7 @@ export function TwoFactor({ navigation, route }: TwoFactorProps) {
     { number: "del", key: "12" },
   ]);
 
-  const [_xTexts, setXtexts] = useState<string[]>(["X"]);
+  const [xTexts, setXtexts] = useState<string[]>(["X"]);
   const [selected, setSelected] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [otpCode, setOtpCode] = useState<string>("");
@@ -95,19 +95,13 @@ export function TwoFactor({ navigation, route }: TwoFactorProps) {
   const { authState, onLogOut } = useAuth();
 
   useEffect(() => {
-    // Check authentication on component mount
     if (!authState?.authenticated || !authState?.electoralId) {
       Alert.alert("Authentication Required", "Please log in to continue.", [
         { text: "OK", onPress: () => onLogOut?.() },
       ]);
       navigation.navigate("Login");
     }
-  }, [
-    authState?.authenticated,
-    authState?.electoralId,
-    navigation.navigate,
-    onLogOut,
-  ]);
+  }, [authState?.authenticated, authState?.electoralId]);
 
   const onPressBack = () => {
     navigation.navigate("Candidates");
@@ -121,9 +115,8 @@ export function TwoFactor({ navigation, route }: TwoFactorProps) {
 
   const placeVote = async (): Promise<string> => {
     try {
-      // Build the blockchain transaction URL using the province-specific port
       const port = authState?.port || "3010";
-      const baseUrl = Config.API_BASE_URL.replace(/:\d+$/, ""); // Remove existing port if any
+      const baseUrl = Config.API_BASE_URL.replace(/:\d+$/, "");
       const blockchainUrl = `${baseUrl}:${port}/api${TRANSACTION_URL}`;
 
       if (Config.APP.SHOW_LOGS) {
@@ -132,7 +125,7 @@ export function TwoFactor({ navigation, route }: TwoFactorProps) {
 
       const body = {
         identifier: authState?.electoralId,
-        choiceCode: parseInt(id, 10) + 1, // Ensure it's a number
+        choiceCode: parseInt(id ?? "0", 10) + 1,
         secret: authState?.token,
       };
 
@@ -140,11 +133,11 @@ export function TwoFactor({ navigation, route }: TwoFactorProps) {
       const statusCode = response.status;
 
       if (statusCode === 200 || statusCode === 201) {
-        const transactionHash =
+        return (
           response.data.details?.transactionHash ||
           response.data.transactionHash ||
-          "";
-        return transactionHash;
+          ""
+        );
       }
 
       throw new Error("Failed to record vote on blockchain");
@@ -162,12 +155,11 @@ export function TwoFactor({ navigation, route }: TwoFactorProps) {
     setSelected(0);
   };
 
-  const verifyToken = async () => {
-    if (isProcessing) return; // Prevent duplicate submissions
+  const verifyToken = useCallback(async () => {
+    if (isProcessing) return;
 
     setIsProcessing(true);
     try {
-      // Ensure we have the auth token in headers
       if (!axios.defaults.headers.common.Authorization) {
         const token = await SecureStore.getItemAsync(TOKEN_KEY);
         if (token) {
@@ -186,12 +178,9 @@ export function TwoFactor({ navigation, route }: TwoFactorProps) {
         console.log("Verifying OTP at:", VERIFY_OTP_URL);
       }
 
-      // First verify the OTP
       const response = await axios.post(VERIFY_OTP_URL, body);
-      const statusCode = response.status;
 
-      if (statusCode === 200) {
-        // OTP verified, now place the vote
+      if (response.status === 200) {
         const transactionHash = await placeVote();
 
         if (transactionHash && transactionHash.length > 0) {
@@ -224,14 +213,14 @@ export function TwoFactor({ navigation, route }: TwoFactorProps) {
       setIsProcessing(false);
       resetValues();
     }
-  };
+  }, [isProcessing, otpCode, authState]);
 
   useEffect(() => {
     if (otpCode.length === 6 && !isProcessing) {
       setIsRefreshing(true);
       verifyToken();
     }
-  }, [otpCode, isProcessing, verifyToken]);
+  }, [otpCode]);
 
   return (
     <View style={styles.container}>
@@ -252,7 +241,7 @@ export function TwoFactor({ navigation, route }: TwoFactorProps) {
         <Text style={styles.textInstructions}>
           Please enter the 6-digit code from your authenticator app.
         </Text>
-        <Text style={styles.textWarning}>The code expires in 5 minutes.</Text>
+        <Text style={styles.textWarning}>The code expires in 30 seconds.</Text>
 
         <View style={styles.containerCode}>
           <FlatList
@@ -298,7 +287,7 @@ export function TwoFactor({ navigation, route }: TwoFactorProps) {
                 <View style={styles.candidateContainer}>
                   <Text style={styles.textVoting}>Voting for</Text>
                   <CandidateItem
-                    id={item.key}
+                    id={Number(item.key)}
                     name={item.name}
                     party={item.party}
                     photo={item.photo}
@@ -306,7 +295,7 @@ export function TwoFactor({ navigation, route }: TwoFactorProps) {
                     acronym={item.acronym}
                     selected={selected}
                     setSelected={setSelected}
-                    xTexts={_xTexts}
+                    xTexts={xTexts}
                     setXtexts={setXtexts}
                     isFactor={true}
                     navigation={navigation}
@@ -324,14 +313,15 @@ export function TwoFactor({ navigation, route }: TwoFactorProps) {
 
       {isProcessing && (
         <View style={styles.processingOverlay}>
-          <Text style={styles.processingText}>Processing your vote...</Text>
+          <View style={styles.processingBox}>
+            <Text style={styles.processingText}>Processing your vote…</Text>
+          </View>
         </View>
       )}
     </View>
   );
 }
 
-// Use named export to match app.routes.tsx import
 export default TwoFactor;
 
 const styles = StyleSheet.create({
@@ -345,7 +335,7 @@ const styles = StyleSheet.create({
   containerHeader: {
     flexDirection: "row",
     marginLeft: 20,
-    marginTop: Platform.OS === "android" ? StatusBar.currentHeight || 30 : 45,
+    marginTop: Platform.OS === "android" ? (StatusBar.currentHeight ?? 30) : 45,
     backgroundColor: "transparent",
     width: "100%",
     maxHeight: 100,
@@ -450,9 +440,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     zIndex: 999,
   },
+  processingBox: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 24,
+    alignItems: "center",
+  },
   processingText: {
-    color: "#fff",
-    fontSize: 18,
+    color: "#333",
+    fontSize: 16,
     fontWeight: "600",
   },
 });

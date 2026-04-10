@@ -2,7 +2,7 @@ import { createMaterialBottomTabNavigator } from "@react-navigation/material-bot
 import { Candidates } from "@screens/Candidates";
 import { Credentials } from "@screens/Credentials";
 import { News } from "@screens/News";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   MD3LightTheme as DefaultTheme,
   Provider as PaperProvider,
@@ -13,82 +13,47 @@ import { loadImages } from "src/service/firebase";
 
 const Tab = createMaterialBottomTabNavigator();
 
-export declare type Theme_ = {
-  dark: boolean;
-  colors: {
-    primary: string;
-    background: string;
-    card: string;
-    text: string;
-    border: string;
-    notification: string;
-    secondaryContainer: string;
-  };
-};
-
-const _theme_: Theme_ = {
+const theme_ = {
   ...DefaultTheme,
   dark: false,
   colors: {
     ...DefaultTheme.colors,
-    primary: "red",
-    background: "transparent",
-    card: "",
-    text: "",
-    border: "",
-    notification: "",
-    secondaryContainer: "rgba(40, 40, 40, 0.4)",
+    primary: "#2196F3",
+    background: "#ffffff",
+    secondaryContainer: "rgba(33, 150, 243, 0.12)",
   },
 };
 
-export function BottomNavigation({ navigation }: any) {
-  const { authState, onLogOut, isLoggedIn } = useAuth();
-  const [_activeScreen, setActiveScreen] = useState("Login");
-  const { imageList, setImageList } = useAuth();
+export function BottomNavigation() {
+  const { authState, isLoggedIn, setImageList } = useAuth();
 
   useEffect(() => {
     isLoggedIn?.();
-    if (!authState?.authenticated) {
-      setActiveScreen("Login");
-    }
-
     loadImages(setImageList);
-  }, [authState?.authenticated, isLoggedIn, setImageList]);
+  }, []);
 
   return (
-    <PaperProvider>
+    <PaperProvider theme={theme_}>
       <Tab.Navigator
         initialRouteName="News"
-        activeColor="#c2c2c2"
-        inactiveColor="#4e4e4e"
-        barStyle={{ backgroundColor: "#010101" }}
+        activeColor="#2196F3"
+        inactiveColor="#6b7280"
+        barStyle={styles.tabBar}
         screenOptions={({ route }) => ({
-          tabBarIcon: ({ focused, color }) => {
+          tabBarIcon: ({ color }) => {
             const size = 23;
-
-            if (route.name === "News") {
-              return (
-                <Icon
-                  name="newspaper-variant-outline"
-                  size={size}
-                  color={color}
-                />
-              );
-            } else if (route.name === "Candidates") {
-              return <Icon name="account-group" size={size} color={color} />;
-            } else if (route.name === "Data") {
-              return <Icon name="database" size={size} color={color} />;
-            }
-            if (route.name === "Registration") {
-              return <Icon name="database" size={size} color={color} />;
-            }
-
-            return <Icon name="login" size={size} color={color} />;
-          },
-          tabBarInactiveTintColor: "#3d3333",
-          tabBarColor: "#0a6100",
-          tabBarStyle: {
-            background: "#c70b0b",
+            const iconMap: Record<string, string> = {
+              News: "newspaper-variant-outline",
+              Candidates: "account-group",
+              Data: "shield-key-outline",
+            };
+            return (
+              <Icon
+                name={iconMap[route.name] ?? "circle"}
+                size={size}
+                color={color}
+              />
+            );
           },
           headerShown: false,
         })}
@@ -100,3 +65,7 @@ export function BottomNavigation({ navigation }: any) {
     </PaperProvider>
   );
 }
+
+const styles = {
+  tabBar: { backgroundColor: "#1a1a2e" },
+};

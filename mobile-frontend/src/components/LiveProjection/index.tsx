@@ -1,12 +1,11 @@
-import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
 import * as Progress from "react-native-progress";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useAuth } from "src/context/AuthContext";
+import axios from "src/api/axios";
+import { Config } from "src/constants/config";
 import Countdown from "./CountDown";
-
-// import CountDown from 'react-native-countdown-component';
 
 interface Announcement {
   startTimeVoting: Date;
@@ -17,16 +16,21 @@ interface Announcement {
   dateCreated?: Date;
 }
 
+interface CandidateResult {
+  id: number;
+  party: string;
+  name: string;
+  acronym: string;
+  percentage: number;
+  src: string | undefined;
+}
+
 function getVotingClosure(date: Date | undefined): string {
   if (!date) {
     return "Voting closure date is not provided";
   }
 
-  if (date === undefined) {
-    return "Voting closes 3 PM 3rd Nov, 2024";
-  }
-
-  const options: any = {
+  const options: Intl.DateTimeFormatOptions = {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -38,87 +42,97 @@ function getVotingClosure(date: Date | undefined): string {
   return `Voting closes ${date.toLocaleDateString("en-US", options)}`;
 }
 
-export function LiveProjection() {
-  const [announcement, setAnnouncement] = useState<Announcement>({
-    startTimeVoting: new Date("2022-01-19T23:00:00.000Z"),
-    endTimeVoting: new Date("2027-03-03T23:00:00.000Z"),
-    dateResults: new Date("2024-04-30T22:00:00.000Z"),
-    dateCreated: new Date("2024-04-21T03:45:37.815Z"),
-    numOfCandidates: 5,
-    numOfVoters: 1006,
-  });
+const DEFAULT_ANNOUNCEMENT: Announcement = {
+  startTimeVoting: new Date("2022-01-19T23:00:00.000Z"),
+  endTimeVoting: new Date("2027-03-03T23:00:00.000Z"),
+  dateResults: new Date("2024-04-30T22:00:00.000Z"),
+  dateCreated: new Date("2024-04-21T03:45:37.815Z"),
+  numOfCandidates: 5,
+  numOfVoters: 1006,
+};
 
+export function LiveProjection() {
+  const [announcement, setAnnouncement] =
+    useState<Announcement>(DEFAULT_ANNOUNCEMENT);
   const [sec, setSec] = useState<number>(5000);
   const [isReadyCountDown, setIsReadCountDown] = useState(false);
-  const [data, setData] = useState();
+  const [data, setData] = useState<CandidateResult[] | undefined>(undefined);
   const { imageList } = useAuth();
 
+  const loadAnnouncement = useCallback(async () => {
+    try {
+      const response = await axios.get(Config.ENDPOINTS.ANNOUNCEMENT);
+      const res = response.data?.announcement;
+      if (res) {
+        const announcementData: Announcement = {
+          startTimeVoting: new Date(res.startTimeVoting),
+          endTimeVoting: new Date(res.endTimeVoting),
+          dateResults: new Date(res.dateResults),
+          dateCreated: res.dateCreated ? new Date(res.dateCreated) : undefined,
+          numOfCandidates: parseInt(res.numOfCandidates, 10),
+          numOfVoters: parseInt(res.numOfVoters, 10),
+        };
+
+        setAnnouncement(announcementData);
+        const diff =
+          (announcementData.endTimeVoting.getTime() -
+            announcementData.startTimeVoting.getTime()) /
+          1000;
+        setSec(diff > 0 ? diff : 0);
+        setIsReadCountDown(true);
+      }
+    } catch (error) {
+      if (Config.APP.SHOW_LOGS) {
+        console.error("Error loading announcement:", error);
+      }
+    }
+  }, []);
+
+  const onPressLoadResultsComputed = useCallback(async () => {
+    try {
+      const port = "3010";
+      const baseUrl = Config.API_BASE_URL.replace(/:\d+$/, "");
+      const resultsUrl = `${baseUrl}:${port}/api/blockchain/get-results-computed`;
+
+      const response = await axios.get(resultsUrl);
+      const results = response.data;
+      if (results?.candidatesResult) {
+        let newDataCandidates: CandidateResult[] = results.candidatesResult.map(
+          (x: any, index: number) => {
+            const candidatePhotoName = x.candidate.name
+              .toLowerCase()
+              .split(" ")
+              .join(".");
+
+            return {
+              id: index + 1,
+              party: x.candidate.party,
+              name: x.candidate.name,
+              acronym: x.candidate.acronym,
+              percentage: x.percentage,
+              src: imageList[candidatePhotoName],
+            };
+          },
+        );
+
+        newDataCandidates = newDataCandidates
+          .sort((a, b) => b.percentage - a.percentage)
+          .slice(0, 2);
+        setData(newDataCandidates);
+      }
+    } catch (error) {
+      if (Config.APP.SHOW_LOGS) {
+        console.error("Error loading results:", error);
+      }
+    }
+  }, [imageList]);
+
   useEffect(() => {
-    const x = async () => {
-      await loadAnnouncement();
-      await onPressLoadResultsComputed();
-    };
-    x();
+    loadAnnouncement();
+    onPressLoadResultsComputed();
   }, [loadAnnouncement, onPressLoadResultsComputed]);
 
-  const loadAnnouncement = async () => {
-    await axios
-      .get("http://192.168.0.38:3010/api/committee/announcement")
-      .then((response) => {
-        const res = response.data.announcement;
-        if (res) {
-          const data: Announcement = {
-            startTimeVoting: new Date(res.startTimeVoting),
-            endTimeVoting: new Date(res.endTimeVoting),
-            dateResults: new Date(res.dateResults),
-            dateCreated: new Date(res.dateCreated),
-            numOfCandidates: parseInt(res.numOfCandidates, 10),
-            numOfVoters: parseInt(res.numOfVoters, 10),
-          };
-
-          setAnnouncement(data);
-          const x =
-            (data.endTimeVoting.getTime() - data.startTimeVoting.getTime()) /
-            1000;
-          setSec(x);
-          setIsReadCountDown(true);
-        }
-      })
-      .catch((error) => console.error(error));
-  };
-
-  const onPressLoadResultsComputed = async () => {
-    await axios
-      .get("http://192.168.0.38:3010/api/blockchain/get-results-computed")
-      .then((response) => {
-        const results = response.data;
-        if (results) {
-          let newDataCandidates = results.candidatesResult.map(
-            (x: any, index: any) => {
-              const candidatePhotoName = x.candidate.name
-                .toLowerCase()
-                .split(" ")
-                .join(".");
-
-              return {
-                id: index + 1,
-                party: x.candidate.party,
-                name: x.candidate.name,
-                acronym: x.candidate.acronym,
-                percentage: x.percentage,
-                src: imageList[candidatePhotoName],
-              };
-            },
-          );
-
-          newDataCandidates = newDataCandidates
-            .sort((a, b) => b.percentage - a.percentage)
-            .slice(0, 2);
-          setData(newDataCandidates);
-        }
-      })
-      .catch((error) => console.error(error));
-  };
+  const hasData = data && data.length >= 2;
 
   return (
     <View style={styles.container}>
@@ -126,32 +140,28 @@ export function LiveProjection() {
       <View style={styles.containerCandidates}>
         <View style={styles.candidateLeft}>
           <Image
-            source={data ? { uri: data[0].src } : null}
+            source={hasData && data[0].src ? { uri: data[0].src } : undefined}
             width={40}
             style={{ borderRadius: 30 }}
           />
 
           <View style={styles.candidateLeftText}>
-            <Text style={styles.textName}>
-              {data ? data[0].name : "Abrar Ahmed"}
-            </Text>
+            <Text style={styles.textName}>{hasData ? data[0].name : "—"}</Text>
             <Text style={styles.textParty}>
-              {data ? data[0].acronym : "Party A"}
+              {hasData ? data[0].acronym : "—"}
             </Text>
           </View>
         </View>
         <View style={styles.candidateRight}>
           <View style={styles.candidateRightText}>
-            <Text style={styles.textName}>
-              {data ? data[1].name : "Abrar Ahmed"}
-            </Text>
+            <Text style={styles.textName}>{hasData ? data[1].name : "—"}</Text>
             <Text style={styles.textParty}>
-              {data ? data[1].acronym : "Party B"}
+              {hasData ? data[1].acronym : "—"}
             </Text>
           </View>
 
           <Image
-            source={data ? { uri: data[1].src } : null}
+            source={hasData && data[1].src ? { uri: data[1].src } : undefined}
             width={40}
             style={{ borderRadius: 30, alignContent: "flex-start" }}
           />
@@ -162,7 +172,7 @@ export function LiveProjection() {
         <View style={styles.progresses}>
           <View style={styles.progresses1}>
             <Progress.Bar
-              progress={data ? data[0].percentage : 0.001}
+              progress={hasData ? data[0].percentage : 0.001}
               width={100}
               height={7}
               unfilledColor="#ffffff"
@@ -174,7 +184,7 @@ export function LiveProjection() {
 
           <View style={styles.progresses2}>
             <Progress.Bar
-              progress={data ? data[0].percentage : 0.007}
+              progress={hasData ? data[1].percentage : 0.007}
               width={100}
               height={7}
               unfilledColor="#ffffff"
@@ -183,7 +193,7 @@ export function LiveProjection() {
               style={{
                 borderTopLeftRadius: 5,
                 borderBottomLeftRadius: 5,
-                transform: "rotate(180deg)",
+                transform: [{ scaleX: -1 }],
               }}
             />
           </View>
@@ -261,7 +271,6 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   textTimer: {
-    fontFamily: "SpaceMono_400Regular",
     fontSize: 25,
     fontWeight: "500",
     justifyContent: "center",

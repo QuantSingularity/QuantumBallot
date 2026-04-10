@@ -7,11 +7,14 @@ import {
 import { NavigationContainer } from "@react-navigation/native";
 import { AppRoutes } from "@routes/app.routes";
 import * as Font from "expo-font";
-import { useEffect, useState } from "react";
-import { StatusBar } from "react-native";
+import * as SplashScreen from "expo-splash-screen";
+import { useCallback, useEffect, useState } from "react";
+import { StatusBar, View } from "react-native";
 import { MD3LightTheme as DefaultTheme } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider } from "src/context/AuthContext";
+
+SplashScreen.preventAutoHideAsync();
 
 const getFonts = () =>
   Font.loadAsync({
@@ -33,23 +36,16 @@ export declare type Theme_ = {
 };
 
 export default function App() {
-  const [_fontLoaded] = useFonts({ Roboto_400Regular, Roboto_700Bold });
-  const [_fontsLoaded, _setFontLoaded] = useState(false);
-
+  const [fontsLoaded] = useFonts({ Roboto_400Regular, Roboto_700Bold });
   const [appIsReady, setAppIsReady] = useState(false);
 
   useEffect(() => {
     async function prepare() {
       try {
-        // Pre-load fonts, make any API calls you need to do here
         await getFonts();
-        // Artificially delay for two seconds to simulate a slow loading
-        // experience. Please remove this if you copy and paste the code!
-        await new Promise((resolve) => setTimeout(resolve, 2000));
       } catch (e) {
         console.warn(e);
       } finally {
-        // Tell the application to render
         setAppIsReady(true);
       }
     }
@@ -57,7 +53,13 @@ export default function App() {
     prepare();
   }, []);
 
-  if (!appIsReady) {
+  const onLayoutRootView = useCallback(async () => {
+    if (appIsReady && fontsLoaded) {
+      await SplashScreen.hideAsync();
+    }
+  }, [appIsReady, fontsLoaded]);
+
+  if (!appIsReady || !fontsLoaded) {
     return null;
   }
 
@@ -66,13 +68,13 @@ export default function App() {
     dark: false,
     colors: {
       ...DefaultTheme.colors,
-      primary: "red",
+      primary: "#2196F3",
       background: "transparent",
-      card: "",
-      text: "",
-      border: "",
-      notification: "",
-      secondaryContainer: "rgba(40, 40, 40, 0.4)",
+      card: "#ffffff",
+      text: "#333333",
+      border: "#dddddd",
+      notification: "#f50057",
+      secondaryContainer: "rgba(33, 150, 243, 0.12)",
     },
   };
 
@@ -80,13 +82,14 @@ export default function App() {
     <AuthProvider>
       <NavigationContainer theme={theme_}>
         <SafeAreaProvider>
-          <StatusBar
-            barStyle="dark-content"
-            backgroundColor="transparent"
-            translucent
-          />
-
-          <AppRoutes />
+          <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+            <StatusBar
+              barStyle="dark-content"
+              backgroundColor="transparent"
+              translucent
+            />
+            <AppRoutes />
+          </View>
         </SafeAreaProvider>
       </NavigationContainer>
     </AuthProvider>

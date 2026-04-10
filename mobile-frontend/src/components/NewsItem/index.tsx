@@ -1,13 +1,18 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { UsersFour } from "phosphor-react-native";
-import { Image, StyleSheet, Text, View } from "react-native";
-import theme from "src/theme";
+import {
+  Image,
+  ImageSourcePropType,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 type ItemProps = {
   title: string;
   timestamp: string;
   people: string;
-  src: Image;
+  src: ImageSourcePropType;
 };
 
 export function NewsItem({ title, timestamp, people, src }: ItemProps) {
@@ -24,33 +29,20 @@ export function NewsItem({ title, timestamp, people, src }: ItemProps) {
         <View style={styles.halfMoon} />
 
         <View style={styles.imageView}>
-          <Image
-            source={src}
-            style={{
-              width: "100%",
-              height: "100%",
-              borderRadius: 10,
-              resizeMode: "cover",
-            }}
-          />
+          <Image source={src} style={styles.image} />
         </View>
 
         <View style={styles.rightContainer}>
           <View style={styles.topTitleContainer}>
-            <Text style={{ color: theme.COLORS.WHITE, fontWeight: "bold" }}>
-              {title}
-            </Text>
+            <Text style={styles.titleText}>{title}</Text>
           </View>
 
           <View style={styles.bottomContainer}>
-            <Text style={{ marginRight: 20, color: theme.COLORS.WHITE }}>
-              {timestamp}
-            </Text>
-
+            <Text style={styles.timestampText}>{timestamp}</Text>
             <View>
-              <UsersFour size={16} color={theme.COLORS.WHITE} />
+              <UsersFour size={16} color="#ffffff" />
             </View>
-            <Text style={{ color: theme.COLORS.WHITE }}>{people}</Text>
+            <Text style={styles.peopleText}>{people}</Text>
           </View>
         </View>
       </View>
@@ -101,8 +93,7 @@ const styles = StyleSheet.create({
     position: "absolute",
   },
   imageView: {
-    width: 100,
-    maxWidth: 60,
+    width: 60,
     marginLeft: 20,
     justifyContent: "center",
     backgroundColor: "transparent",
@@ -112,6 +103,13 @@ const styles = StyleSheet.create({
     height: "90%",
     flexDirection: "row",
     borderRadius: 10,
+    maxWidth: 60,
+  },
+  image: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 10,
+    resizeMode: "cover",
   },
   rightContainer: {
     paddingLeft: 5,
@@ -122,10 +120,21 @@ const styles = StyleSheet.create({
   topTitleContainer: {
     justifyContent: "flex-start",
   },
+  titleText: {
+    color: "#ffffff",
+    fontWeight: "bold",
+  },
   bottomContainer: {
     flexDirection: "row",
     justifyContent: "flex-end",
     paddingTop: 5,
     gap: 5,
+  },
+  timestampText: {
+    marginRight: 20,
+    color: "#ffffff",
+  },
+  peopleText: {
+    color: "#ffffff",
   },
 });

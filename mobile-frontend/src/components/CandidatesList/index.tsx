@@ -1,5 +1,5 @@
 import { CandidateItem } from "@components/CandidateItem";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -31,7 +31,7 @@ export function CandidatesList({ navigation }: any) {
 
   const { imageList } = useAuth();
 
-  const onPressLoadCandidates = async () => {
+  const loadCandidates = useCallback(async () => {
     try {
       setLoading(true);
       const response = await axios.get(Config.ENDPOINTS.CANDIDATES);
@@ -55,14 +55,15 @@ export function CandidatesList({ navigation }: any) {
               name: element.name,
               party: element.party,
               acronym: element.acronym,
-              photo: imageList[candidatePhotoName] ?? "default",
-              src: imageList[partyPhotoName],
+              photo: imageList[candidatePhotoName] ?? null,
+              src: imageList[partyPhotoName] ?? null,
               status: element.status,
             };
           },
         );
 
         setCandidates(newData);
+        setXtexts(new Array(newData.length + 1).fill(""));
       }
     } catch (error: any) {
       if (Config.APP.SHOW_LOGS) {
@@ -75,37 +76,25 @@ export function CandidatesList({ navigation }: any) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [imageList]);
 
   useEffect(() => {
-    onPressLoadCandidates();
-  }, [onPressLoadCandidates]);
+    loadCandidates();
+  }, [loadCandidates]);
 
   if (loading) {
     return (
-      <View
-        style={[
-          styles.container,
-          { justifyContent: "center", alignItems: "center" },
-        ]}
-      >
+      <View style={[styles.container, styles.centered]}>
         <ActivityIndicator size="large" color="#2196F3" />
-        <Text style={{ marginTop: 10, color: "#666" }}>
-          Loading candidates...
-        </Text>
+        <Text style={styles.loadingText}>Loading candidates...</Text>
       </View>
     );
   }
 
   if (candidates.length === 0) {
     return (
-      <View
-        style={[
-          styles.container,
-          { justifyContent: "center", alignItems: "center" },
-        ]}
-      >
-        <Text style={{ color: "#666", fontSize: 16 }}>
+      <View style={[styles.container, styles.centered]}>
+        <Text style={styles.emptyText}>
           No candidates available at this time.
         </Text>
       </View>
@@ -119,7 +108,7 @@ export function CandidatesList({ navigation }: any) {
       <View style={styles.listContainer}>
         <FlatList
           data={candidates}
-          renderItem={({ item, index }) => (
+          renderItem={({ item }) => (
             <CandidateItem
               id={item.id}
               name={item.name}
@@ -132,7 +121,6 @@ export function CandidatesList({ navigation }: any) {
               xTexts={xTexts}
               setXtexts={setXtexts}
               isFactor={false}
-              key={index}
               navigation={navigation}
             />
           )}
@@ -150,9 +138,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "transparent",
     width: "100%",
-    height: "auto",
     gap: 10,
     marginTop: 10,
+  },
+  centered: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 10,
+    color: "#666",
+  },
+  emptyText: {
+    color: "#666",
+    fontSize: 16,
   },
   textCandidates: {
     fontSize: 18,

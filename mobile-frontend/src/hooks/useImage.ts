@@ -1,17 +1,25 @@
 import { useEffect, useState } from "react";
+import { Image } from "react-native";
 
-const useImage = ({ src }: any) => {
+const useImage = ({ src }: { src: string | null | undefined }) => {
   const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    const img = new Image();
-    img.src = src;
-    img.onload = () => setLoaded(true);
+    if (!src) {
+      setLoaded(false);
+      return;
+    }
+
+    setLoaded(false);
+    setError(false);
+
+    Image.prefetch(src)
+      .then(() => setLoaded(true))
+      .catch(() => setError(true));
   }, [src]);
 
-  return {
-    loaded,
-  };
+  return { loaded, error };
 };
 
 export default useImage;
