@@ -18,31 +18,29 @@ import {
   writeResults,
 } from "../leveldb";
 
-// Use environment variables with fallback for better security
-const SECRET_KEY_IDENTIFIER = process.env.SECRET_KEY_IDENTIFIER || "";
-const SECRET_IV_IDENTIFIER = process.env.SECRET_IV_IDENTIFIER || "";
-const SECRET_KEY_VOTES = process.env.SECRET_KEY_VOTES || "";
-const SECRET_IV_VOTES = process.env.SECRET_IV_VOTES || "";
+// Lazy-initialized crypto instances so env vars are read after dotenv.config() runs
+let _CryptoBlockIdentifier: CryptoBlockchain | null = null;
+let _CryptoBlockVote: CryptoBlockchain | null = null;
 
-// Validate environment variables are set
-if (
-  !SECRET_KEY_IDENTIFIER ||
-  !SECRET_IV_IDENTIFIER ||
-  !SECRET_KEY_VOTES ||
-  !SECRET_IV_VOTES
-) {
-  console.error(
-    "ERROR: Required environment variables for encryption are not set",
-  );
-  // In production, you might want to exit the process
-  // process.exit(1);
-}
+const getCryptoBlockIdentifier = () => {
+  if (!_CryptoBlockIdentifier) {
+    _CryptoBlockIdentifier = new CryptoBlockchain(
+      process.env.SECRET_KEY_IDENTIFIER || "",
+      process.env.SECRET_IV_IDENTIFIER || "",
+    );
+  }
+  return _CryptoBlockIdentifier;
+};
 
-const CryptoBlockIdentifier = new CryptoBlockchain(
-  SECRET_KEY_IDENTIFIER,
-  SECRET_IV_IDENTIFIER,
-);
-const CryptoBlockVote = new CryptoBlockchain(SECRET_KEY_VOTES, SECRET_IV_VOTES);
+const getCryptoBlockVote = () => {
+  if (!_CryptoBlockVote) {
+    _CryptoBlockVote = new CryptoBlockchain(
+      process.env.SECRET_KEY_VOTES || "",
+      process.env.SECRET_IV_VOTES || "",
+    );
+  }
+  return _CryptoBlockVote;
+};
 
 enum ElectionState {
   Created = 0,
@@ -290,7 +288,7 @@ class SmartContract {
     };
 
     try {
-      const decryptedId = CryptoBlockIdentifier.decryptData(objData);
+      const decryptedId = getCryptoBlockIdentifier().decryptData(objData);
 
       return {
         electoralId: decryptedId,
@@ -498,7 +496,7 @@ class SmartContract {
 
     let choice_code: string;
     try {
-      choice_code = CryptoBlockVote.decryptData(objData);
+      choice_code = getCryptoBlockVote().decryptData(objData);
     } catch (error: any) {
       console.error("Error decrypting vote:", error);
       return;

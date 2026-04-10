@@ -13,14 +13,28 @@ import {
 import SmartContract from "../smart_contract/smart_contract";
 import type { Block, BlockHeader, Transaction, Voter } from "./data_types";
 
-const CryptoBlockIdentifier = new CryptoBlockchain(
-  process.env.SECRET_KEY_IDENTIFIER,
-  process.env.SECRET_IV_IDENTIFIER,
-);
-const CryptoBlockVote = new CryptoBlockchain(
-  process.env.SECRET_KEY_VOTES,
-  process.env.SECRET_IV_VOTES,
-);
+let _CryptoBlockIdentifier: CryptoBlockchain | null = null;
+let _CryptoBlockVote: CryptoBlockchain | null = null;
+
+const getCryptoBlockIdentifier = () => {
+  if (!_CryptoBlockIdentifier) {
+    _CryptoBlockIdentifier = new CryptoBlockchain(
+      process.env.SECRET_KEY_IDENTIFIER,
+      process.env.SECRET_IV_IDENTIFIER,
+    );
+  }
+  return _CryptoBlockIdentifier;
+};
+
+const getCryptoBlockVote = () => {
+  if (!_CryptoBlockVote) {
+    _CryptoBlockVote = new CryptoBlockchain(
+      process.env.SECRET_KEY_VOTES,
+      process.env.SECRET_IV_VOTES,
+    );
+  }
+  return _CryptoBlockVote;
+};
 
 class BlockChain {
   chain: Block[];
@@ -315,19 +329,19 @@ class BlockChain {
   }
 
   public encryptDataIdentifier(data: string) {
-    return CryptoBlockIdentifier.encryptData(data);
+    return getCryptoBlockIdentifier().encryptData(data);
   }
 
   public encryptDataVoter(data: string) {
-    return CryptoBlockVote.encryptData(data);
+    return getCryptoBlockVote().encryptData(data);
   }
 
   public decryptDataIdentifier(data: any) {
-    return CryptoBlockIdentifier.decryptData(data);
+    return getCryptoBlockIdentifier().decryptData(data);
   }
 
   public decryptDataVoter(data: any) {
-    return CryptoBlockVote.decryptData(data);
+    return getCryptoBlockVote().decryptData(data);
   }
 
   private createTransaction(

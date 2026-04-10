@@ -12,6 +12,22 @@ import { closeDB, connectToDB } from "./leveldb";
 
 dotenv.config({ path: path.join(__dirname, "../.env") });
 
+// Validate required environment variables are set
+const REQUIRED_ENV_VARS = [
+  "SECRET_KEY_IDENTIFIER",
+  "SECRET_IV_IDENTIFIER",
+  "SECRET_KEY_VOTES",
+  "SECRET_IV_VOTES",
+  "ACCESS_TOKEN_SECRET",
+  "REFRESH_TOKEN_SECRET",
+];
+const missingVars = REQUIRED_ENV_VARS.filter((v) => !process.env[v]);
+if (missingVars.length > 0) {
+  console.warn(
+    `⚠ Missing environment variables: ${missingVars.join(", ")}. Copy .env.example to .env and fill in values.`,
+  );
+}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 

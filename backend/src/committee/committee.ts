@@ -33,10 +33,16 @@ const bcrypt = require("bcrypt");
 const speakeasy = require("speakeasy");
 const qrcode = require("qrcode");
 
-const CryptoBlockIdentifier = new CryptoBlockchain(
-  process.env.SECRET_KEY_IDENTIFIER,
-  process.env.SECRET_IV_IDENTIFIER,
-);
+let _CryptoBlockIdentifier: CryptoBlockchain | null = null;
+const getCryptoBlockIdentifier = () => {
+  if (!_CryptoBlockIdentifier) {
+    _CryptoBlockIdentifier = new CryptoBlockchain(
+      process.env.SECRET_KEY_IDENTIFIER,
+      process.env.SECRET_IV_IDENTIFIER,
+    );
+  }
+  return _CryptoBlockIdentifier;
+};
 
 class Committee {
   citizens: Citizen[];
@@ -79,8 +85,8 @@ class Committee {
       const length = 8;
       for (const citizen of this.citizens) {
         if (citizen.status === "verified") {
-          const id = CryptoBlockIdentifier.generateIdentifier(length);
-          const electoralIdEncrypted = CryptoBlockIdentifier.encryptData(
+          const id = getCryptoBlockIdentifier().generateIdentifier(length);
+          const electoralIdEncrypted = getCryptoBlockIdentifier().encryptData(
             citizen.electoralId,
           );
           const obj: Voter = {

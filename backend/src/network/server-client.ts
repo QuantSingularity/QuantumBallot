@@ -34,15 +34,15 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 
-app.get("/network", (_req, res) => {
+app.get("/network", (_req: any, res: any) => {
   res.status(200).json({ network: getAllNodes() });
 });
 
-app.post("/update_nodes", (req, res) => {
+app.post("/update_nodes", (req: any, res: any) => {
   const data = req.body;
   const urls = data.urls;
 
-  urls.forEach((node) => {
+  urls.forEach((node: any) => {
     addNode(node);
   });
 
@@ -57,7 +57,7 @@ app.post("/update_nodes", (req, res) => {
   }, 50);
 });
 
-app.post("/connect_node", (req, res) => {
+app.post("/connect_node", (req: any, res: any) => {
   const data = req.body;
   const urls = data.urls;
 
@@ -76,7 +76,7 @@ app.post("/connect_node", (req, res) => {
   }, 100);
 });
 
-const _isNodePresent = (node) => {
+const _isNodePresent = (node: any): boolean => {
   if (node === NODE_ADDRESS) return true;
   return allNodes.indexOf(node) !== -1;
 };
@@ -92,11 +92,11 @@ const getAllNodes = () => {
   return nodeList;
 };
 
-const isCurrentNode = (node) => node === NODE_ADDRESS;
+const isCurrentNode = (node: any) => node === NODE_ADDRESS;
 
-const removeDuplicated = (list) => [...new Set([...list])];
+const removeDuplicated = (list: any[]) => [...new Set([...list])];
 
-const addNode = (node) => {
+const addNode = (node: any) => {
   if (isCurrentNode(node)) return;
   allNodes.push(node);
   allNodes = removeDuplicated(allNodes);
@@ -113,16 +113,16 @@ const requestConnection = (thisAllNodes: any, destines: any) => {
   thisAllNodes = [...thisAllNodes, ...getAllNodes()];
   thisAllNodes = removeDuplicated(thisAllNodes);
 
-  const fullUpdated = {};
+  const fullUpdated: Record<string, any> = {};
   let nodesListed = [...thisAllNodes];
 
-  const requests = [];
+  const requests: Promise<any>[] = [];
   destines.forEach((url: any) => {
     // console.log("? URL => ", url);
 
     const request = axios
       .post(`${LOCALHOST + url}/connect_node`, { urls: thisAllNodes })
-      .then((response) => {
+      .then((response: any) => {
         const urls_x = response.data.myUrls;
         fullUpdated[url] = urls_x;
 
@@ -137,9 +137,9 @@ const requestConnection = (thisAllNodes: any, destines: any) => {
     .then((_data: any) => {})
     .then((_data: any) => {
       let allGood = true;
-      let newNodes = [];
+      let newNodes: any[] = [];
 
-      thisAllNodes.forEach((element) => {
+      thisAllNodes.forEach((element: any) => {
         if (!fullUpdated[element] || fullUpdated[NODE_ADDRESS]) return;
 
         if (!areEqualUpdated(fullUpdated[element], fullUpdated[NODE_ADDRESS])) {
@@ -171,7 +171,7 @@ const requestConnection = (thisAllNodes: any, destines: any) => {
     .catch((error: any) => console.error(error));
 };
 
-const isUpdated = (nodeList) => {
+const isUpdated = (nodeList: any[]) => {
   const currentNodeList = getAllNodes();
   currentNodeList.sort();
   nodeList.sort();
@@ -183,7 +183,7 @@ const isUpdated = (nodeList) => {
   return false;
 };
 
-const areEqualUpdated = (nodeList1, nodeList2) => {
+const areEqualUpdated = (nodeList1: any[], nodeList2: any[]) => {
   if (nodeList1 === undefined || nodeList2 === undefined) return false;
 
   nodeList1.sort();
@@ -196,17 +196,17 @@ const areEqualUpdated = (nodeList1, nodeList2) => {
   return false;
 };
 
-const clientConnected = (socket) => {
+const clientConnected = (socket: any) => {
   // Ask for new nodes
   socket.emit("post-nodes", getAllNodes(), NODE_ADDRESS, false);
   requestConnection(getAllNodes(), getAllNodes());
 
   // Register new nodes
-  socket.on("post-nodes", (thisAllNodes, node, firstTime) => {
+  socket.on("post-nodes", (thisAllNodes: any, node: any, firstTime: any) => {
     if (!firstTime) {
       addNode(node);
       // Connect to a node if not present.
-      thisAllNodes.forEach((node) => {
+      thisAllNodes.forEach((node: any) => {
         addNode(node);
       });
 
@@ -217,7 +217,7 @@ const clientConnected = (socket) => {
         addNode(node);
 
         // Connect to a node if not present.
-        thisAllNodes.forEach((node) => {
+        thisAllNodes.forEach((node: any) => {
           addNode(node);
         });
 
@@ -231,11 +231,11 @@ const clientConnected = (socket) => {
   });
 };
 
-const serverConnected = (socket) => {
+const serverConnected = (socket: any) => {
   clientConnected(socket);
 };
 
-io.on("connection", (socket) => {
+io.on("connection", (socket: any) => {
   clientConnected(socket);
 });
 
@@ -254,7 +254,7 @@ const serverDisplay = () => {
   askQuestion();
 };
 
-server.listen(SERVER_PORT, (_) => {
+server.listen(SERVER_PORT, (_: any) => {
   serverDisplay();
 });
 
@@ -272,9 +272,9 @@ const askQuestion = () => {
 // --> CLIENT <--
 
 const io_client = require("socket.io-client");
-const clients = {};
+const clients: Record<string, any> = {};
 
-const newClient = (url) => {
+const newClient = (url: any) => {
   const client = io_client.connect(url);
   clients[url] = clients[url] ? clients[url] : client;
   clients[url].on("connect", (_data: any) => {
@@ -345,7 +345,7 @@ const addNewNode = (): void => {
             console.log("Nodes added.");
           }
         })
-        .catch((_) => console.error("Failure detected."));
+        .catch((_: any) => console.error("Failure detected."));
 
       setTimeout(listNodes, 500);
     },
@@ -371,7 +371,7 @@ const removeNode = (): void => {
       allNodes.forEach((url: any) => {
         if (clients[url]) {
           clients[url].disconnect();
-          clientConnected[url] = null;
+          clients[url] = null;
         }
       });
 

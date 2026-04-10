@@ -17,6 +17,7 @@ if (!fs.existsSync(dbDir)) {
 }
 
 const db = new Level(dbPath, { valueEncoding: "json" });
+db.setMaxListeners(20);
 
 const BLOCK = getBlockAddress("block");
 const CHAIN = getBlockAddress("chain");

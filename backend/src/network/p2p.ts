@@ -57,7 +57,7 @@ class P2P {
         data: data,
       };
 
-      requests.push(axios(opt));
+      requests.push(axios(opt) as Promise<any>);
     });
 
     try {

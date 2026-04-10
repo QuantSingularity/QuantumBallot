@@ -488,7 +488,7 @@ router.post(
 
       res.cookie("jwt", refreshToken, {
         httpOnly: true,
-        sameSite: "Strict",
+        sameSite: "strict",
         secure: process.env.NODE_ENV === "production",
         maxAge: 24 * 60 * 60 * 1000,
       });
@@ -585,7 +585,7 @@ router.get(
 
           res.cookie("jwt", newAccessToken, {
             httpOnly: true,
-            sameSite: "Strict",
+            sameSite: "strict",
             secure: process.env.NODE_ENV === "production",
             maxAge: 24 * 60 * 60 * 1000,
           });
