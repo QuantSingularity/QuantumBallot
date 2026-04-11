@@ -1,5 +1,4 @@
-import Image from "next/image";
-import { useRouter } from "next/router";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,7 +10,7 @@ import {
 } from "@/components/ui/card";
 
 const Home = () => {
-  const router = useRouter();
+  const navigate = useNavigate();
 
   return (
     <div className="container mx-auto py-10">
@@ -30,12 +29,11 @@ const Home = () => {
             <CardDescription>Vote with confidence</CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center">
-            <div className="relative w-40 h-40">
-              <Image
+            <div className="w-40 h-40 flex items-center justify-center">
+              <img
                 src="/images/bitcoin.svg"
                 alt="Secure Voting"
-                fill
-                style={{ objectFit: "contain" }}
+                className="object-contain w-full h-full"
               />
             </div>
           </CardContent>
@@ -53,12 +51,11 @@ const Home = () => {
             <CardDescription>See the entire election process</CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center">
-            <div className="relative w-40 h-40">
-              <Image
+            <div className="w-40 h-40 flex items-center justify-center">
+              <img
                 src="/images/nakamoto.svg"
                 alt="Transparent Process"
-                fill
-                style={{ objectFit: "contain" }}
+                className="object-contain w-full h-full"
               />
             </div>
           </CardContent>
@@ -76,12 +73,11 @@ const Home = () => {
             <CardDescription>Instant vote counting</CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center">
-            <div className="relative w-40 h-40">
-              <Image
+            <div className="w-40 h-40 flex items-center justify-center">
+              <img
                 src="/images/crypto_portfolio.svg"
                 alt="Real-time Results"
-                fill
-                style={{ objectFit: "contain" }}
+                className="object-contain w-full h-full"
               />
             </div>
           </CardContent>
@@ -98,26 +94,22 @@ const Home = () => {
         <Card className="flex-1">
           <CardHeader>
             <CardTitle>Current Election</CardTitle>
-            <CardDescription>Presidential Election 2025</CardDescription>
+            <CardDescription>Presidential Election 2027</CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center">
-            <div className="relative w-full h-48">
-              <Image
+            <div className="w-full h-48 flex items-center justify-center">
+              <img
                 src="/images/ethereum.svg"
                 alt="Current Election"
-                fill
-                style={{ objectFit: "contain" }}
+                className="object-contain h-full"
               />
             </div>
           </CardContent>
           <CardFooter className="flex justify-between">
-            <Button
-              variant="outline"
-              onClick={() => router.push("/candidates")}
-            >
+            <Button variant="outline" onClick={() => navigate("/candidates")}>
               View Candidates
             </Button>
-            <Button onClick={() => router.push("/vote")}>Cast Your Vote</Button>
+            <Button onClick={() => navigate("/blockchain")}>View Blockchain</Button>
           </CardFooter>
         </Card>
 
@@ -127,17 +119,16 @@ const Home = () => {
             <CardDescription>View the latest results</CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center">
-            <div className="relative w-full h-48">
-              <Image
+            <div className="w-full h-48 flex items-center justify-center">
+              <img
                 src="/images/digital_currency.svg"
                 alt="Election Results"
-                fill
-                style={{ objectFit: "contain" }}
+                className="object-contain h-full"
               />
             </div>
           </CardContent>
           <CardFooter className="flex justify-end">
-            <Button onClick={() => router.push("/results")}>
+            <Button onClick={() => navigate("/election-results")}>
               View Results
             </Button>
           </CardFooter>

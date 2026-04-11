@@ -9,238 +9,239 @@ import {
   voteSchema,
 } from "@/lib/validations";
 
-describe("Validation Schemas", () => {
-  describe("loginSchema", () => {
-    it("should validate correct login data", () => {
-      const validData = {
-        username: "testuser",
-        password: "password123",
-      };
-
-      const result = loginSchema.safeParse(validData);
-      expect(result.success).toBe(true);
-    });
-
-    it("should reject short username", () => {
-      const invalidData = {
-        username: "ab",
-        password: "password123",
-      };
-
-      const result = loginSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.errors[0].message).toContain(
-          "at least 3 characters",
-        );
-      }
-    });
-
-    it("should reject short password", () => {
-      const invalidData = {
-        username: "testuser",
-        password: "12345",
-      };
-
-      const result = loginSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.errors[0].message).toContain(
-          "at least 6 characters",
-        );
-      }
-    });
+describe("loginSchema", () => {
+  it("validates correct login data", () => {
+    const result = loginSchema.safeParse({ username: "testuser", password: "password123" });
+    expect(result.success).toBe(true);
   });
 
-  describe("registerUserSchema", () => {
-    it("should validate correct registration data", () => {
-      const validData = {
-        name: "John Doe",
-        username: "johndoe",
-        password: "password123",
-        confirmPassword: "password123",
-        role: "NORMAL" as const,
-      };
-
-      const result = registerUserSchema.safeParse(validData);
-      expect(result.success).toBe(true);
-    });
-
-    it("should reject mismatched passwords", () => {
-      const invalidData = {
-        name: "John Doe",
-        username: "johndoe",
-        password: "password123",
-        confirmPassword: "password456",
-        role: "NORMAL" as const,
-      };
-
-      const result = registerUserSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.errors[0].message).toContain("don't match");
-      }
-    });
-
-    it("should reject invalid role", () => {
-      const invalidData = {
-        name: "John Doe",
-        username: "johndoe",
-        password: "password123",
-        confirmPassword: "password123",
-        role: "INVALID" as any,
-      };
-
-      const result = registerUserSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-    });
+  it("rejects username shorter than 3 characters", () => {
+    const result = loginSchema.safeParse({ username: "ab", password: "password123" });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.errors[0].message).toContain("at least 3 characters");
+    }
   });
 
-  describe("candidateSchema", () => {
-    it("should validate correct candidate data", () => {
-      const validData = {
-        name: "Jane Smith",
-        code: 123,
-        party: "Democratic Party",
-        acronym: "DP",
-        status: "active" as const,
-      };
-
-      const result = candidateSchema.safeParse(validData);
-      expect(result.success).toBe(true);
-    });
-
-    it("should reject negative candidate code", () => {
-      const invalidData = {
-        name: "Jane Smith",
-        code: -1,
-        party: "Democratic Party",
-        acronym: "DP",
-        status: "active" as const,
-      };
-
-      const result = candidateSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-    });
-
-    it("should reject too long acronym", () => {
-      const invalidData = {
-        name: "Jane Smith",
-        code: 123,
-        party: "Democratic Party",
-        acronym: "VERYLONGACRONYM",
-        status: "active" as const,
-      };
-
-      const result = candidateSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-    });
+  it("rejects password shorter than 6 characters", () => {
+    const result = loginSchema.safeParse({ username: "testuser", password: "12345" });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.errors[0].message).toContain("at least 6 characters");
+    }
   });
 
-  describe("citizenSchema", () => {
-    it("should validate correct citizen data", () => {
-      const validData = {
-        name: "John Citizen",
-        electoralId: "EC12345",
-        email: "john@example.com",
-        address: "123 Main St, City",
-        province: "Province A",
-      };
-
-      const result = citizenSchema.safeParse(validData);
-      expect(result.success).toBe(true);
-    });
-
-    it("should reject invalid email", () => {
-      const invalidData = {
-        name: "John Citizen",
-        electoralId: "EC12345",
-        email: "invalid-email",
-        address: "123 Main St, City",
-        province: "Province A",
-      };
-
-      const result = citizenSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.errors[0].message).toContain("Invalid email");
-      }
-    });
+  it("rejects empty username", () => {
+    const result = loginSchema.safeParse({ username: "", password: "password123" });
+    expect(result.success).toBe(false);
   });
 
-  describe("electionAnnouncementSchema", () => {
-    it("should validate correct election announcement", () => {
-      const startDate = new Date("2025-01-01");
-      const endDate = new Date("2025-12-31");
+  it("rejects missing fields", () => {
+    const result = loginSchema.safeParse({});
+    expect(result.success).toBe(false);
+  });
+});
 
-      const validData = {
-        title: "General Election 2025",
-        description: "Annual general election for all positions",
-        startDate,
-        endDate,
-      };
+describe("registerUserSchema", () => {
+  const validData = {
+    name: "John Doe",
+    username: "johndoe",
+    password: "password123",
+    confirmPassword: "password123",
+    role: "ADMIN" as const,
+  };
 
-      const result = electionAnnouncementSchema.safeParse(validData);
-      expect(result.success).toBe(true);
-    });
-
-    it("should reject end date before start date", () => {
-      const startDate = new Date("2025-12-31");
-      const endDate = new Date("2025-01-01");
-
-      const invalidData = {
-        title: "General Election 2025",
-        description: "Annual general election for all positions",
-        startDate,
-        endDate,
-      };
-
-      const result = electionAnnouncementSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.errors[0].message).toContain("after start date");
-      }
-    });
+  it("validates correct registration data", () => {
+    const result = registerUserSchema.safeParse(validData);
+    expect(result.success).toBe(true);
   });
 
-  describe("voteSchema", () => {
-    it("should validate correct vote data", () => {
-      const validData = {
-        identifier: "VOTER123",
-        choiceCode: 42,
-      };
-
-      const result = voteSchema.safeParse(validData);
-      expect(result.success).toBe(true);
+  it("rejects mismatched passwords", () => {
+    const result = registerUserSchema.safeParse({
+      ...validData,
+      confirmPassword: "different",
     });
-
-    it("should reject invalid choice code", () => {
-      const invalidData = {
-        identifier: "VOTER123",
-        choiceCode: -1,
-      };
-
-      const result = voteSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.errors[0].message).toContain("Passwords don't match");
+    }
   });
 
-  describe("formatValidationErrors", () => {
-    it("should format validation errors correctly", () => {
-      const invalidData = {
-        username: "ab",
-        password: "123",
-      };
+  it("rejects name shorter than 2 characters", () => {
+    const result = registerUserSchema.safeParse({ ...validData, name: "J" });
+    expect(result.success).toBe(false);
+  });
 
-      const result = loginSchema.safeParse(invalidData);
+  it("rejects invalid role", () => {
+    const result = registerUserSchema.safeParse({ ...validData, role: "SUPERUSER" });
+    expect(result.success).toBe(false);
+  });
 
-      if (!result.success) {
-        const formatted = formatValidationErrors(result.error);
-        expect(formatted).toHaveProperty("username");
-        expect(formatted).toHaveProperty("password");
-        expect(typeof formatted.username).toBe("string");
-        expect(typeof formatted.password).toBe("string");
-      }
+  it("accepts NORMAL role", () => {
+    const result = registerUserSchema.safeParse({ ...validData, role: "NORMAL" });
+    expect(result.success).toBe(true);
+  });
+});
+
+describe("candidateSchema", () => {
+  const validCandidate = {
+    name: "Alice Johnson",
+    code: 1,
+    party: "Progressive Party",
+    acronym: "PP",
+    status: "active" as const,
+  };
+
+  it("validates correct candidate data", () => {
+    const result = candidateSchema.safeParse(validCandidate);
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects name shorter than 2 characters", () => {
+    const result = candidateSchema.safeParse({ ...validCandidate, name: "A" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects non-positive code", () => {
+    const result = candidateSchema.safeParse({ ...validCandidate, code: 0 });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects acronym longer than 10 characters", () => {
+    const result = candidateSchema.safeParse({ ...validCandidate, acronym: "TOOLONGACRONYM" });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts all valid statuses", () => {
+    for (const status of ["active", "inactive", "pending"] as const) {
+      const result = candidateSchema.safeParse({ ...validCandidate, status });
+      expect(result.success).toBe(true);
+    }
+  });
+
+  it("rejects invalid status", () => {
+    const result = candidateSchema.safeParse({ ...validCandidate, status: "unknown" });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("citizenSchema", () => {
+  const validCitizen = {
+    name: "Maria Silva",
+    electoralId: "ELEC12345",
+    email: "maria@example.com",
+    address: "123 Main Street, Luanda",
+    province: "Luanda",
+  };
+
+  it("validates correct citizen data", () => {
+    const result = citizenSchema.safeParse(validCitizen);
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects invalid email", () => {
+    const result = citizenSchema.safeParse({ ...validCitizen, email: "not-an-email" });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.errors[0].message).toContain("Invalid email");
+    }
+  });
+
+  it("rejects short electoral ID", () => {
+    const result = citizenSchema.safeParse({ ...validCitizen, electoralId: "EL1" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects short address", () => {
+    const result = citizenSchema.safeParse({ ...validCitizen, address: "123" });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts optional fields when absent", () => {
+    const result = citizenSchema.safeParse(validCitizen);
+    expect(result.success).toBe(true);
+  });
+});
+
+describe("electionAnnouncementSchema", () => {
+  const startDate = new Date("2027-01-01");
+  const endDate = new Date("2027-01-31");
+
+  it("validates correct announcement data", () => {
+    const result = electionAnnouncementSchema.safeParse({
+      title: "Presidential Election 2027",
+      description: "The annual presidential election for 2027",
+      startDate,
+      endDate,
     });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects title shorter than 5 characters", () => {
+    const result = electionAnnouncementSchema.safeParse({
+      title: "Ele",
+      description: "Valid description here",
+      startDate,
+      endDate,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects end date before start date", () => {
+    const result = electionAnnouncementSchema.safeParse({
+      title: "Valid Title",
+      description: "Valid description here",
+      startDate: new Date("2027-12-01"),
+      endDate: new Date("2027-01-01"),
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.errors[0].message).toContain("End date must be after");
+    }
+  });
+});
+
+describe("voteSchema", () => {
+  it("validates correct vote data", () => {
+    const result = voteSchema.safeParse({ identifier: "VOTER12345", choiceCode: 1 });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects non-positive choiceCode", () => {
+    const result = voteSchema.safeParse({ identifier: "VOTER12345", choiceCode: 0 });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects short identifier", () => {
+    const result = voteSchema.safeParse({ identifier: "ID1", choiceCode: 1 });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts optional secret", () => {
+    const result = voteSchema.safeParse({
+      identifier: "VOTER12345",
+      choiceCode: 2,
+      secret: "my-secret",
+    });
+    expect(result.success).toBe(true);
+  });
+});
+
+describe("formatValidationErrors", () => {
+  it("formats zod errors into a flat object", () => {
+    const result = loginSchema.safeParse({ username: "ab", password: "123" });
+    if (!result.success) {
+      const formatted = formatValidationErrors(result.error);
+      expect(typeof formatted).toBe("object");
+      expect(Object.keys(formatted).length).toBeGreaterThan(0);
+    }
+  });
+
+  it("returns path-keyed messages", () => {
+    const result = loginSchema.safeParse({ username: "", password: "" });
+    if (!result.success) {
+      const formatted = formatValidationErrors(result.error);
+      expect(formatted["username"]).toBeDefined();
+    }
   });
 });

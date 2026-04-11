@@ -1,193 +1,123 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import axios from "axios";
-import { BrowserRouter } from "react-router-dom";
-import { vi } from "vitest";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import AnnounceElection from "@/screens/AnnounceElection";
 
-// Mock axios
-vi.mock("axios");
+const toastMock = vi.fn();
 
-// Mock the AuthContext
+vi.mock("@/components/ui/use-toast", () => ({
+  useToast: () => ({ toast: toastMock }),
+}));
+
 vi.mock("@/context/AuthContext", () => ({
-  default: {
-    Provider: ({ children }) => children,
-    Consumer: ({ children }) =>
-      children({
-        user: { name: "Test User", role: "admin" },
-        isLoggedIn: () => true,
-      }),
-  },
-  useAuth: () => ({
-    user: { name: "Test User", role: "admin" },
-    isLoggedIn: () => true,
-  }),
+  useAuth: () => ({ authState: { authenticated: true, name: "Test User" } }),
+}));
+
+vi.mock("@/components/ui/calendar", () => ({
+  Calendar: ({ onSelect }: any) => (
+    <div data-testid="calendar">
+      <button onClick={() => onSelect({ from: new Date("2027-01-01"), to: new Date("2027-01-15") })}>
+        Select Range
+      </button>
+    </div>
+  ),
 }));
 
 describe("AnnounceElection Component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-
-    // Mock axios.post to return success
-    (axios.post as jest.Mock).mockResolvedValue({
-      data: {
-        success: true,
-        message: "Announcement created successfully",
-      },
-    });
   });
 
-  it("renders announcement form with all fields", () => {
-    render(
-      <BrowserRouter>
-        <AnnounceElection />
-      </BrowserRouter>,
-    );
+  it("renders the form card", () => {
+    render(<MemoryRouter><AnnounceElection /></MemoryRouter>);
+    expect(screen.getByText("Announce Election")).toBeInTheDocument();
+    expect(screen.getByText("Create a new election announcement")).toBeInTheDocument();
+  });
 
-    // Check if form fields are rendered
+  it("renders Title input", () => {
+    render(<MemoryRouter><AnnounceElection /></MemoryRouter>);
     expect(screen.getByLabelText(/Title/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Content/i)).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /Submit Announcement/i }),
-    ).toBeInTheDocument();
   });
 
-  it("allows entering announcement details", () => {
-    render(
-      <BrowserRouter>
-        <AnnounceElection />
-      </BrowserRouter>,
-    );
+  it("renders Description textarea", () => {
+    render(<MemoryRouter><AnnounceElection /></MemoryRouter>);
+    expect(screen.getByLabelText(/Description/i)).toBeInTheDocument();
+  });
 
-    // Enter title
+  it("renders the submit button", () => {
+    render(<MemoryRouter><AnnounceElection /></MemoryRouter>);
+    expect(screen.getByRole("button", { name: /Announce Election/i })).toBeInTheDocument();
+  });
+
+  it("allows typing in Title field", () => {
+    render(<MemoryRouter><AnnounceElection /></MemoryRouter>);
     const titleInput = screen.getByLabelText(/Title/i);
-    fireEvent.change(titleInput, { target: { value: "Test Announcement" } });
-    expect(titleInput).toHaveValue("Test Announcement");
-
-    // Enter content
-    const contentInput = screen.getByLabelText(/Content/i);
-    fireEvent.change(contentInput, {
-      target: { value: "This is a test announcement" },
-    });
-    expect(contentInput).toHaveValue("This is a test announcement");
+    fireEvent.change(titleInput, { target: { value: "Presidential Election 2027" } });
+    expect(titleInput).toHaveValue("Presidential Election 2027");
   });
 
-  it("submits form with announcement data", async () => {
-    render(
-      <BrowserRouter>
-        <AnnounceElection />
-      </BrowserRouter>,
-    );
+  it("allows typing in Description field", () => {
+    render(<MemoryRouter><AnnounceElection /></MemoryRouter>);
+    const descInput = screen.getByLabelText(/Description/i);
+    fireEvent.change(descInput, { target: { value: "Annual presidential election" } });
+    expect(descInput).toHaveValue("Annual presidential election");
+  });
 
-    // Enter announcement details
-    fireEvent.change(screen.getByLabelText(/Title/i), {
-      target: { value: "Test Announcement" },
-    });
-    fireEvent.change(screen.getByLabelText(/Content/i), {
-      target: { value: "This is a test announcement" },
-    });
-
-    // Submit form
-    fireEvent.click(
-      screen.getByRole("button", { name: /Submit Announcement/i }),
-    );
-
-    // Check if axios.post was called with correct data
+  it("shows error toast when submitting empty form", async () => {
+    render(<MemoryRouter><AnnounceElection /></MemoryRouter>);
+    const submitBtn = screen.getByRole("button", { name: /Announce Election/i });
+    fireEvent.click(submitBtn);
     await waitFor(() => {
-      expect(axios.post).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          title: "Test Announcement",
-          content: "This is a test announcement",
-        }),
-        expect.any(Object),
+      expect(toastMock).toHaveBeenCalledWith(
+        expect.objectContaining({ variant: "destructive" })
       );
     });
   });
 
-  it("displays success message after successful submission", async () => {
-    render(
-      <BrowserRouter>
-        <AnnounceElection />
-      </BrowserRouter>,
-    );
+  it("shows success toast when form is complete", async () => {
+    render(<MemoryRouter><AnnounceElection /></MemoryRouter>);
 
-    // Enter announcement details
     fireEvent.change(screen.getByLabelText(/Title/i), {
-      target: { value: "Test Announcement" },
+      target: { value: "Presidential Election 2027" },
     });
-    fireEvent.change(screen.getByLabelText(/Content/i), {
-      target: { value: "This is a test announcement" },
+    fireEvent.change(screen.getByLabelText(/Description/i), {
+      target: { value: "The 2027 presidential election announcement" },
     });
 
-    // Submit form
-    fireEvent.click(
-      screen.getByRole("button", { name: /Submit Announcement/i }),
-    );
+    // Select date range via the mocked calendar
+    fireEvent.click(screen.getByText("Select Range"));
+    fireEvent.click(screen.getByRole("button", { name: /Announce Election/i }));
 
-    // Check for success message
     await waitFor(() => {
-      expect(
-        screen.getByText(/Announcement created successfully/i),
-      ).toBeInTheDocument();
+      expect(toastMock).toHaveBeenCalledWith(
+        expect.objectContaining({ title: "Success" })
+      );
     });
   });
 
-  it("handles error during announcement submission", async () => {
-    // Mock axios.post to return error
-    (axios.post as jest.Mock).mockRejectedValue({
-      response: {
-        data: {
-          message: "Failed to create announcement",
-        },
-      },
+  it("resets form after successful submission", async () => {
+    render(<MemoryRouter><AnnounceElection /></MemoryRouter>);
+
+    const titleInput = screen.getByLabelText(/Title/i);
+    fireEvent.change(titleInput, { target: { value: "Test Election" } });
+    fireEvent.change(screen.getByLabelText(/Description/i), {
+      target: { value: "Test description for the election" },
     });
+    fireEvent.click(screen.getByText("Select Range"));
+    fireEvent.click(screen.getByRole("button", { name: /Announce Election/i }));
 
-    render(
-      <BrowserRouter>
-        <AnnounceElection />
-      </BrowserRouter>,
-    );
-
-    // Enter announcement details
-    fireEvent.change(screen.getByLabelText(/Title/i), {
-      target: { value: "Test Announcement" },
-    });
-    fireEvent.change(screen.getByLabelText(/Content/i), {
-      target: { value: "This is a test announcement" },
-    });
-
-    // Submit form
-    fireEvent.click(
-      screen.getByRole("button", { name: /Submit Announcement/i }),
-    );
-
-    // Check for error message
     await waitFor(() => {
-      expect(
-        screen.getByText(/Failed to create announcement/i),
-      ).toBeInTheDocument();
+      expect(titleInput).toHaveValue("");
     });
   });
 
-  it("validates form fields before submission", async () => {
-    render(
-      <BrowserRouter>
-        <AnnounceElection />
-      </BrowserRouter>,
-    );
+  it("renders the Voting Period label", () => {
+    render(<MemoryRouter><AnnounceElection /></MemoryRouter>);
+    expect(screen.getByText("Voting Period")).toBeInTheDocument();
+  });
 
-    // Submit form without entering any data
-    fireEvent.click(
-      screen.getByRole("button", { name: /Submit Announcement/i }),
-    );
-
-    // Check for validation errors
-    await waitFor(() => {
-      expect(screen.getByText(/Title is required/i)).toBeInTheDocument();
-      expect(screen.getByText(/Content is required/i)).toBeInTheDocument();
-    });
-
-    // Verify that axios.post was not called
-    expect(axios.post).not.toHaveBeenCalled();
+  it("renders the calendar for date selection", () => {
+    render(<MemoryRouter><AnnounceElection /></MemoryRouter>);
+    expect(screen.getByTestId("calendar")).toBeInTheDocument();
   });
 });

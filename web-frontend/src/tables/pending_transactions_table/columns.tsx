@@ -23,9 +23,9 @@ export const columns: ColumnDef<PendingTransaction>[] = [
     accessorKey: "identifier",
     header: "Vote ID",
     cell: ({ row }) => {
-      const choiceCode: string = row.getValue("choiceCode");
-      if (typeof choiceCode === "string")
-        return <span>{choiceCode.substring(0, "000000000".length)}</span>;
+      const identifier: string = row.getValue("identifier");
+      if (typeof identifier === "string")
+        return <span>{identifier.substring(0, 9)}</span>;
       return "";
     },
   },

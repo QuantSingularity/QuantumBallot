@@ -1,97 +1,79 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import App from "@/App";
+import { MemoryRouter } from "react-router-dom";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { AuthProvider } from "@/context/AuthContext";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
-// Mock the Entrance component to avoid complex routing setup
-vi.mock("@/screens/Entrance", () => ({
-  default: () => <div data-testid="entrance">Entrance Component</div>,
+vi.mock("@/services/firebase", () => ({
+  loadImages: vi.fn(),
 }));
-
-// Mock context providers
-vi.mock("@/context/AuthContext", () => ({
-  AuthProvider: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
-  ),
-  useAuth: () => ({
-    user: null,
-    login: vi.fn(),
-    logout: vi.fn(),
-  }),
-}));
-
-// Mock secure store
 vi.mock("@/context/SecureStore", () => ({
-  getItemAsync: vi.fn(() => Promise.resolve(null)),
+  getItemAsync: vi.fn().mockResolvedValue(null),
   setItemAsync: vi.fn(),
   deleteItemAsync: vi.fn(),
 }));
+vi.mock("@/global/globalVariables", () => ({
+  TOKEN_KEY: "jwt",
+  REFRESH_TOKEN_KEY: "refresh",
+  TOKEN_USERNAME: "username",
+  TOKEN_NAME: "name",
+  TOKEN_ROLE: "role",
+  GLOBAL_VARIABLES: { LOCALHOST: "localhost:3010" },
+}));
+vi.mock("axios");
 
-describe("App Integration Tests", () => {
+const TestApp = ({ children }: { children: React.ReactNode }) => {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return (
+    <ErrorBoundary>
+      <AuthProvider>
+        <MemoryRouter>
+          <QueryClientProvider client={queryClient}>
+            {children}
+          </QueryClientProvider>
+        </MemoryRouter>
+      </AuthProvider>
+    </ErrorBoundary>
+  );
+};
+
+describe("App Integration", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("should render without crashing", () => {
-    expect(() => render(<App />)).not.toThrow();
+  it("renders the provider tree without errors", () => {
+    render(
+      <TestApp>
+        <div data-testid="app-content">App Content</div>
+      </TestApp>
+    );
+    expect(screen.getByTestId("app-content")).toBeInTheDocument();
   });
 
-  it("should render the Entrance component", () => {
-    render(<App />);
-    expect(screen.getByTestId("entrance")).toBeInTheDocument();
+  it("ErrorBoundary wraps the app correctly", () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const CrashingComponent = () => { throw new Error("Test crash"); };
+    render(
+      <TestApp>
+        <CrashingComponent />
+      </TestApp>
+    );
+    expect(screen.getByText(/Something went wrong/i)).toBeInTheDocument();
   });
 
-  it("should be wrapped in ErrorBoundary", () => {
-    // This test verifies that ErrorBoundary is in the component tree
-    render(<App />);
-
-    // If ErrorBoundary is working, the app should render normally
-    expect(screen.getByTestId("entrance")).toBeInTheDocument();
-  });
-
-  it("should be wrapped in AuthProvider", () => {
-    // This is implicitly tested by the mock working correctly
-    render(<App />);
-    expect(screen.getByTestId("entrance")).toBeInTheDocument();
-  });
-
-  it("should be wrapped in BrowserRouter", () => {
-    // This is implicitly tested by the app rendering without router errors
-    render(<App />);
-    expect(screen.getByTestId("entrance")).toBeInTheDocument();
-  });
-
-  it("should be wrapped in QueryClientProvider", () => {
-    // This is implicitly tested by the app rendering without query client errors
-    render(<App />);
-    expect(screen.getByTestId("entrance")).toBeInTheDocument();
-  });
-
-  it("should have correct component hierarchy", () => {
-    const { container } = render(<App />);
-
-    // Check that main container div exists
-    const mainDiv = container.querySelector(".flex.h-full.w-full");
-    expect(mainDiv).toBeInTheDocument();
-  });
-});
-
-describe("App Error Handling", () => {
-  it("should handle errors gracefully", () => {
-    // Suppress console errors for this test
-    const originalError = console.error;
-    console.error = vi.fn();
-
-    // This tests that the ErrorBoundary catches errors
-    expect(() => render(<App />)).not.toThrow();
-
-    console.error = originalError;
-  });
-});
-
-describe("App Configuration", () => {
-  it("should have QueryClient with correct default options", async () => {
-    // The QueryClient is configured in App.tsx
-    // This test verifies the app initializes correctly with the configuration
-    expect(() => render(<App />)).not.toThrow();
+  it("AuthProvider renders children", () => {
+    const queryClient = new QueryClient();
+    render(
+      <AuthProvider>
+        <MemoryRouter>
+          <QueryClientProvider client={queryClient}>
+            <span data-testid="nested-child">nested</span>
+          </QueryClientProvider>
+        </MemoryRouter>
+      </AuthProvider>
+    );
+    expect(screen.getByTestId("nested-child")).toBeInTheDocument();
   });
 });

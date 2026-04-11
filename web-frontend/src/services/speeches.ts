@@ -37,10 +37,7 @@ export const UltimateSpeech = async (results: Results) => {
         Last but not least, it is important to mention that this process was executed under the supervision of blockchain technology to enhance the accuracy, efficiency, and integrity of our elections. Thank you all for joining us tonight. As we wrap up our broadcast, let us remember, together we strive for a better America. Good night, may peace be upon you!
         Thank you !!!
     `;
-
-  console.log(str);
-
-  return str;
+return str;
 };
 
 // Example usage with mock data

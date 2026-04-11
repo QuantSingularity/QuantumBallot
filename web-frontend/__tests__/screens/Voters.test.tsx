@@ -1,73 +1,49 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import axios from "axios";
-import { BrowserRouter } from "react-router-dom";
-import { vi } from "vitest";
-import Voters from "@/screens/Voters";
+import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Mock components used in Voters screen
+vi.mock("@/context/AuthContext", () => ({
+  useAuth: () => ({ authState: { authenticated: true, name: "Test User" } }),
+}));
+
+vi.mock("@/components/toast/toaster", () => ({
+  Toaster: () => <div data-testid="toaster" />,
+}));
+
+vi.mock("@/components/toast/use-toast", () => ({
+  useToast: () => ({ toast: vi.fn() }),
+}));
+
 vi.mock("@/tables/voters_table/page", () => ({
-  default: () => <div data-testid="voters-table">Voters Table Component</div>,
+  default: ({ toast }: any) => (
+    <div data-testid="voters-table">Voters Table {toast ? "with-toast" : ""}</div>
+  ),
 }));
 
-vi.mock("@/components/ui/toast", () => ({
-  useToast: () => ({
-    toast: vi.fn(),
-  }),
-}));
-
-vi.mock("axios");
+import Voters from "@/screens/Voters";
 
 describe("Voters Component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-
-    // Mock axios.get to return voters data
-    (axios.get as jest.Mock).mockResolvedValue({
-      data: {
-        voters: [
-          { id: 1, name: "John Doe", status: "verified" },
-          { id: 2, name: "Jane Smith", status: "pending" },
-        ],
-      },
-    });
   });
 
-  it("renders voters screen with title and table", () => {
-    render(
-      <BrowserRouter>
-        <Voters />
-      </BrowserRouter>,
-    );
+  it("renders the Voters heading", () => {
+    render(<MemoryRouter><Voters /></MemoryRouter>);
+    expect(screen.getByText("Voters")).toBeInTheDocument();
+  });
 
-    expect(screen.getByText(/Voters/i)).toBeInTheDocument();
+  it("renders the voters table", () => {
+    render(<MemoryRouter><Voters /></MemoryRouter>);
     expect(screen.getByTestId("voters-table")).toBeInTheDocument();
   });
 
-  it("displays load/refresh button", () => {
-    render(
-      <BrowserRouter>
-        <Voters />
-      </BrowserRouter>,
-    );
-
-    const loadButton = screen.getByRole("button", {
-      name: /Load \/ Refresh Voters/i,
-    });
-    expect(loadButton).toBeInTheDocument();
+  it("renders toaster", () => {
+    render(<MemoryRouter><Voters /></MemoryRouter>);
+    expect(screen.getByTestId("toaster")).toBeInTheDocument();
   });
 
-  it("calls API when load/refresh button is clicked", () => {
-    render(
-      <BrowserRouter>
-        <Voters />
-      </BrowserRouter>,
-    );
-
-    const loadButton = screen.getByRole("button", {
-      name: /Load \/ Refresh Voters/i,
-    });
-    fireEvent.click(loadButton);
-
-    expect(axios.get).toHaveBeenCalled();
+  it("passes toast to table", () => {
+    render(<MemoryRouter><Voters /></MemoryRouter>);
+    expect(screen.getByText(/with-toast/)).toBeInTheDocument();
   });
 });

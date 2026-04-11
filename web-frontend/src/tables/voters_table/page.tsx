@@ -1,13 +1,11 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { getItemAsync } from "@/context/SecureStore";
 import type { Voter } from "@/data_types";
 import { GLOBAL_VARIABLES, TOKEN_KEY } from "@/global/globalVariables";
-
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,16 +23,34 @@ import { DataTable } from "./data-table";
 function TableVoters({ toast }: { toast: (...params: any[]) => void }) {
   const [data, setData] = useState<Voter[]>([]);
 
+  const removeExtraEquals = (str: string): string => {
+    if (!str.endsWith("==")) return str;
+    return str.slice(0, -2);
+  };
+
+  const onPressLoadIdentifiers = useCallback(() => {
+    axios
+      .get(`http://${GLOBAL_VARIABLES.LOCALHOST}/api/blockchain/voters`)
+      .then((response) => {
+        const voters = response.data.voters;
+        if (voters) {
+          const newData = voters.map((element: any, index: number) => ({
+            id: index + 1,
+            identifier: removeExtraEquals(element.identifier),
+            electoralId: "*******",
+            choiceCode: element.choiceCode,
+            state: element.state ? "true" : "false",
+            secret: element.secret,
+          }));
+          setData([...newData]);
+        }
+      })
+      .catch((error) => console.error(error));
+  }, []);
+
   useEffect(() => {
     onPressLoadIdentifiers();
   }, [onPressLoadIdentifiers]);
-
-  const removeExtraEquals = (str: string): string => {
-    if (str.substring(0, str.length - 2) !== "==") {
-      return str;
-    }
-    return str.substring(0, str.length - 2); // Removes the extra ==
-  };
 
   const onPressGenerateIdentifiers = async () => {
     const token = await getItemAsync(TOKEN_KEY);
@@ -42,12 +58,9 @@ function TableVoters({ toast }: { toast: (...params: any[]) => void }) {
     axios.defaults.headers.common.Authorization = `Bearer ${token}`;
 
     axios
-      .get(
-        "http://" +
-          GLOBAL_VARIABLES.LOCALHOST +
-          "/api/committee/generate-identifiers",
-        { withCredentials: true },
-      )
+      .get(`http://${GLOBAL_VARIABLES.LOCALHOST}/api/committee/generate-identifiers`, {
+        withCredentials: true,
+      })
       .then((response) => {
         const votersGenerated = response.data.voters;
         const newData = votersGenerated.map((element: any, index: number) => ({
@@ -58,7 +71,6 @@ function TableVoters({ toast }: { toast: (...params: any[]) => void }) {
           state: element.state ? "true" : "false",
           secret: element.secret,
         }));
-
         setData([...newData]);
       })
       .catch((error) => console.error(error));
@@ -66,11 +78,7 @@ function TableVoters({ toast }: { toast: (...params: any[]) => void }) {
 
   const onPressDeployBlockchain = () => {
     axios
-      .get(
-        "http://" +
-          GLOBAL_VARIABLES.LOCALHOST +
-          "/api/blockchain/deploy-voters",
-      )
+      .get(`http://${GLOBAL_VARIABLES.LOCALHOST}/api/blockchain/deploy-voters`)
       .then((response) => {
         const votersGenerated = response.data.voters;
         const newData = votersGenerated.map((element: any, index: number) => ({
@@ -81,82 +89,43 @@ function TableVoters({ toast }: { toast: (...params: any[]) => void }) {
           state: element.state ? "true" : "false",
           secret: element.secret,
         }));
-
         setData([...newData]);
-
-        toast({
-          title: "Feedback",
-          description: "Success! Data deployed successfully ...",
-        });
+        toast({ title: "Feedback", description: "Success! Data deployed successfully ..." });
       })
-      .catch((error) => {
-        toast({
-          title: "Feedback",
-          description: "Error! Something went wrong.",
-        });
-        console.error(error);
+      .catch(() => {
+        toast({ title: "Feedback", description: "Error! Something went wrong." });
       });
-  };
-
-  const openDialog = () => {
-    return (
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
-          <span className="max-w-lg inline-block text-md bg-green-900 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-gray-800">
-            Deploy to Blockchain
-          </span>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently erase all data
-              stored in the smart-contract and register the new data.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction>
-              <Button onClick={onPressDeployBlockchain}>Continue</Button>
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    );
-  };
-
-  const onPressLoadIdentifiers = () => {
-    axios
-      .get(`http://${GLOBAL_VARIABLES.LOCALHOST}/api/blockchain/voters`)
-      .then((response) => {
-        const voters = response.data.voters;
-
-        if (voters) {
-          const newData = voters.map((element: any, index: number) => ({
-            id: index + 1,
-            identifier: removeExtraEquals(element.identifier),
-            electoralId: removeExtraEquals("*******"),
-            choiceCode: element.choiceCode,
-            state: element.state ? "true" : "false",
-            secret: element.secret,
-          }));
-
-          setData([...newData]);
-        }
-      })
-      .catch((error) => console.error(error));
   };
 
   return (
     <section>
-      <div className="flex gap-2 py-4">
+      <div className="flex gap-2 py-4 flex-wrap">
         <Button className="max-w-lg" onClick={onPressGenerateIdentifiers}>
           Generate Identifiers
         </Button>
         <Button className="max-w-lg" onClick={onPressLoadIdentifiers}>
           Load Identifiers
         </Button>
-        {openDialog()}
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <span className="inline-flex items-center text-sm bg-green-900 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-green-800 transition-colors">
+              Deploy to Blockchain
+            </span>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently erase all data
+                stored in the smart-contract and register the new data.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={onPressDeployBlockchain}>Continue</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
       <DataTable columns={columns} data={data} />
     </section>

@@ -1,79 +1,38 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { BrowserRouter } from "react-router-dom";
-import { vi } from "vitest";
-import AuthContext from "@/context/AuthContext";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import { describe, it, expect, vi } from "vitest";
 import NoPage from "@/screens/NoPage";
 
-describe("NoPage Component", () => {
-  // Mock the AuthContext
-  const mockAuthContext = {
-    isLoggedIn: vi.fn(),
-    onLogOut: vi.fn(),
-    updateImages: vi.fn(),
-    user: {
-      name: "Test User",
-      role: "admin",
-    },
-  };
+const mockNavigate = vi.fn();
+vi.mock("react-router-dom", async () => {
+  const actual = await vi.importActual("react-router-dom");
+  return { ...actual, useNavigate: () => mockNavigate };
+});
 
-  beforeEach(() => {
-    vi.clearAllMocks();
+describe("NoPage Component", () => {
+  it("renders 404 heading", () => {
+    render(<MemoryRouter><NoPage /></MemoryRouter>);
+    expect(screen.getByText("404")).toBeInTheDocument();
   });
 
-  it("renders 404 page with error message", () => {
-    mockAuthContext.isLoggedIn.mockReturnValue(true);
-
-    render(
-      <BrowserRouter>
-        <AuthContext.Provider value={mockAuthContext}>
-          <NoPage />
-        </AuthContext.Provider>
-      </BrowserRouter>,
-    );
-
-    expect(screen.getByText(/404/i)).toBeInTheDocument();
+  it("renders Page Not Found message", () => {
+    render(<MemoryRouter><NoPage /></MemoryRouter>);
     expect(screen.getByText(/Page Not Found/i)).toBeInTheDocument();
   });
 
-  it("displays return to home button", () => {
-    mockAuthContext.isLoggedIn.mockReturnValue(true);
-
-    render(
-      <BrowserRouter>
-        <AuthContext.Provider value={mockAuthContext}>
-          <NoPage />
-        </AuthContext.Provider>
-      </BrowserRouter>,
-    );
-
-    const homeButton = screen.getByRole("button", { name: /Return to Home/i });
-    expect(homeButton).toBeInTheDocument();
+  it("renders descriptive message", () => {
+    render(<MemoryRouter><NoPage /></MemoryRouter>);
+    expect(screen.getByText(/doesn't exist or has been moved/i)).toBeInTheDocument();
   });
 
-  it("navigates to home page when button is clicked", () => {
-    mockAuthContext.isLoggedIn.mockReturnValue(true);
+  it("renders a back to dashboard button", () => {
+    render(<MemoryRouter><NoPage /></MemoryRouter>);
+    expect(screen.getByText(/Back to Dashboard/i)).toBeInTheDocument();
+  });
 
-    // Mock useNavigate
-    const mockNavigate = vi.fn();
-    vi.mock("react-router-dom", async () => {
-      const actual = await vi.importActual("react-router-dom");
-      return {
-        ...actual,
-        useNavigate: () => mockNavigate,
-      };
-    });
-
-    render(
-      <BrowserRouter>
-        <AuthContext.Provider value={mockAuthContext}>
-          <NoPage />
-        </AuthContext.Provider>
-      </BrowserRouter>,
-    );
-
-    const homeButton = screen.getByRole("button", { name: /Return to Home/i });
-    fireEvent.click(homeButton);
-
-    expect(mockNavigate).toHaveBeenCalledWith("/");
+  it("navigates to dashboard on button click", () => {
+    render(<MemoryRouter><NoPage /></MemoryRouter>);
+    fireEvent.click(screen.getByText(/Back to Dashboard/i));
+    expect(mockNavigate).toHaveBeenCalledWith("/dashboard");
   });
 });

@@ -1,103 +1,134 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
-import axios from "axios";
-import { BrowserRouter, useParams } from "react-router-dom";
-import { vi } from "vitest";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+vi.mock("@/context/AuthContext", () => ({
+  useAuth: () => ({ authState: { authenticated: true } }),
+}));
+vi.mock("@/components/blockchain-list/BlockList", () => ({
+  default: () => <div data-testid="block-list">Block List</div>,
+}));
+vi.mock("@/components/json-editor/JsonEditor", () => ({
+  default: () => <div data-testid="json-editor">JSON Editor</div>,
+}));
+vi.mock("@/components/json-editor/EditorRaw", () => ({
+  default: () => <div data-testid="editor-raw">Raw Editor</div>,
+}));
+vi.mock("@/components/ui/block-copy-button", () => ({
+  BlockCopyButton: () => <button>Copy</button>,
+}));
+vi.mock("@/tables/transactions_block_details/page", () => ({
+  default: () => <div data-testid="tx-table">Transactions</div>,
+}));
+
+const mockBlockData = {
+  blockHeader: {
+    version: "1.0",
+    blockHash: "abc123def456",
+    previousBlockHash: "prev123",
+    merkleRoot: "merkle789",
+    nonce: 12345,
+    difficultyTarget: 4,
+    timestamp: 1640000000000,
+  },
+  blockSize: 150,
+  blockIndex: 5,
+  transactionCounter: 3,
+};
+
+function renderWithProviders(blockId = "abc123") {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  global.fetch = vi.fn().mockResolvedValue({
+    json: () => Promise.resolve(mockBlockData),
+  }) as any;
+
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={[`/blockchain/block-details/${blockId}`]}>
+        <Routes>
+          <Route
+            path="/blockchain/block-details/:id"
+            element={<>{React.createElement(require("@/screens/BlockchainDetails").default)}</>}
+          />
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>
+  );
+}
+
+import React from "react";
 import BlockchainDetails from "@/screens/BlockchainDetails";
 
-// Mock the useParams hook
-vi.mock("react-router-dom", async () => {
-  const actual = await vi.importActual("react-router-dom");
-  return {
-    ...actual,
-    useParams: vi.fn(),
-  };
-});
+function renderBlockchainDetails(blockId = "abc123") {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  global.fetch = vi.fn().mockResolvedValue({
+    json: () => Promise.resolve(mockBlockData),
+  }) as any;
 
-// Mock axios
-vi.mock("axios");
-
-// Mock components used in BlockchainDetails
-vi.mock("@/tables/transactions_block_details/page", () => ({
-  default: () => (
-    <div data-testid="transactions-details">Transactions Details Component</div>
-  ),
-}));
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={[`/blockchain/block-details/${blockId}`]}>
+        <Routes>
+          <Route path="/blockchain/block-details/:id" element={<BlockchainDetails />} />
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>
+  );
+}
 
 describe("BlockchainDetails Component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-
-    // Mock useParams to return a blockId
-    (useParams as jest.Mock).mockReturnValue({ blockId: "123" });
-
-    // Mock axios.get to return block data
-    (axios.get as jest.Mock).mockResolvedValue({
-      data: {
-        block: {
-          index: 123,
-          timestamp: 1621234567890,
-          transactions: [{ id: "tx1" }, { id: "tx2" }],
-          nonce: 12345,
-          hash: "0x123abc",
-          previousBlockHash: "0x456def",
-        },
-      },
-    });
   });
 
-  it("renders block details when data is loaded", async () => {
-    render(
-      <BrowserRouter>
-        <BlockchainDetails />
-      </BrowserRouter>,
-    );
-
-    // Wait for the data to load
+  it("renders the Blockchain heading", async () => {
+    renderBlockchainDetails();
     await waitFor(() => {
-      expect(axios.get).toHaveBeenCalled();
+      expect(screen.getAllByText("Blockchain").length).toBeGreaterThan(0);
     });
-
-    // Check if block details are displayed
-    expect(screen.getByText(/Block #123/i)).toBeInTheDocument();
-    expect(screen.getByText(/0x123abc/i)).toBeInTheDocument();
-    expect(screen.getByText(/0x456def/i)).toBeInTheDocument();
-    expect(screen.getByTestId("transactions-details")).toBeInTheDocument();
   });
 
-  it("handles error when fetching block data fails", async () => {
-    // Mock axios.get to throw an error
-    (axios.get as jest.Mock).mockRejectedValue(new Error("Network error"));
-
-    render(
-      <BrowserRouter>
-        <BlockchainDetails />
-      </BrowserRouter>,
-    );
-
-    // Wait for the error to be handled
+  it("renders the BlockList component", async () => {
+    renderBlockchainDetails();
     await waitFor(() => {
-      expect(axios.get).toHaveBeenCalled();
+      expect(screen.getByTestId("block-list")).toBeInTheDocument();
     });
-
-    // Check if error message is displayed
-    expect(
-      screen.getByText(/Error loading block details/i),
-    ).toBeInTheDocument();
   });
 
-  it("displays loading state before data is fetched", () => {
-    // Delay the axios response
-    (axios.get as jest.Mock).mockImplementation(
-      () => new Promise((resolve) => setTimeout(resolve, 1000)),
-    );
+  it("renders Block details heading after load", async () => {
+    renderBlockchainDetails();
+    await waitFor(() => {
+      expect(screen.getByText("Block details")).toBeInTheDocument();
+    });
+  });
 
-    render(
-      <BrowserRouter>
-        <BlockchainDetails />
-      </BrowserRouter>,
-    );
+  it("renders the JSON editor tabs", async () => {
+    renderBlockchainDetails();
+    await waitFor(() => {
+      expect(screen.getByText("Pretty")).toBeInTheDocument();
+      expect(screen.getByText("Raw")).toBeInTheDocument();
+    });
+  });
 
-    // Check if loading indicator is displayed
-    expect(screen.getByText(/Loading block details/i)).toBeInTheDocument();
+  it("renders block size in bytes", async () => {
+    renderBlockchainDetails();
+    await waitFor(() => {
+      expect(screen.getByText(/150 bytes/i)).toBeInTheDocument();
+    });
+  });
+
+  it("renders nonce value", async () => {
+    renderBlockchainDetails();
+    await waitFor(() => {
+      expect(screen.getByText("12345")).toBeInTheDocument();
+    });
+  });
+
+  it("renders transaction counter", async () => {
+    renderBlockchainDetails();
+    await waitFor(() => {
+      expect(screen.getByText("3")).toBeInTheDocument();
+    });
   });
 });

@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use client";
-
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -33,8 +31,7 @@ export function DatePicker({ date, setDate }: any) {
           selected={date}
           onSelect={(x) => {
             setDate(x);
-            console.log("x: ", x);
-          }}
+}}
           initialFocus
         />
       </PopoverContent>

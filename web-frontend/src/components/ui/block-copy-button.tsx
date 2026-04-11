@@ -1,5 +1,3 @@
-"use client";
-
 import { CheckIcon, ClipboardIcon } from "lucide-react";
 import * as React from "react";
 import { Button, type ButtonProps } from "./button";
@@ -23,11 +21,12 @@ export function BlockCopyButton({
 } & ButtonProps) {
   const [hasCopied, setHasCopied] = React.useState(false);
 
+  // Reset after 2s from when copy was triggered (not just on mount)
   React.useEffect(() => {
-    setTimeout(() => {
-      setHasCopied(false);
-    }, 2000);
-  }, []);
+    if (!hasCopied) return;
+    const timer = setTimeout(() => setHasCopied(false), 2000);
+    return () => clearTimeout(timer);
+  }, [hasCopied]);
 
   return (
     <TooltipProvider>
@@ -38,13 +37,8 @@ export function BlockCopyButton({
             variant="outline"
             className="h-7 w-7 rounded-[5px] p-2 [&_svg]:size-3.5"
             onClick={() => {
-              navigator.clipboard.writeText(code);
-              trackEvent({
-                name: event,
-                properties: {
-                  name,
-                },
-              });
+              navigator.clipboard.writeText(code).catch(() => {});
+              trackEvent({ name: event, properties: { name } });
               setHasCopied(true);
             }}
             {...props}

@@ -1,18 +1,6 @@
-import jwt from "jsonwebtoken";
-
-const verifyJWT = (req, res, next) => {
-  const authHeader = req.headers.authorization || req.headers.Authorization;
-  // console.log("AuthHeader: ", authHeader);
-
-  if (!authHeader?.startsWith("Bearer ")) return res.sendStatus(401);
-  const token = authHeader.split(" ")[1];
-
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-    if (err) return res.sendStatus(403); //invalid token
-    req.user = decoded.username;
-    req.roles = decoded.roles;
-    next();
-  });
-};
-
-export default verifyJWT;
+/**
+ * SERVER-SIDE ONLY - This file should not be imported in the browser frontend.
+ * It uses jsonwebtoken and Express middleware patterns which only work in Node.js.
+ * This file belongs in the backend server, not the web frontend.
+ */
+export {};

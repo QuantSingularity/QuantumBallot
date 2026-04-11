@@ -1,88 +1,49 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { BrowserRouter } from "react-router-dom";
-import { vi } from "vitest";
-import AuthContext from "@/context/AuthContext";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import Home from "@/screens/Home";
 
-describe("Home Component", () => {
-  // Mock the AuthContext
-  const mockAuthContext = {
-    isLoggedIn: vi.fn(),
-    onLogOut: vi.fn(),
-    updateImages: vi.fn(),
-    user: {
-      name: "Test User",
-      role: "admin",
-    },
-  };
+vi.mock("@/context/AuthContext", () => ({
+  useAuth: () => ({ authState: { authenticated: true, name: "Test User" } }),
+}));
 
+describe("Home Component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("renders welcome message and navigation options", () => {
-    mockAuthContext.isLoggedIn.mockReturnValue(true);
-
-    render(
-      <BrowserRouter>
-        <AuthContext.Provider value={mockAuthContext}>
-          <Home />
-        </AuthContext.Provider>
-      </BrowserRouter>,
-    );
-
-    expect(
-      screen.getByText(/Welcome to the Blockchain Voting System/i),
-    ).toBeInTheDocument();
-    expect(screen.getByText(/Get Started/i)).toBeInTheDocument();
+  it("renders the main heading", () => {
+    render(<MemoryRouter><Home /></MemoryRouter>);
+    expect(screen.getByText(/Blockchain Voting System/i)).toBeInTheDocument();
   });
 
-  it("displays different content for logged in and logged out users", () => {
-    // Test logged in state
-    mockAuthContext.isLoggedIn.mockReturnValue(true);
-
-    const { rerender } = render(
-      <BrowserRouter>
-        <AuthContext.Provider value={mockAuthContext}>
-          <Home />
-        </AuthContext.Provider>
-      </BrowserRouter>,
-    );
-
-    expect(screen.getByText(/Dashboard/i)).toBeInTheDocument();
-
-    // Test logged out state
-    mockAuthContext.isLoggedIn.mockReturnValue(false);
-
-    rerender(
-      <BrowserRouter>
-        <AuthContext.Provider value={mockAuthContext}>
-          <Home />
-        </AuthContext.Provider>
-      </BrowserRouter>,
-    );
-
-    expect(screen.getByText(/Login/i)).toBeInTheDocument();
+  it("renders all three feature cards", () => {
+    render(<MemoryRouter><Home /></MemoryRouter>);
+    expect(screen.getByText("Secure Voting")).toBeInTheDocument();
+    expect(screen.getByText("Transparent Process")).toBeInTheDocument();
+    expect(screen.getByText("Real-time Results")).toBeInTheDocument();
   });
 
-  it("navigates to correct routes when links are clicked", () => {
-    mockAuthContext.isLoggedIn.mockReturnValue(true);
+  it("renders the description text", () => {
+    render(<MemoryRouter><Home /></MemoryRouter>);
+    expect(screen.getByText(/secure, transparent, and efficient/i)).toBeInTheDocument();
+  });
 
-    render(
-      <BrowserRouter>
-        <AuthContext.Provider value={mockAuthContext}>
-          <Home />
-        </AuthContext.Provider>
-      </BrowserRouter>,
-    );
+  it("renders election action cards", () => {
+    render(<MemoryRouter><Home /></MemoryRouter>);
+    expect(screen.getByText("Current Election")).toBeInTheDocument();
+    expect(screen.getByText("Election Results")).toBeInTheDocument();
+  });
 
-    // Find and click dashboard link if it exists
-    const dashboardLink = screen.queryByText(/Dashboard/i);
-    if (dashboardLink) {
-      fireEvent.click(dashboardLink);
-      // In a real test, we would check if navigation occurred
-      // but in this mock setup we're just testing the click event
-      expect(true).toBeTruthy();
-    }
+  it("renders navigation buttons", () => {
+    render(<MemoryRouter><Home /></MemoryRouter>);
+    expect(screen.getByRole("button", { name: /View Candidates/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /View Results/i })).toBeInTheDocument();
+  });
+
+  it("navigation buttons are clickable", () => {
+    render(<MemoryRouter><Home /></MemoryRouter>);
+    const viewCandidatesBtn = screen.getByRole("button", { name: /View Candidates/i });
+    expect(() => fireEvent.click(viewCandidatesBtn)).not.toThrow();
   });
 });

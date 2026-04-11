@@ -1,5 +1,3 @@
-"use client";
-
 import AmericaMap from "./components/AmericaMap/AmericaMap";
 
 function GoogleMap() {

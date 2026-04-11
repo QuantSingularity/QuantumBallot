@@ -6,30 +6,24 @@ import { columns } from "./columns";
 import { DataTable } from "./data-table";
 
 export default function TableTransactionsBlockDetails({ detail }: any) {
-  const getTransactionsDetails = (transactions: any) => {
-    const res = transactions.map((x: any, index: any) => {
-      const newVal = {
-        id: index + 1,
-        transactionHash: x.transactionHash,
-        identifier: x.data.identifier,
-        choiceCode: x.data.choiceCode,
-        voteTime: x.data.voteTime,
-      };
-
-      return newVal;
-    });
-
-    return res;
+  const getTransactionsDetails = (transactions: any[]): Transaction[] => {
+    if (!Array.isArray(transactions)) return [];
+    return transactions.map((x: any, index: number) => ({
+      id: index + 1,
+      transactionHash: x.transactionHash ?? "",
+      identifier: x.data?.identifier ?? "",
+      choiceCode: x.data?.choiceCode ?? "",
+      voteTime: x.data?.voteTime ?? "",
+    }));
   };
 
-  const [data, setData] = useState<Transaction[]>(
-    getTransactionsDetails(detail.transactions),
-  );
+  const [data, setData] = useState<Transaction[]>([]);
 
   useEffect(() => {
-    // console.log("Data -> ", detail['transactions']);
-    setData(getTransactionsDetails(detail.transactions));
-  }, [detail, getTransactionsDetails]);
+    if (detail?.transactions) {
+      setData(getTransactionsDetails(detail.transactions));
+    }
+  }, [detail]);
 
   return (
     <section>

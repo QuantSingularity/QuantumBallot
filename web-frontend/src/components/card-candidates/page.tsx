@@ -27,14 +27,14 @@ export default function CardCandidates({
             className="p-3"
             style={{
               backgroundColor: backgroundColor,
-              width: "100",
+              width: "100%",
               height: "100%",
             }}
           >
             <img src={TopCountryBackground} alt="TopBackground" />
           </div>
 
-          <div style={{ width: "100", height: "100%" }}>
+          <div style={{ width: "100%", height: "100%" }}>
             <img src={BottomBackgroundCandidateBlack} alt="BottomBackground" />
           </div>
 

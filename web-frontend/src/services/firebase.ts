@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   getDownloadURL,
   getStorage,
@@ -34,21 +35,18 @@ export const useFirebaseStorage = (path: string) => {
 };
 
 export const getItemName = (item: StorageReference): string => {
-  // Use a safer way to get the filename from the reference
   const fullPath = item.fullPath;
   const pathParts = fullPath.split("/");
   return pathParts[pathParts.length - 1];
 };
 
 export const getUsername = (item: StorageReference): string => {
-  // Use a safer way to get the username from the reference
   const fullPath = item.fullPath;
   const pathParts = fullPath.split("/");
   return pathParts.length > 1 ? pathParts[1] : "";
 };
 
 export const getSpeech = (item: StorageReference): string => {
-  // Use a safer way to get the speech from the reference
   const fullPath = item.fullPath;
   const pathParts = fullPath.split("/");
   return pathParts.length > 1 ? pathParts[1] : "";
@@ -67,5 +65,41 @@ export const uploadImage = async (
   } catch (error) {
     console.error("Error uploading image:", error);
     throw error;
+  }
+};
+
+export const loadImages = async (
+  setImageList: (updater: (prev: Record<string, string> | undefined) => Record<string, string>) => void,
+): Promise<void> => {
+  try {
+    const storage = getStorage(app);
+    const imageListRef = ref(storage, "images");
+    const res = await listAll(imageListRef);
+    res.items.forEach((item) => {
+      getDownloadURL(item).then((url) => {
+        const parts = item.fullPath.split("/");
+        const username = parts.length > 1 ? parts[1] : parts[0];
+        setImageList((prev) => ({ ...prev, [username]: url }));
+      });
+    });
+  } catch (error) {
+    console.error("Error loading images:", error);
+  }
+};
+
+export const uploadImageWithName = async (
+  file: File | null | undefined,
+  filename: string,
+  setImageList: (updater: (prev: Record<string, string> | undefined) => Record<string, string>) => void,
+): Promise<void> => {
+  if (!file || filename === "") return;
+  try {
+    const storage = getStorage(app);
+    const imageRef = ref(storage, `images/${filename}`);
+    const snapshot = await uploadBytes(imageRef, file);
+    const url = await getDownloadURL(snapshot.ref);
+    setImageList((prev) => ({ ...prev, [filename]: url }));
+  } catch (error) {
+    console.error("Error uploading image:", error);
   }
 };

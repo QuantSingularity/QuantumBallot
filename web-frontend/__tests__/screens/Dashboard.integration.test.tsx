@@ -4,37 +4,48 @@ import axios from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import Dashboard from "@/screens/Dashboard";
 
-// Mock axios
 vi.mock("axios");
 
-// Mock the auth context
-vi.mock("@/context/AuthContext", async () => {
-  const actual = await vi.importActual("@/context/AuthContext");
-  return {
-    ...actual,
-    useAuth: () => ({
-      setMapData: vi.fn(),
-      setPartiesData: vi.fn(),
-      provinces: ["Province1", "Province2"],
-      topVotesPerProvinces: [],
-      setTopVotesPerProvinces: vi.fn(),
-      imageList: {},
-    }),
-  };
-});
-
-// Mock Google Map component
-vi.mock("@/geomap/GoogleMap", () => ({
-  default: () => <div>Google Map Mock</div>,
+vi.mock("@/context/AuthContext", () => ({
+  useAuth: () => ({
+    setMapData: vi.fn(),
+    setPartiesData: vi.fn(),
+    provinces: ["Province1", "Province2"],
+    topVotesPerProvinces: [],
+    setTopVotesPerProvinces: vi.fn(),
+    imageList: {},
+  }),
 }));
 
-// Mock chart components
+vi.mock("@/geomap/GoogleMap", () => ({
+  default: () => <div data-testid="google-map">Google Map Mock</div>,
+}));
+
 vi.mock("@/components/dashboard-components/vertical-bar", () => ({
-  default: () => <div>Vertical Bar Chart</div>,
+  default: () => <div data-testid="vertical-bar">Vertical Bar Chart</div>,
 }));
 
 vi.mock("@/components/dashboard-components/line-chart", () => ({
-  default: () => <div>Line Chart</div>,
+  default: () => <div data-testid="line-chart">Line Chart</div>,
+}));
+
+vi.mock("@mui/joy/CircularProgress", () => ({
+  default: ({ children, value }: any) => (
+    <div data-testid="circular-progress" data-value={value}>{children}</div>
+  ),
+}));
+
+vi.mock("@mui/material/LinearProgress", () => ({
+  default: ({ value }: any) => <div data-testid="linear-progress" data-value={value} />,
+}));
+
+vi.mock("@mui/material/Stack", () => ({
+  default: ({ children }: any) => <div>{children}</div>,
+}));
+
+vi.mock("@mui/material/styles", () => ({
+  createTheme: () => ({}),
+  ThemeProvider: ({ children }: any) => <>{children}</>,
 }));
 
 const mockResultsData = {
@@ -42,26 +53,12 @@ const mockResultsData = {
     {
       numVotes: 100,
       percentage: 45.5,
-      candidate: {
-        code: 1,
-        name: "Candidate One",
-        party: "Party A",
-        acronym: "PA",
-        status: "active",
-        toast: vi.fn(),
-      },
+      candidate: { code: 1, name: "Candidate One", party: "Party A", acronym: "PA", status: "active", toast: vi.fn() },
     },
     {
       numVotes: 80,
       percentage: 36.4,
-      candidate: {
-        code: 2,
-        name: "Candidate Two",
-        party: "Party B",
-        acronym: "PB",
-        status: "active",
-        toast: vi.fn(),
-      },
+      candidate: { code: 2, name: "Candidate Two", party: "Party B", acronym: "PB", status: "active", toast: vi.fn() },
     },
   ],
   expectedTotalVotes: 220,
@@ -73,105 +70,86 @@ const mockResultsData = {
   },
   startTime: 1640000000,
   endTime: 1640086400,
-  winner: {
-    code: 1,
-    name: "Candidate One",
-    party: "Party A",
-    acronym: "PA",
-    status: "active",
-    toast: vi.fn(),
-  },
+  winner: { code: 1, name: "Candidate One", party: "Party A", acronym: "PA", status: "active", toast: vi.fn() },
   averageTimePerVote: 5,
   averageVotePerProvince: 90,
   votesPerDay: {},
   votesPerParty: {},
 };
 
-describe("Dashboard Integration Tests", () => {
-  let queryClient: QueryClient;
+function renderWithClient(ui: React.ReactElement) {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
+}
 
+describe("Dashboard Integration Tests", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    queryClient = new QueryClient({
-      defaultOptions: {
-        queries: { retry: false },
-      },
-    });
-
-    // Mock successful API response
-    (axios.get as any) = vi.fn().mockResolvedValue({
-      data: mockResultsData,
-    });
+    (axios.get as any) = vi.fn().mockResolvedValue({ data: mockResultsData });
   });
 
-  it("should render dashboard without crashing", async () => {
-    render(
-      <QueryClientProvider client={queryClient}>
-        <Dashboard />
-      </QueryClientProvider>,
-    );
-
-    // Wait for async operations to complete
-    await waitFor(() => {
-      expect(axios.get).toHaveBeenCalled();
-    });
+  it("renders without crashing", async () => {
+    renderWithClient(<Dashboard />);
+    await waitFor(() => expect(axios.get).toHaveBeenCalled());
   });
 
-  it("should fetch election results on mount", async () => {
-    render(
-      <QueryClientProvider client={queryClient}>
-        <Dashboard />
-      </QueryClientProvider>,
-    );
-
+  it("calls the results computed API on mount", async () => {
+    renderWithClient(<Dashboard />);
     await waitFor(() => {
       expect(axios.get).toHaveBeenCalledWith(
-        expect.stringContaining("/api/blockchain/get-results-computed"),
+        expect.stringContaining("/api/blockchain/get-results-computed")
       );
     });
   });
 
-  it("should handle API errors gracefully", async () => {
-    (axios.get as any) = vi.fn().mockRejectedValue(new Error("API Error"));
-
-    render(
-      <QueryClientProvider client={queryClient}>
-        <Dashboard />
-      </QueryClientProvider>,
-    );
-
+  it("renders vote received section", async () => {
+    renderWithClient(<Dashboard />);
     await waitFor(() => {
-      expect(axios.get).toHaveBeenCalled();
+      expect(screen.getByText(/Votes Received/i)).toBeInTheDocument();
     });
-
-    // Component should still render even if API fails
-    expect(screen.queryByText("Google Map Mock")).toBeInTheDocument();
   });
 
-  it("should process election results correctly", async () => {
-    const setMapData = vi.fn();
-    const setPartiesData = vi.fn();
-    const setTopVotesPerProvinces = vi.fn();
-
-    vi.mock("@/context/AuthContext", () => ({
-      useAuth: () => ({
-        setMapData,
-        setPartiesData,
-        provinces: ["Province1", "Province2"],
-        topVotesPerProvinces: [],
-        setTopVotesPerProvinces,
-        imageList: {},
-      }),
-    }));
-
-    render(
-      <QueryClientProvider client={queryClient}>
-        <Dashboard />
-      </QueryClientProvider>,
-    );
-
+  it("renders top provinces section", async () => {
+    renderWithClient(<Dashboard />);
     await waitFor(() => {
-      expect(axios.get).toHaveBeenCalled();
+      expect(screen.getByText(/Top Provinces/i)).toBeInTheDocument();
+    });
+  });
+
+  it("renders top parties section", async () => {
+    renderWithClient(<Dashboard />);
+    await waitFor(() => {
+      expect(screen.getByText(/Top Parties/i)).toBeInTheDocument();
+    });
+  });
+
+  it("renders chart components", async () => {
+    renderWithClient(<Dashboard />);
+    await waitFor(() => {
+      expect(screen.getByTestId("line-chart")).toBeInTheDocument();
+      expect(screen.getByTestId("vertical-bar")).toBeInTheDocument();
+    });
+  });
+
+  it("renders the map section", async () => {
+    renderWithClient(<Dashboard />);
+    await waitFor(() => {
+      expect(screen.getByText(/Coverage Region/i)).toBeInTheDocument();
+    });
+  });
+
+  it("handles API errors gracefully without crashing", async () => {
+    (axios.get as any) = vi.fn().mockRejectedValue(new Error("API Error"));
+    renderWithClient(<Dashboard />);
+    await waitFor(() => expect(axios.get).toHaveBeenCalled());
+    // Should still render the layout
+    expect(screen.getByText(/Votes Received/i)).toBeInTheDocument();
+  });
+
+  it("shows statistics section header", async () => {
+    renderWithClient(<Dashboard />);
+    await waitFor(() => {
+      expect(screen.getByText(/Statistics by Province/i)).toBeInTheDocument();
     });
   });
 });

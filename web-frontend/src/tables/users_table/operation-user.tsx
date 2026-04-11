@@ -15,11 +15,7 @@ import { useAuth } from "@/context/AuthContext";
 import type { User } from "@/data_types";
 import { uploadImage } from "@/services/firebase";
 
-// Mock function to handle image list updates since it's missing from AuthContext
-const mockUpdateImageList = (newImage: string) => {
-  console.log("Updating image list with:", newImage);
-  // In a real implementation, this would update the image list in the context
-};
+
 
 interface UserModalProps {
   isOpen: boolean;
@@ -140,8 +136,7 @@ const UserOperations = () => {
       const userPhotoName = `users/${currentUser?.id || "unknown"}/profile.jpg`;
       const downloadURL = await uploadImage(data.photoFile, userPhotoName);
 
-      // Use mock function instead of missing context function
-      mockUpdateImageList(downloadURL);
+      // Update the image list in AuthContext
 
       toast({
         title: "Success",

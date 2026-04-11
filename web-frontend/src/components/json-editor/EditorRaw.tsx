@@ -1,18 +1,17 @@
 import { Editor } from "@monaco-editor/react";
+import type { editor } from "monaco-editor";
 import { useRef } from "react";
 
 type JsonProp = {
   data: Record<string, unknown>;
 };
 
-const JsonEditor = ({ data }: JsonProp) => {
-  const editorRef = useRef();
-  // Removed unused state variables
-  const language = "";
+const EditorRaw = ({ data }: JsonProp) => {
+  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
 
-  const onMount = (editor) => {
-    editorRef.current = editor;
-    editor.focus();
+  const onMount = (editorInstance: editor.IStandaloneCodeEditor) => {
+    editorRef.current = editorInstance;
+    editorInstance.focus();
   };
 
   return (
@@ -24,38 +23,22 @@ const JsonEditor = ({ data }: JsonProp) => {
         overflow: "hidden",
       }}
     >
-      <style>
-        {`
-          .scrollbar::-webkit-scrollbar {
-            width: 5px;
-          }
-          .scrollbar::-webkit-scrollbar-thumb {
-            background-color: #888;
-          }
-        `}
-      </style>
       <Editor
         options={{
-          minimap: {
-            enabled: true,
-          },
-          lineNumbers: "off", // Remove line number enumeration
+          minimap: { enabled: false },
+          lineNumbers: "off",
           readOnly: true,
-          padding: {
-            top: 10,
-            bottom: 10, // Add bottom padding if needed
-          },
-          scrollbar: {
-            verticalScrollbarSize: 5, // Adjust scrollbar width
-          },
+          padding: { top: 10, bottom: 10 },
+          scrollbar: { verticalScrollbarSize: 5 },
+          wordWrap: "on",
         }}
         height="75vh"
-        language={language}
-        defaultValue={data}
+        language="plaintext"
         onMount={onMount}
-        value={JSON.stringify(data, null, 2)}
+        value={JSON.stringify(data)}
       />
     </div>
   );
 };
-export default JsonEditor;
+
+export default EditorRaw;

@@ -1,7 +1,7 @@
 import { Howl } from "howler";
 import { useState } from "react";
 import { MdRecordVoiceOver, MdVoiceOverOff } from "react-icons/md";
-import msncElection2022 from "../../sounds/msnbc_election_2022.wav";
+const msncElection2022 = "/sounds/msnbc_election_2022.wav";
 
 // Define sound outside of component function
 const sound = new Howl({
@@ -10,8 +10,7 @@ const sound = new Howl({
   loop: true,
   volume: 0.3,
   onend: () => {
-    console.log("Finished!");
-  },
+},
 });
 
 function SoundButton({ type }: { type: string }) {

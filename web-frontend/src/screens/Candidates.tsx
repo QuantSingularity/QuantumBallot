@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Toaster } from "@/components/toast/toaster";
 import { useToast } from "@/components/toast/use-toast";
 import { Button } from "@/components/ui/button";
@@ -27,16 +25,11 @@ import {
 function Candidates() {
   const { toast } = useToast();
   const [data, setData] = useState<Candidate[]>([]);
-  const [editCandidate, setEditCandidate] = useState<Candidate>({});
-  const { imageList, setImageList, updateImages } = useAuth();
-
+  const [editCandidate, setEditCandidate] = useState<Candidate | null>(null);
+  const { imageList, updateImages } = useAuth();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  useEffect(() => {
-    onPressLoadCandidates();
-  }, [onPressLoadCandidates]);
-
-  const onPressLoadCandidates = () => {
+  const onPressLoadCandidates = useCallback(() => {
     if (!imageList) return;
 
     axios
@@ -45,15 +38,8 @@ function Candidates() {
         const candidates = response.data.candidates;
         if (candidates) {
           const newData = candidates.map((element: any, index: number) => {
-            const candidatePhotoName = element.name
-              .toLowerCase()
-              .split(" ")
-              .join(".");
-            const partyPhotoName = element.party
-              .toLowerCase()
-              .split(" ")
-              .join(".");
-
+            const candidatePhotoName = element.name.toLowerCase().split(" ").join(".");
+            const partyPhotoName = element.party.toLowerCase().split(" ").join(".");
             return {
               id: index + 1,
               code: element.code.toString(),
@@ -63,17 +49,20 @@ function Candidates() {
               candidadePhoto: imageList[candidatePhotoName] ?? "default",
               partyImage: imageList[partyPhotoName] ?? "default",
               status: element.status,
-              toast: toast,
-              editCandidate: editCandidate,
-              setEditCandidate: setEditCandidate,
+              toast,
+              editCandidate,
+              setEditCandidate,
             };
           });
-
           setData(newData);
         }
       })
-      .catch((_error) => {});
-  };
+      .catch(() => {});
+  }, [imageList, toast, editCandidate]);
+
+  useEffect(() => {
+    onPressLoadCandidates();
+  }, [onPressLoadCandidates]);
 
   const onPressLoadCandidatesNotDeployed = () => {
     axios
@@ -82,174 +71,80 @@ function Candidates() {
         const candidates = response.data.candidates;
         if (candidates) {
           const newData = candidates.map((element: any, index: number) => {
-            const candidatePhotoName = element.name
-              .toLowerCase()
-              .split(" ")
-              .join(".");
-            const partyPhotoName = element.party
-              .toLowerCase()
-              .split(" ")
-              .join(".");
-
+            const candidatePhotoName = element.name.toLowerCase().split(" ").join(".");
+            const partyPhotoName = element.party.toLowerCase().split(" ").join(".");
             return {
               id: index + 1,
               code: element.code.toString(),
               name: element.name,
               party: element.party,
               acronym: element.acronym,
-              candidadePhoto: imageList[candidatePhotoName],
-              partyImage: imageList[partyPhotoName],
+              candidadePhoto: imageList?.[candidatePhotoName] ?? "default",
+              partyImage: imageList?.[partyPhotoName] ?? "default",
               status: element.status,
-              toast: toast,
-              editCandidate: editCandidate,
-              setEditCandidate: setEditCandidate,
+              toast,
+              editCandidate,
+              setEditCandidate,
             };
           });
-
           setData(newData);
         }
       })
-      .catch((_error) => {});
+      .catch(() => {});
   };
 
   const onPressDeployBlockchain = () => {
     axios
-      .get(
-        "http://" +
-          GLOBAL_VARIABLES.LOCALHOST +
-          "/api/blockchain/deploy-candidates",
-      )
+      .get(`http://${GLOBAL_VARIABLES.LOCALHOST}/api/blockchain/deploy-candidates`)
       .then((response) => {
         const candidates = response.data.candidates;
         if (candidates) {
           const newData = candidates.map((element: any, index: number) => {
-            const candidatePhotoName = element.name
-              .toLowerCase()
-              .split(" ")
-              .join(".");
-            const partyPhotoName = element.party
-              .toLowerCase()
-              .split(" ")
-              .join(".");
-
+            const candidatePhotoName = element.name.toLowerCase().split(" ").join(".");
+            const partyPhotoName = element.party.toLowerCase().split(" ").join(".");
             return {
               id: index + 1,
               code: element.code,
               name: element.name,
               party: element.party,
               acronym: element.acronym,
-              candidadePhoto: imageList[candidatePhotoName],
-              partyImage: imageList[partyPhotoName],
+              candidadePhoto: imageList?.[candidatePhotoName] ?? "default",
+              partyImage: imageList?.[partyPhotoName] ?? "default",
               status: element.status,
-              toast: toast,
-              editCandidate: editCandidate,
-              setEditCandidate: setEditCandidate,
+              toast,
+              editCandidate,
+              setEditCandidate,
             };
           });
-
           setData(newData);
-
-          toast({
-            title: "Feedback",
-            description: "Success! Data deployed successfully ...",
-          });
+          toast({ title: "Feedback", description: "Success! Data deployed successfully ..." });
         }
       })
-      .catch((_error) => {
-        toast({
-          title: "Feedback",
-          description: "Error! Something went wrong.",
-        });
+      .catch(() => {
+        toast({ title: "Feedback", description: "Error! Something went wrong." });
       });
   };
 
   const onPressDeleteFromBlockchain = () => {
     axios
-      .get(
-        "http://" +
-          GLOBAL_VARIABLES.LOCALHOST +
-          "/api/committee/clear-candidates",
-      )
+      .get(`http://${GLOBAL_VARIABLES.LOCALHOST}/api/committee/clear-candidates`)
       .then((response) => {
-        const candidates = response.data.candidates;
-        if (candidates) {
-          const newData: Candidate[] = [];
-          setData([...newData]);
-
-          toast({
-            title: "Feedback",
-            description: "Success! Data deployed successfully ...",
-          });
+        if (response.data.candidates !== undefined) {
+          setData([]);
+          toast({ title: "Feedback", description: "Success! Data cleared successfully ..." });
         }
       })
-      .catch((_error) => {
-        toast({
-          title: "Feedback",
-          description: "Error! Something went wrong.",
-        });
+      .catch(() => {
+        toast({ title: "Feedback", description: "Error! Something went wrong." });
       });
   };
 
-  const openDialogDeploy = () => {
-    return (
-      <AlertDialog>
-        <AlertDialogTrigger>
-          <span className="max-w-lg inline-block text-md bg-green-900 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-gray-800">
-            Deploy to Blockchain
-          </span>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently erase all data
-              stored in the smart-contract and register the new data.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={onPressDeployBlockchain}>
-              Continue
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    );
-  };
-
-  const openDialogDelete = () => {
-    return (
-      <AlertDialog>
-        <AlertDialogTrigger>
-          <span className="max-w-lg inline-block text-md bg-red-900 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-gray-800">
-            Delete from Blockchain
-          </span>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently erase all data
-              stored in the smart-contract and register the new data.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={onPressDeleteFromBlockchain}>
-              Continue
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    );
-  };
-
   return (
-    <div className="flex gap-2 flex-col ">
+    <div className="flex gap-2 flex-col">
       <span className="font-inria-sans text-2xl text-gray-400">Candidates</span>
       <Toaster />
-      <div className="md:items-center md:gap-2 w-full bg-red h-screen">
-        <div className="flex flex-col md:flex-row gap-2 py-4">
+      <div className="md:items-center md:gap-2 w-full h-screen">
+        <div className="flex flex-col md:flex-row gap-2 py-4 flex-wrap">
           <CandidadeModal
             isOpen={isAddModalOpen}
             onOpenChange={setIsAddModalOpen}
@@ -259,35 +154,60 @@ function Candidates() {
             mode={true}
           />
 
-          <div className="flex flex-col md:flex-row gap-2">
-            <Button
-              className="max-w-lg md:w-auto"
-              onClick={() => {
-                setIsAddModalOpen(true);
-              }}
-            >
-              Add Candidate
-            </Button>
+          <Button className="max-w-lg md:w-auto" onClick={() => setIsAddModalOpen(true)}>
+            Add Candidate
+          </Button>
+          <Button
+            className="max-w-lg md:w-auto"
+            onClick={() => { updateImages(); onPressLoadCandidates(); }}
+          >
+            Load Candidates
+          </Button>
+          <Button className="max-w-lg md:w-auto" onClick={onPressLoadCandidatesNotDeployed}>
+            Load [Not Deployed]
+          </Button>
 
-            <Button
-              className="max-w-lg md:w-auto"
-              onClick={() => {
-                updateImages();
-                onPressLoadCandidates();
-              }}
-            >
-              Load Candidates
-            </Button>
-            <Button
-              className="max-w-lg md:w-auto"
-              onClick={onPressLoadCandidatesNotDeployed}
-            >
-              Load Candidates [Not Deployed]
-            </Button>
-          </div>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <span className="inline-flex items-center text-sm bg-green-900 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-green-800 transition-colors">
+                Deploy to Blockchain
+              </span>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently erase all data
+                  stored in the smart-contract and register the new data.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={onPressDeployBlockchain}>Continue</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
-          {openDialogDeploy()}
-          {openDialogDelete()}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <span className="inline-flex items-center text-sm bg-red-900 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-red-800 transition-colors">
+                Delete from Blockchain
+              </span>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently erase all data
+                  stored in the smart-contract.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={onPressDeleteFromBlockchain}>Continue</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
         <TableCandidates data={data} setData={setData} toast={toast} />
       </div>

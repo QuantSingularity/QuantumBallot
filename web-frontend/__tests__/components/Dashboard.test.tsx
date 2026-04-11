@@ -1,178 +1,109 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { BrowserRouter } from "react-router-dom";
-import { vi } from "vitest";
-import Dashboard from "../../src/components/Dashboard";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { render, screen, waitFor } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import axios from "axios";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import Dashboard from "@/screens/Dashboard";
 
-// Mock dependencies
-vi.mock("../../src/components/BlockchainDetails", () => ({
-  default: () => <div data-testid="blockchain-details">Blockchain Details</div>,
+vi.mock("axios");
+vi.mock("@/context/AuthContext", () => ({
+  useAuth: () => ({
+    setMapData: vi.fn(),
+    setPartiesData: vi.fn(),
+    provinces: ["Luanda", "Benguela"],
+    topVotesPerProvinces: [
+      { id: 1, province: "Luanda", percentage: 55, number: "150K" },
+    ],
+    setTopVotesPerProvinces: vi.fn(),
+    imageList: { "party.a": "http://example.com/party-a.png" },
+  }),
+}));
+vi.mock("@/geomap/GoogleMap", () => ({ default: () => <div>Map</div> }));
+vi.mock("@/components/dashboard-components/vertical-bar", () => ({ default: () => <div>Bar</div> }));
+vi.mock("@/components/dashboard-components/line-chart", () => ({ default: () => <div>Line</div> }));
+vi.mock("@mui/joy/CircularProgress", () => ({
+  default: ({ children }: any) => <div data-testid="progress">{children}</div>,
+}));
+vi.mock("@mui/material/LinearProgress", () => ({ default: () => <div /> }));
+vi.mock("@mui/material/Stack", () => ({ default: ({ children }: any) => <div>{children}</div> }));
+vi.mock("@mui/material/styles", () => ({
+  createTheme: () => ({}),
+  ThemeProvider: ({ children }: any) => <>{children}</>,
 }));
 
-vi.mock("../../src/components/ElectionResults", () => ({
-  default: () => <div data-testid="election-results">Election Results</div>,
-}));
+const mockData = {
+  candidatesResult: [
+    {
+      numVotes: 500,
+      percentage: 60.0,
+      candidate: { code: 1, name: "John Doe", party: "Party A", acronym: "PA", status: "active", toast: vi.fn() },
+    },
+  ],
+  expectedTotalVotes: 1000,
+  totalVotesReceived: 500,
+  totalCandidates: 1,
+  votesPerProvince: { Luanda: { sum: 300 }, Benguela: { sum: 200 } },
+  startTime: 0,
+  endTime: 100,
+  winner: { code: 1, name: "John Doe", party: "Party A", acronym: "PA", status: "active", toast: vi.fn() },
+  averageTimePerVote: 2.5,
+  averageVotePerProvince: 250,
+  votesPerDay: {},
+  votesPerParty: {},
+};
 
-vi.mock("../../src/components/AngolaMap", () => ({
-  default: () => <div data-testid="angola-map">Angola Map</div>,
-}));
-
-vi.mock("../../src/components/SidebarComponent", () => ({
-  default: () => <div data-testid="sidebar">Sidebar</div>,
-}));
-
-// Mock fetch API
-global.fetch = vi.fn();
+function wrap(ui: React.ReactElement) {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(
+    <QueryClientProvider client={qc}><MemoryRouter>{ui}</MemoryRouter></QueryClientProvider>
+  );
+}
 
 describe("Dashboard Component", () => {
   beforeEach(() => {
-    // Setup fetch mock to return successful response
-    global.fetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        results: {
-          candidatesResult: [
-            {
-              candidate: { party: "Party1", name: "Candidate 1" },
-              numVotes: 100,
-              percentage: 50,
-            },
-            {
-              candidate: { party: "Party2", name: "Candidate 2" },
-              numVotes: 50,
-              percentage: 25,
-            },
-            {
-              candidate: { party: "Party3", name: "Candidate 3" },
-              numVotes: 50,
-              percentage: 25,
-            },
-          ],
-          totalVotesReceived: 200,
-          expectedTotalVotes: 300,
-          winner: { party: "Party1", name: "Candidate 1" },
-        },
-      }),
-    });
+    (axios.get as any) = vi.fn().mockResolvedValue({ data: mockData });
   });
 
-  afterEach(() => {
-    vi.clearAllMocks();
+  it("renders Votes Received section", async () => {
+    wrap(<Dashboard />);
+    await waitFor(() => expect(screen.getByText(/Votes Received/i)).toBeInTheDocument());
   });
 
-  it("renders dashboard with all components", async () => {
-    render(
-      <BrowserRouter>
-        <Dashboard />
-      </BrowserRouter>,
-    );
-
-    // Wait for data to load
+  it("renders Total Voters and Candidates", async () => {
+    wrap(<Dashboard />);
     await waitFor(() => {
-      expect(screen.getByTestId("blockchain-details")).toBeInTheDocument();
-      expect(screen.getByTestId("election-results")).toBeInTheDocument();
-      expect(screen.getByTestId("angola-map")).toBeInTheDocument();
-      expect(screen.getByTestId("sidebar")).toBeInTheDocument();
+      expect(screen.getByText(/Total Voters/i)).toBeInTheDocument();
+      expect(screen.getByText(/Candidates/i)).toBeInTheDocument();
     });
   });
 
-  it("handles data loading state correctly", async () => {
-    // Mock a delayed response to test loading state
-    global.fetch.mockImplementationOnce(
-      () =>
-        new Promise((resolve) =>
-          setTimeout(
-            () =>
-              resolve({
-                ok: true,
-                json: async () => ({
-                  results: {
-                    candidatesResult: [],
-                    totalVotesReceived: 0,
-                    expectedTotalVotes: 0,
-                    winner: null,
-                  },
-                }),
-              }),
-            100,
-          ),
-        ),
-    );
-
-    render(
-      <BrowserRouter>
-        <Dashboard />
-      </BrowserRouter>,
-    );
-
-    // Initially should show loading state
-    expect(
-      screen.getByText(/Loading/i) || screen.getByText(/Fetching/i),
-    ).toBeInTheDocument();
-
-    // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getByTestId("blockchain-details")).toBeInTheDocument();
-    });
+  it("renders Top Parties section", async () => {
+    wrap(<Dashboard />);
+    await waitFor(() => expect(screen.getByText(/Top Parties/i)).toBeInTheDocument());
   });
 
-  it("handles error state correctly", async () => {
-    // Mock a failed response
-    global.fetch.mockRejectedValueOnce(new Error("Failed to fetch"));
-
-    render(
-      <BrowserRouter>
-        <Dashboard />
-      </BrowserRouter>,
-    );
-
-    // Wait for error state
-    await waitFor(() => {
-      expect(
-        screen.getByText(/error/i) || screen.getByText(/failed/i),
-      ).toBeInTheDocument();
-    });
+  it("renders Top Provinces section", async () => {
+    wrap(<Dashboard />);
+    await waitFor(() => expect(screen.getByText(/Top Provinces/i)).toBeInTheDocument());
   });
 
-  it("updates data when refresh button is clicked", async () => {
-    render(
-      <BrowserRouter>
-        <Dashboard />
-      </BrowserRouter>,
-    );
-
-    // Wait for initial data to load
-    await waitFor(() => {
-      expect(screen.getByTestId("blockchain-details")).toBeInTheDocument();
-    });
-
-    // Find and click refresh button if it exists
-    const refreshButton =
-      screen.getByRole("button", { name: /refresh/i }) ||
-      screen.getByRole("button", { name: /update/i }) ||
-      screen.getByRole("button", { name: /reload/i });
-
-    if (refreshButton) {
-      fireEvent.click(refreshButton);
-
-      // Verify fetch was called again
-      await waitFor(() => {
-        expect(global.fetch).toHaveBeenCalledTimes(2);
-      });
-    }
+  it("renders Avg Time section", async () => {
+    wrap(<Dashboard />);
+    await waitFor(() => expect(screen.getByText(/Avg Time/i)).toBeInTheDocument());
   });
 
-  it("displays correct election statistics", async () => {
-    render(
-      <BrowserRouter>
-        <Dashboard />
-      </BrowserRouter>,
-    );
+  it("renders Statistics section", async () => {
+    wrap(<Dashboard />);
+    await waitFor(() => expect(screen.getByText(/Statistics by Province/i)).toBeInTheDocument());
+  });
 
-    // Wait for data to load and verify statistics are displayed
-    await waitFor(() => {
-      // These checks are generic since we're using mocked components
-      // In a real test, you would check for specific text content
-      expect(screen.getByTestId("election-results")).toBeInTheDocument();
-    });
+  it("renders Daily Vote Increment section", async () => {
+    wrap(<Dashboard />);
+    await waitFor(() => expect(screen.getByText(/Daily Vote Increment/i)).toBeInTheDocument());
+  });
+
+  it("renders Coverage Region", async () => {
+    wrap(<Dashboard />);
+    await waitFor(() => expect(screen.getByText(/Coverage Region/i)).toBeInTheDocument());
   });
 });

@@ -13,20 +13,26 @@ export default function TableBlocks() {
   });
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      refetch();
-    }, 5000); // 5000 milliseconds = 5 seconds
-
+    const intervalId = setInterval(() => refetch(), 5000);
     return () => clearInterval(intervalId);
   }, [refetch]);
 
-  if (isLoading) return "Loading...";
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2 py-4">
+        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600" />
+        <span className="text-sm text-gray-400">Loading blocks...</span>
+      </div>
+    );
+  }
 
-  if (error) return `An error has occurred: ${error.message}`;
+  if (error || !data) {
+    return <p className="text-sm text-gray-400 py-2">Unable to load blocks.</p>;
+  }
 
   return (
     <section>
-      <DataTable columns={columns} data={data} />
+      <DataTable columns={columns} data={Array.isArray(data) ? data : []} />
     </section>
   );
 }

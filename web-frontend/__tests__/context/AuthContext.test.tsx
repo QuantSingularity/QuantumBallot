@@ -1,104 +1,123 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { BrowserRouter } from "react-router-dom";
-import { vi } from "vitest";
-import AuthContext from "@/context/AuthContext";
+import { render, screen, act, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
 
-// Mock components
-vi.mock("@/components/ui/toast", () => ({
-  useToast: () => ({
-    toast: vi.fn(),
-  }),
+// Mock dependencies
+vi.mock("axios");
+vi.mock("@/services/firebase", () => ({
+  loadImages: vi.fn(),
+}));
+vi.mock("@/context/SecureStore", () => ({
+  getItemAsync: vi.fn().mockResolvedValue(null),
+  setItemAsync: vi.fn().mockResolvedValue(undefined),
+  deleteItemAsync: vi.fn().mockResolvedValue(undefined),
+}));
+vi.mock("@/global/globalVariables", () => ({
+  TOKEN_KEY: "test-jwt",
+  REFRESH_TOKEN_KEY: "test-refresh",
+  TOKEN_USERNAME: "test-username",
+  TOKEN_NAME: "test-name",
+  TOKEN_ROLE: "test-role",
+  GLOBAL_VARIABLES: { LOCALHOST: "localhost:3010" },
 }));
 
-describe("AuthContext", () => {
-  // Sample auth provider wrapper for testing
-  const AuthProvider = ({ children }) => {
-    return (
-      <AuthContext.Provider
-        value={{
-          user: { name: "Test User", role: "admin" },
-          isLoggedIn: () => true,
-          onLogIn: vi.fn(),
-          onLogOut: vi.fn(),
-          updateUser: vi.fn(),
-          updateImages: vi.fn(),
-        }}
-      >
-        {children}
-      </AuthContext.Provider>
-    );
-  };
+const TestConsumer = () => {
+  const auth = useAuth();
+  return (
+    <div>
+      <span data-testid="authenticated">{String(auth.authState?.authenticated)}</span>
+      <span data-testid="has-login">{typeof auth.onLogin === "function" ? "yes" : "no"}</span>
+      <span data-testid="has-logout">{typeof auth.onLogOut === "function" ? "yes" : "no"}</span>
+      <span data-testid="has-provinces">{auth.provinces?.length > 0 ? "yes" : "no"}</span>
+    </div>
+  );
+};
 
-  it("provides auth context to child components", () => {
-    // Create a test component that consumes the context
-    const TestComponent = () => {
-      const auth = AuthContext.useAuth();
+describe("AuthContext", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("provides initial auth state as null", async () => {
+    render(
+      <AuthProvider>
+        <TestConsumer />
+      </AuthProvider>
+    );
+    await waitFor(() => {
+      expect(screen.getByTestId("authenticated").textContent).toBe("null");
+    });
+  });
+
+  it("provides onLogin function", async () => {
+    render(
+      <AuthProvider>
+        <TestConsumer />
+      </AuthProvider>
+    );
+    await waitFor(() => {
+      expect(screen.getByTestId("has-login").textContent).toBe("yes");
+    });
+  });
+
+  it("provides onLogOut function", async () => {
+    render(
+      <AuthProvider>
+        <TestConsumer />
+      </AuthProvider>
+    );
+    await waitFor(() => {
+      expect(screen.getByTestId("has-logout").textContent).toBe("yes");
+    });
+  });
+
+  it("provides provinces list", async () => {
+    render(
+      <AuthProvider>
+        <TestConsumer />
+      </AuthProvider>
+    );
+    await waitFor(() => {
+      expect(screen.getByTestId("has-provinces").textContent).toBe("yes");
+    });
+  });
+
+  it("provides 18 provinces (Angola)", async () => {
+    const ProvincesCount = () => {
+      const { provinces } = useAuth();
+      return <span data-testid="count">{provinces?.length}</span>;
+    };
+    render(<AuthProvider><ProvincesCount /></AuthProvider>);
+    await waitFor(() => {
+      expect(screen.getByTestId("count").textContent).toBe("18");
+    });
+  });
+
+  it("logout clears auth state", async () => {
+    const LogoutTest = () => {
+      const { authState, onLogOut } = useAuth();
       return (
         <div>
-          <div data-testid="user-name">{auth.user.name}</div>
-          <div data-testid="user-role">{auth.user.role}</div>
-          <button onClick={auth.onLogOut}>Logout</button>
+          <span data-testid="token">{authState.token ?? "null"}</span>
+          <button onClick={() => onLogOut?.()}>Logout</button>
         </div>
       );
     };
-
-    render(
-      <BrowserRouter>
-        <AuthProvider>
-          <TestComponent />
-        </AuthProvider>
-      </BrowserRouter>,
-    );
-
-    // Check if context values are correctly provided
-    expect(screen.getByTestId("user-name")).toHaveTextContent("Test User");
-    expect(screen.getByTestId("user-role")).toHaveTextContent("admin");
-
-    // Test logout function
-    const logoutButton = screen.getByRole("button", { name: /Logout/i });
-    fireEvent.click(logoutButton);
-
-    // Since onLogOut is a mock function, we can check if it was called
-    expect(AuthContext.useAuth().onLogOut).toHaveBeenCalled();
+    render(<AuthProvider><LogoutTest /></AuthProvider>);
+    await act(async () => {
+      screen.getByText("Logout").click();
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId("token").textContent).toBe("null");
+    });
   });
 
-  it("handles login state correctly", () => {
-    // Create a test component with login state toggle
-    const TestComponent = () => {
-      const [isLoggedIn, setIsLoggedIn] = vi.useState(false);
-
-      return (
-        <AuthContext.Provider
-          value={{
-            user: isLoggedIn ? { name: "Test User", role: "admin" } : null,
-            isLoggedIn: () => isLoggedIn,
-            onLogIn: () => setIsLoggedIn(true),
-            onLogOut: () => setIsLoggedIn(false),
-          }}
-        >
-          <div data-testid="login-status">
-            {isLoggedIn ? "Logged In" : "Logged Out"}
-          </div>
-          <button onClick={() => setIsLoggedIn(!isLoggedIn)}>
-            Toggle Login
-          </button>
-        </AuthContext.Provider>
-      );
-    };
-
+  it("renders children correctly", () => {
     render(
-      <BrowserRouter>
-        <TestComponent />
-      </BrowserRouter>,
+      <AuthProvider>
+        <div data-testid="child">Child component</div>
+      </AuthProvider>
     );
-
-    // Check initial state
-    expect(screen.getByTestId("login-status")).toHaveTextContent("Logged Out");
-
-    // Toggle login state
-    fireEvent.click(screen.getByRole("button", { name: /Toggle Login/i }));
-
-    // Check updated state
-    expect(screen.getByTestId("login-status")).toHaveTextContent("Logged In");
+    expect(screen.getByTestId("child")).toBeInTheDocument();
   });
 });

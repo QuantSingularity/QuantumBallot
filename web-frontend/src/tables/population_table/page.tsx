@@ -1,8 +1,7 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { GLOBAL_VARIABLES } from "@/global/globalVariables";
 import { type Citizen, columns } from "./columns";
@@ -11,48 +10,43 @@ import { DataTable } from "./data-table";
 function TablePopulation({ toast }: any) {
   const [data, setData] = useState<Citizen[]>([]);
 
-  const onLoadPopulationData = async () => {
-    await axios
-      .get(`http://${GLOBAL_VARIABLES.LOCALHOST}/api/committee/registers`)
-      .then((response) => {
-        const data = response.data;
-        if (data) {
-          const registers = data.registers;
-          if (registers) {
-            let newData = registers.map((element: any) => ({
-              name: element.name,
-              operation: "",
-              electoralId: element.electoralId,
-              email: element.email,
-              address: element.address,
-              province: element.province,
-              password: element.password,
-              status: element.status,
-              verification: element.verification,
-              otp: element.otp,
-              toast: toast,
-              setData: setData,
-            }));
+  const onLoadPopulationData = useCallback(async () => {
+    try {
+      const response = await axios.get(
+        `http://${GLOBAL_VARIABLES.LOCALHOST}/api/committee/registers`,
+      );
+      const resData = response.data;
+      if (resData?.registers) {
+        let newData = resData.registers.map((element: any) => ({
+          name: element.name,
+          operation: "",
+          electoralId: element.electoralId,
+          email: element.email,
+          address: element.address,
+          province: element.province,
+          password: element.password,
+          status: element.status,
+          verification: element.verification,
+          otp: element.otp,
+          toast,
+          setData,
+        }));
 
-            newData.sort((a, b) => {
-              const nameA = a.name.toLowerCase();
-              const nameB = b.name.toLowerCase();
-              if (nameA < nameB) return -1;
-              if (nameA > nameB) return 1;
-              return 0;
-            });
+        newData.sort((a: any, b: any) =>
+          a.name.toLowerCase().localeCompare(b.name.toLowerCase()),
+        );
 
-            newData = newData.map((element: any, index: number) => ({
-              id: index + 1,
-              ...element,
-            }));
+        newData = newData.map((element: any, index: number) => ({
+          id: index + 1,
+          ...element,
+        }));
 
-            setData([...newData]);
-          }
-        }
-      })
-      .catch((error) => console.error(error));
-  };
+        setData([...newData]);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }, [toast]);
 
   useEffect(() => {
     onLoadPopulationData();
@@ -60,9 +54,11 @@ function TablePopulation({ toast }: any) {
 
   return (
     <section>
-      <Button className="max-w-lg" onClick={onLoadPopulationData}>
-        Load / Refresh Data
-      </Button>
+      <div className="py-4">
+        <Button className="max-w-lg" onClick={onLoadPopulationData}>
+          Load / Refresh Data
+        </Button>
+      </div>
       <DataTable columns={columns} data={data} />
     </section>
   );

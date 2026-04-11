@@ -5,47 +5,65 @@ export const columns: ColumnDef<Transaction>[] = [
   {
     accessorKey: "id",
     header: "#",
+    cell: ({ row }) => (
+      <span className="text-gray-400 text-sm">{row.original.id}</span>
+    ),
   },
   {
     accessorKey: "transactionHash",
-    header: "Hash Transaction",
+    header: "Hash",
     cell: ({ row }) => {
-      const transactionHash: string = row.getValue("transactionHash");
-      if (typeof transactionHash === "string")
-        return transactionHash.substring(0, "0xabcdef123456789".length);
-      return "";
+      const hash: string = row.getValue("transactionHash") ?? "";
+      return hash ? (
+        <span className="font-mono text-xs text-gray-600">
+          {hash.substring(0, 16)}…
+        </span>
+      ) : (
+        <span className="text-gray-300">—</span>
+      );
     },
   },
   {
     accessorKey: "identifier",
     header: "Vote ID",
     cell: ({ row }) => {
-      const identifier: string = row.getValue("identifier");
-      if (typeof identifier === "string")
-        return <span>{identifier.substring(0, "000000000".length)}</span>;
-
-      return "";
+      const id: string = row.getValue("identifier") ?? "";
+      return id ? (
+        <span className="font-mono text-xs text-gray-600">
+          {id.substring(0, 9)}
+        </span>
+      ) : (
+        <span className="text-gray-300">—</span>
+      );
     },
   },
   {
     accessorKey: "choiceCode",
     header: "Vote",
     cell: ({ row }) => {
-      let choiceCode: string = row.getValue("choiceCode");
-
-      if (typeof choiceCode === "string") {
-        choiceCode = choiceCode === "-" ? "" : choiceCode;
-        return <span>{choiceCode.substring(0, "000000000".length)}...</span>;
-      }
-      return "";
+      const code: string = row.getValue("choiceCode") ?? "";
+      const display = code === "-" ? "" : code;
+      return display ? (
+        <span className="font-mono text-xs text-gray-600">
+          {display.substring(0, 9)}
+        </span>
+      ) : (
+        <span className="text-gray-300">—</span>
+      );
     },
   },
   {
     accessorKey: "voteTime",
     header: "Date and Time",
     cell: ({ row }) => {
-      const x: number = parseInt(row.getValue("voteTime") as string, 10);
-      return new Date(x).toUTCString();
+      const raw: string = row.getValue("voteTime") ?? "";
+      const ts = parseInt(raw, 10);
+      if (isNaN(ts) || ts <= 0) return <span className="text-gray-300">—</span>;
+      return (
+        <span className="text-xs text-gray-600">
+          {new Date(ts).toLocaleString()}
+        </span>
+      );
     },
   },
 ];

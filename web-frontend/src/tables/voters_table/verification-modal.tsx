@@ -8,61 +8,58 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
-type EditVoterModalProps = {
+type VerificationModalProps = {
   isOpen?: boolean;
-  onOpenChange?: (e: boolean) => void;
+  onOpenChange?: (open: boolean) => void;
   url: string;
 };
 
-export default function VerificationModal({
+export default function VerificationDialog({
   isOpen,
   onOpenChange,
   url,
-}: EditVoterModalProps) {
+}: VerificationModalProps) {
   const [qrCodeURL, setQrCodeURL] = useState<string>("");
-
-  const generateQRCode = async (str_code: string): Promise<string | null> => {
-    try {
-      const qrCodeData = await new Promise<string>((resolve, reject) => {
-        qrcode.toDataURL(str_code, (err, data) => {
-          if (err) {
-            console.error(err);
-            reject(err);
-          } else {
-            resolve(data);
-          }
-        });
-      });
-
-      return qrCodeData;
-    } catch (error) {
-      console.error(error);
-      return null;
-    }
-  };
-
-  const VerifySecret = async () => {
-    const qrCodeData = await generateQRCode(url);
-    setQrCodeURL(qrCodeData ?? "");
-  };
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    VerifySecret();
-  }, [VerifySecret]);
+    if (!url || !isOpen) return;
+    setError(false);
+    qrcode.toDataURL(url, (err, data) => {
+      if (err) {
+        console.error(err);
+        setError(true);
+      } else {
+        setQrCodeURL(data);
+      }
+    });
+  }, [url, isOpen]);
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange} defaultOpen={false}>
-      <DialogContent className="sm:max-w-[425px]">
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>Voter verification</DialogTitle>
-          <DialogDescription>Scan the QR Code.</DialogDescription>
+          <DialogTitle>Voter Verification</DialogTitle>
+          <DialogDescription>Scan the QR Code to verify this voter.</DialogDescription>
         </DialogHeader>
-        <div className="flex justify-center items-center h-full">
-          <img src={qrCodeURL} className="w-64 h-64" />
+        <div className="flex justify-center items-center py-4">
+          {error ? (
+            <p className="text-sm text-red-500">Failed to generate QR code.</p>
+          ) : qrCodeURL ? (
+            <img src={qrCodeURL} alt="QR Code" className="w-56 h-56 rounded-lg" />
+          ) : (
+            <div className="w-56 h-56 bg-gray-100 rounded-lg flex items-center justify-center">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-400" />
+            </div>
+          )}
         </div>
-
-        <DialogFooter className="flex justify-center items-center" />
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange?.(false)}>
+            Close
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

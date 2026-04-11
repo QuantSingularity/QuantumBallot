@@ -1,6 +1,4 @@
 // Ensure 'use client' is at the top of the file
-"use client";
-
 import {
   type ColumnDef,
   type ColumnFiltersState,

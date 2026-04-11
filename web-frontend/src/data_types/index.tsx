@@ -45,7 +45,7 @@ export type CandidateResults = {
   candidate: string;
   party: string;
   numVotes: string;
-  percentage: string;
+  percentage: number;
   candidadePhoto?: string;
   partyImage?: string;
 };
@@ -128,9 +128,9 @@ export interface Results {
   totalVotesReceived: number;
   totalCandidates: number;
   votesPerProvince: any;
-  averageTimePerVote: number; // minutes / vote
-  averageVotePerProvince: number; // votes / province
-  votesPerDay: any; //
+  averageTimePerVote: number;
+  averageVotePerProvince: number;
+  votesPerDay: any;
   votesPerParty: any;
 }
 
@@ -141,50 +141,8 @@ export interface topVotesPerProvinces {
   number: string;
 }
 
-export interface CandidateResult {
-  numVotes: number;
-  percentage: number;
-  candidate: Candidate;
-}
-
-export interface Results {
-  startTime: number;
-  endTime: number;
-  winner: Candidate;
-  candidatesResult: CandidateResult[];
-  expectedTotalVotes: number;
-  totalVotesReceived: number;
-  totalCandidates: number;
-  votesPerProvince: any;
-  averageTimePerVote: number; // minutes / vote
-  averageVotePerProvince: number; // votes / province
-  votesPerDay: any; //
-  votesPerParty: any;
-}
-
 export interface Party {
   url: string;
   name: string;
   number: string;
-}
-
-export interface CandidateResult {
-  numVotes: number;
-  percentage: number;
-  candidate: Candidate;
-}
-
-export interface Results {
-  startTime: number;
-  endTime: number;
-  winner: Candidate;
-  candidatesResult: CandidateResult[];
-  expectedTotalVotes: number;
-  totalVotesReceived: number;
-  totalCandidates: number;
-  votesPerProvince: any;
-  averageTimePerVote: number; // minutes / vote
-  averageVotePerProvince: number; // votes / province
-  votesPerDay: any; //
-  votesPerParty: any;
 }
