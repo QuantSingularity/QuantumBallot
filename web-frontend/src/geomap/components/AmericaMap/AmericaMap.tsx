@@ -1,5 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import useCoffeeDataAmerica, {
   type IMapProvincy,
 } from "../../hooks/useCoffeeDataAmerica";
@@ -72,8 +79,12 @@ export default function AmericaMap() {
           ...m,
           svg: {
             ...m.svg,
-            stroke: isMatchCoffeeRegion(m, provincy) ? getRegionHoverColor() : m.svg.stroke,
-            fill: isMatchCoffeeRegion(m, provincy) ? getRegionHoverColor() : m.svg.fill,
+            stroke: isMatchCoffeeRegion(m, provincy)
+              ? getRegionHoverColor()
+              : m.svg.stroke,
+            fill: isMatchCoffeeRegion(m, provincy)
+              ? getRegionHoverColor()
+              : m.svg.fill,
           },
         })),
       );

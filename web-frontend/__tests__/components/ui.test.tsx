@@ -8,7 +8,9 @@ import { Label } from "@/components/ui/label";
 describe("Button Component", () => {
   it("renders with default variant", () => {
     render(<Button>Click me</Button>);
-    expect(screen.getByRole("button", { name: "Click me" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Click me" }),
+    ).toBeInTheDocument();
   });
 
   it("calls onClick handler", () => {
@@ -48,7 +50,9 @@ describe("Input Component", () => {
   it("handles value changes", () => {
     const handler = vi.fn();
     render(<Input onChange={handler} />);
-    fireEvent.change(screen.getByRole("textbox"), { target: { value: "test" } });
+    fireEvent.change(screen.getByRole("textbox"), {
+      target: { value: "test" },
+    });
     expect(handler).toHaveBeenCalledTimes(1);
   });
 
@@ -77,7 +81,7 @@ describe("Card Component", () => {
           <CardTitle>Test Card</CardTitle>
         </CardHeader>
         <CardContent>Card content here</CardContent>
-      </Card>
+      </Card>,
     );
     expect(screen.getByText("Test Card")).toBeInTheDocument();
     expect(screen.getByText("Card content here")).toBeInTheDocument();
@@ -100,7 +104,7 @@ describe("Label Component", () => {
       <>
         <Label htmlFor="test-input">Test Label</Label>
         <Input id="test-input" />
-      </>
+      </>,
     );
     expect(screen.getByLabelText("Test Label")).toBeInTheDocument();
   });

@@ -29,15 +29,27 @@ const AnnounceElection = () => {
     e.preventDefault();
 
     if (!title.trim()) {
-      toast({ title: "Error", description: "Title is required", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Title is required",
+        variant: "destructive",
+      });
       return;
     }
     if (!description.trim()) {
-      toast({ title: "Error", description: "Description is required", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Description is required",
+        variant: "destructive",
+      });
       return;
     }
     if (!dateRange?.from || !dateRange?.to) {
-      toast({ title: "Error", description: "Please select a voting period", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Please select a voting period",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -56,7 +68,10 @@ const AnnounceElection = () => {
         announcement,
       );
 
-      toast({ title: "Success", description: "Election announced successfully" });
+      toast({
+        title: "Success",
+        description: "Election announced successfully",
+      });
       setTitle("");
       setDescription("");
       setDateRange(undefined);
@@ -75,12 +90,16 @@ const AnnounceElection = () => {
 
   return (
     <div className="flex flex-col gap-4 pb-10">
-      <h1 className="font-inria-sans text-2xl text-gray-400">Announce Election</h1>
+      <h1 className="font-inria-sans text-2xl text-gray-400">
+        Announce Election
+      </h1>
       <Toaster />
       <Card className="border border-gray-100 shadow-sm max-w-3xl">
         <CardHeader>
           <CardTitle>New Election Announcement</CardTitle>
-          <CardDescription>Create and publish a new election announcement</CardDescription>
+          <CardDescription>
+            Create and publish a new election announcement
+          </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-5">
@@ -107,7 +126,8 @@ const AnnounceElection = () => {
               <Label>Voting Period</Label>
               {dateRange?.from && dateRange?.to && (
                 <p className="text-sm text-green-600 font-medium">
-                  Selected: {dateRange.from.toLocaleDateString()} → {dateRange.to.toLocaleDateString()}
+                  Selected: {dateRange.from.toLocaleDateString()} →{" "}
+                  {dateRange.to.toLocaleDateString()}
                 </p>
               )}
               <div className="border border-gray-200 rounded-xl p-4 bg-gray-50/50">
@@ -126,9 +146,24 @@ const AnnounceElection = () => {
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? (
                 <span className="flex items-center gap-2">
-                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  <svg
+                    className="animate-spin h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                    />
                   </svg>
                   Announcing...
                 </span>
@@ -139,7 +174,11 @@ const AnnounceElection = () => {
             <Button
               type="button"
               variant="outline"
-              onClick={() => { setTitle(""); setDescription(""); setDateRange(undefined); }}
+              onClick={() => {
+                setTitle("");
+                setDescription("");
+                setDateRange(undefined);
+              }}
             >
               Reset
             </Button>

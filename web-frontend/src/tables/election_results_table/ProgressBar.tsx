@@ -2,7 +2,9 @@ import * as ProgressPrimitive from "@radix-ui/react-progress";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-interface ProgressBarProps extends React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root> {
+interface ProgressBarProps extends React.ComponentPropsWithoutRef<
+  typeof ProgressPrimitive.Root
+> {
   value?: number;
 }
 

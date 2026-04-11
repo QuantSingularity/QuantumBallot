@@ -38,7 +38,9 @@ const mockBlockData = {
 };
 
 function renderWithProviders(blockId = "abc123") {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   global.fetch = vi.fn().mockResolvedValue({
     json: () => Promise.resolve(mockBlockData),
   }) as any;
@@ -49,11 +51,17 @@ function renderWithProviders(blockId = "abc123") {
         <Routes>
           <Route
             path="/blockchain/block-details/:id"
-            element={<>{React.createElement(require("@/screens/BlockchainDetails").default)}</>}
+            element={
+              <>
+                {React.createElement(
+                  require("@/screens/BlockchainDetails").default,
+                )}
+              </>
+            }
           />
         </Routes>
       </MemoryRouter>
-    </QueryClientProvider>
+    </QueryClientProvider>,
   );
 }
 
@@ -61,7 +69,9 @@ import React from "react";
 import BlockchainDetails from "@/screens/BlockchainDetails";
 
 function renderBlockchainDetails(blockId = "abc123") {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   global.fetch = vi.fn().mockResolvedValue({
     json: () => Promise.resolve(mockBlockData),
   }) as any;
@@ -70,10 +80,13 @@ function renderBlockchainDetails(blockId = "abc123") {
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={[`/blockchain/block-details/${blockId}`]}>
         <Routes>
-          <Route path="/blockchain/block-details/:id" element={<BlockchainDetails />} />
+          <Route
+            path="/blockchain/block-details/:id"
+            element={<BlockchainDetails />}
+          />
         </Routes>
       </MemoryRouter>
-    </QueryClientProvider>
+    </QueryClientProvider>,
   );
 }
 

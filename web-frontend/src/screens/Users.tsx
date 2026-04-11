@@ -26,7 +26,10 @@ function Users() {
         const users = response.data.users;
         if (users !== undefined) {
           let newData = users.map((element: any, index: number) => {
-            const userPhotoName = element.name.toLowerCase().split(" ").join(".");
+            const userPhotoName = element.name
+              .toLowerCase()
+              .split(" ")
+              .join(".");
             return {
               id: index + 1,
               name: element.name,
@@ -66,7 +69,9 @@ function Users() {
 
   return (
     <div className="flex gap-2 flex-col">
-      <span className="font-inria-sans text-2xl text-gray-400">User Management</span>
+      <span className="font-inria-sans text-2xl text-gray-400">
+        User Management
+      </span>
       <div className="md:items-center md:gap-2 w-full h-screen">
         <div className="flex gap-2 py-4">
           <UserModal
@@ -77,7 +82,10 @@ function Users() {
             defaultValues={null}
             mode={true}
           />
-          <Button className="max-w-lg md:w-auto" onClick={() => setIsAddModalOpen(true)}>
+          <Button
+            className="max-w-lg md:w-auto"
+            onClick={() => setIsAddModalOpen(true)}
+          >
             Add User
           </Button>
           <Button className="max-w-lg" onClick={onPressLoadUsers}>

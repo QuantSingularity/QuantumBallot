@@ -42,7 +42,9 @@ export const columns: ColumnDef<Voter>[] = [
     accessorKey: "choiceCode",
     header: "Choice Code",
     cell: ({ row }) => (
-      <span className="text-sm text-gray-600">{row.original.choiceCode || "—"}</span>
+      <span className="text-sm text-gray-600">
+        {row.original.choiceCode || "—"}
+      </span>
     ),
   },
   {

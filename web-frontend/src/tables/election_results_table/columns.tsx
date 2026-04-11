@@ -8,7 +8,9 @@ export const columns: ColumnDef<CandidateResults>[] = [
   {
     accessorKey: "id",
     header: "#",
-    cell: ({ row }) => <span className="text-gray-400 text-sm">{row.original.id}</span>,
+    cell: ({ row }) => (
+      <span className="text-gray-400 text-sm">{row.original.id}</span>
+    ),
   },
   {
     accessorKey: "candidate",
@@ -22,7 +24,9 @@ export const columns: ColumnDef<CandidateResults>[] = [
       </Button>
     ),
     cell: ({ row }) => (
-      <span className="font-medium text-gray-800">{row.original.candidate}</span>
+      <span className="font-medium text-gray-800">
+        {row.original.candidate}
+      </span>
     ),
   },
   {

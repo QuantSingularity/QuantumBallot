@@ -27,7 +27,11 @@ export default function TablePendingTransactions() {
   }
 
   if (error || !data) {
-    return <p className="text-sm text-gray-400 py-2">Unable to load pending transactions.</p>;
+    return (
+      <p className="text-sm text-gray-400 py-2">
+        Unable to load pending transactions.
+      </p>
+    );
   }
 
   return (

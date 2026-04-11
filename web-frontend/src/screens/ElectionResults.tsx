@@ -19,7 +19,14 @@ import type { CandidateResults } from "@/data_types";
 import { GLOBAL_VARIABLES } from "@/global/globalVariables";
 import TableElectionResults from "@/tables/election_results_table/page";
 
-const COLORS = ["#DE0031", "#1d6feb", "#f59e0b", "#10b981", "#8b5cf6", "#ec4899"];
+const COLORS = [
+  "#DE0031",
+  "#1d6feb",
+  "#f59e0b",
+  "#10b981",
+  "#8b5cf6",
+  "#ec4899",
+];
 
 const ElectionResults = () => {
   const [results, setResults] = useState<CandidateResults[]>([]);
@@ -75,7 +82,9 @@ const ElectionResults = () => {
   return (
     <div className="flex flex-col gap-4 pb-10">
       <div className="flex items-center justify-between">
-        <h1 className="font-inria-sans text-2xl text-gray-400">Election Results</h1>
+        <h1 className="font-inria-sans text-2xl text-gray-400">
+          Election Results
+        </h1>
         <button
           onClick={fetchResults}
           className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
@@ -106,7 +115,11 @@ const ElectionResults = () => {
           <CardHeader className="pb-2">
             <CardDescription>Current Leader</CardDescription>
             <CardTitle className="text-lg text-red-700 truncate">
-              {isLoading ? "—" : winner ? `${winner.candidate} (${winner.percentage}%)` : "—"}
+              {isLoading
+                ? "—"
+                : winner
+                  ? `${winner.candidate} (${winner.percentage}%)`
+                  : "—"}
             </CardTitle>
           </CardHeader>
         </Card>
@@ -116,7 +129,9 @@ const ElectionResults = () => {
         <Card className="border border-gray-100 shadow-sm">
           <CardHeader>
             <CardTitle>Results Table</CardTitle>
-            <CardDescription>Detailed breakdown of votes by candidate</CardDescription>
+            <CardDescription>
+              Detailed breakdown of votes by candidate
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? <Spinner /> : <TableElectionResults data={results} />}
@@ -126,7 +141,9 @@ const ElectionResults = () => {
         <Card className="border border-gray-100 shadow-sm">
           <CardHeader>
             <CardTitle>Vote Distribution</CardTitle>
-            <CardDescription>Visual representation of vote percentages</CardDescription>
+            <CardDescription>
+              Visual representation of vote percentages
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -147,10 +164,18 @@ const ElectionResults = () => {
                     }
                   >
                     {chartData.map((_entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number) => [value.toLocaleString(), "Votes"]} />
+                  <Tooltip
+                    formatter={(value: number) => [
+                      value.toLocaleString(),
+                      "Votes",
+                    ]}
+                  />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
@@ -176,20 +201,25 @@ const ElectionResults = () => {
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
                 <div>
                   <p className="text-gray-500">Total votes cast</p>
-                  <p className="font-semibold text-gray-800">{totalVotes.toLocaleString()}</p>
+                  <p className="font-semibold text-gray-800">
+                    {totalVotes.toLocaleString()}
+                  </p>
                 </div>
                 {winner && (
                   <div>
                     <p className="text-gray-500">Winner</p>
                     <p className="font-semibold text-gray-800">
-                      {winner.candidate} <span className="text-gray-400">({winner.party})</span>
+                      {winner.candidate}{" "}
+                      <span className="text-gray-400">({winner.party})</span>
                     </p>
                   </div>
                 )}
                 {winner && (
                   <div>
                     <p className="text-gray-500">Winning percentage</p>
-                    <p className="font-semibold text-red-600">{winner.percentage}%</p>
+                    <p className="font-semibold text-red-600">
+                      {winner.percentage}%
+                    </p>
                   </div>
                 )}
               </div>
@@ -210,7 +240,9 @@ const ElectionResults = () => {
                           }}
                         />
                       </div>
-                      <span className="text-xs text-gray-500 w-32 truncate">{r.candidate}</span>
+                      <span className="text-xs text-gray-500 w-32 truncate">
+                        {r.candidate}
+                      </span>
                       <span className="text-xs font-semibold text-gray-700 w-12 text-right">
                         {r.percentage}%
                       </span>

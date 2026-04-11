@@ -19,7 +19,9 @@ export const columns: ColumnDef<Citizen>[] = [
     accessorKey: "electoralId",
     header: "Electoral ID",
     cell: ({ row }) => (
-      <span className="font-mono text-xs text-gray-600">{row.original.electoralId}</span>
+      <span className="font-mono text-xs text-gray-600">
+        {row.original.electoralId}
+      </span>
     ),
   },
   {

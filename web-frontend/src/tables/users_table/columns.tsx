@@ -39,14 +39,18 @@ export const columns: ColumnDef<User>[] = [
       </Button>
     ),
     cell: ({ row }) => (
-      <span className="font-medium text-gray-800">{(row.original as any).name}</span>
+      <span className="font-medium text-gray-800">
+        {(row.original as any).name}
+      </span>
     ),
   },
   {
     accessorKey: "username",
     header: "Username",
     cell: ({ row }) => (
-      <span className="text-sm text-gray-500">{(row.original as any).username}</span>
+      <span className="text-sm text-gray-500">
+        {(row.original as any).username}
+      </span>
     ),
   },
   {
@@ -71,7 +75,9 @@ export const columns: ColumnDef<User>[] = [
     accessorKey: "timestamp",
     header: "Created",
     cell: ({ row }) => (
-      <span className="text-xs text-gray-400">{(row.original as any).timestamp}</span>
+      <span className="text-xs text-gray-400">
+        {(row.original as any).timestamp}
+      </span>
     ),
   },
   {

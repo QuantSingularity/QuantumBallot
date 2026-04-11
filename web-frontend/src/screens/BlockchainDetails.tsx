@@ -36,7 +36,9 @@ function BlockchainDetails() {
   const [blockHeader, setBlockHeader] = useState<BlockHeader | null>(null);
   const [blockSize, setBlockSize] = useState<number | null>(0);
   const [blockIndex, setBlockIndex] = useState<number | null>(0);
-  const [transactionCounter, setTransactionCounter] = useState<number | null>(0);
+  const [transactionCounter, setTransactionCounter] = useState<number | null>(
+    0,
+  );
 
   useEffect(() => {
     if (data) {
@@ -68,7 +70,8 @@ function BlockchainDetails() {
   const perc: number =
     blockSize !== null ? Math.min((blockSize * 100) / maxSize, 100) : 0;
 
-  const itemStyle = "flex flex-col text-sm font-inria-sans text-gray-600 break-all";
+  const itemStyle =
+    "flex flex-col text-sm font-inria-sans text-gray-600 break-all";
 
   if (isLoading) {
     return (
@@ -82,7 +85,9 @@ function BlockchainDetails() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center space-y-2">
-          <p className="text-red-500 font-medium">Failed to load block details</p>
+          <p className="text-red-500 font-medium">
+            Failed to load block details
+          </p>
           <p className="text-gray-400 text-sm">{(error as Error).message}</p>
           <button
             onClick={() => refetch()}
@@ -99,13 +104,17 @@ function BlockchainDetails() {
     <div className="flex gap-2 flex-col">
       <span className="font-inria-sans text-2xl text-gray-400">Blockchain</span>
       <div className="flex flex-col gap-1">
-        <span className="font-inria-sans text-md text-gray-400">Blockchain</span>
+        <span className="font-inria-sans text-md text-gray-400">
+          Blockchain
+        </span>
         <BlockList />
       </div>
 
       <div className="grid gap-2">
         <div className="flex flex-col">
-          <span className="font-inria-sans text-md text-gray-400">Block details</span>
+          <span className="font-inria-sans text-md text-gray-400">
+            Block details
+          </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-5 pl-3">
@@ -131,14 +140,22 @@ function BlockchainDetails() {
                     width: "100%",
                     height: "100%",
                     justifyContent: "center",
-                    background: "linear-gradient(to left top, #FFFFFF, #a2d7f6)",
+                    background:
+                      "linear-gradient(to left top, #FFFFFF, #a2d7f6)",
                   }}
                 >
-                  <div style={{ flex: 1, background: "linear-gradient(to left top, #FFFFFF, #a2d7f6)" }} />
+                  <div
+                    style={{
+                      flex: 1,
+                      background:
+                        "linear-gradient(to left top, #FFFFFF, #a2d7f6)",
+                    }}
+                  />
                   <div
                     style={{
                       height: `${perc}%`,
-                      background: "linear-gradient(to left top, #FFFFFF, #2EA8ED)",
+                      background:
+                        "linear-gradient(to left top, #FFFFFF, #2EA8ED)",
                     }}
                   />
                 </div>
@@ -155,11 +172,15 @@ function BlockchainDetails() {
                 <div className="flex flex-col gap-1">
                   <div className="grid grid-cols-3 gap-2">
                     <div className={itemStyle}>
-                      <span className="font-inria-sans text-sm text-gray-400">Version:</span>
+                      <span className="font-inria-sans text-sm text-gray-400">
+                        Version:
+                      </span>
                       <span>{blockHeader?.version ?? "—"}</span>
                     </div>
                     <div className={itemStyle}>
-                      <span className="font-inria-sans text-sm text-gray-400">Hash Block:</span>
+                      <span className="font-inria-sans text-sm text-gray-400">
+                        Hash Block:
+                      </span>
                       <div className="flex flex-row justify-center gap-2">
                         <span>{blockHeader?.blockHash ?? "—"}</span>
                         {blockHeader?.blockHash && (
@@ -173,11 +194,15 @@ function BlockchainDetails() {
                       </div>
                     </div>
                     <div className={itemStyle}>
-                      <span className="font-inria-sans text-sm text-gray-400">Previous BlockHash:</span>
+                      <span className="font-inria-sans text-sm text-gray-400">
+                        Previous BlockHash:
+                      </span>
                       <span>{blockHeader?.previousBlockHash ?? "—"}</span>
                     </div>
                     <div className={itemStyle}>
-                      <span className="font-inria-sans text-sm text-gray-400">Merkle Root:</span>
+                      <span className="font-inria-sans text-sm text-gray-400">
+                        Merkle Root:
+                      </span>
                       <div className="flex flex-row justify-center gap-2">
                         <span>{blockHeader?.merkleRoot ?? "—"}</span>
                         {blockHeader?.merkleRoot && (
@@ -191,27 +216,41 @@ function BlockchainDetails() {
                       </div>
                     </div>
                     <div className={itemStyle}>
-                      <span className="font-inria-sans text-sm text-gray-400">Timestamp:</span>
+                      <span className="font-inria-sans text-sm text-gray-400">
+                        Timestamp:
+                      </span>
                       <span>{getDate(blockHeader?.timestamp?.toString())}</span>
                     </div>
                     <div className={itemStyle}>
-                      <span className="font-inria-sans text-sm text-gray-400">Difficulty Target:</span>
+                      <span className="font-inria-sans text-sm text-gray-400">
+                        Difficulty Target:
+                      </span>
                       <span>{blockHeader?.difficultyTarget ?? "—"}</span>
                     </div>
                     <div className={itemStyle}>
-                      <span className="font-inria-sans text-sm text-gray-400">Nonce:</span>
+                      <span className="font-inria-sans text-sm text-gray-400">
+                        Nonce:
+                      </span>
                       <span>{blockHeader?.nonce ?? "—"}</span>
                     </div>
                     <div className={itemStyle}>
-                      <span className="font-inria-sans text-sm text-gray-400">Block Index:</span>
+                      <span className="font-inria-sans text-sm text-gray-400">
+                        Block Index:
+                      </span>
                       <span>{blockIndex ?? "—"}</span>
                     </div>
                     <div className={itemStyle}>
-                      <span className="font-inria-sans text-sm text-gray-400">Block Size:</span>
-                      <span>{blockSize != null ? `${blockSize} bytes` : "—"}</span>
+                      <span className="font-inria-sans text-sm text-gray-400">
+                        Block Size:
+                      </span>
+                      <span>
+                        {blockSize != null ? `${blockSize} bytes` : "—"}
+                      </span>
                     </div>
                     <div className={itemStyle}>
-                      <span className="font-inria-sans text-sm text-gray-400">Transaction Counter:</span>
+                      <span className="font-inria-sans text-sm text-gray-400">
+                        Transaction Counter:
+                      </span>
                       <span>{transactionCounter ?? "—"}</span>
                     </div>
                   </div>
@@ -220,13 +259,17 @@ function BlockchainDetails() {
             </div>
 
             <div>
-              <span className="font-inria-sans text-md text-gray-400">Transactions</span>
+              <span className="font-inria-sans text-md text-gray-400">
+                Transactions
+              </span>
               <TableTransactionsBlockDetails detail={data} />
             </div>
           </div>
 
           <div className="flex flex-col col-span-3">
-            <span className="font-bold font-inria-sans text-lg text-gray-400">JSON</span>
+            <span className="font-bold font-inria-sans text-lg text-gray-400">
+              JSON
+            </span>
             <Tabs defaultValue="pretty" className="w-full max-w-[500px]">
               <TabsList>
                 <TabsTrigger value="pretty">Pretty</TabsTrigger>

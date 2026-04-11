@@ -51,13 +51,21 @@ function PublicAnnouncement() {
 
   const onPressLoadResultsComputed = useCallback(() => {
     axios
-      .get(`http://${GLOBAL_VARIABLES.LOCALHOST}/api/blockchain/get-results-computed`)
+      .get(
+        `http://${GLOBAL_VARIABLES.LOCALHOST}/api/blockchain/get-results-computed`,
+      )
       .then((response) => {
         const res = response.data;
         if (res?.candidatesResult) {
           let newData = res.candidatesResult.map((x: any, index: any) => {
-            const candidatePhotoName = x.candidate.name.toLowerCase().split(" ").join(".");
-            const partyPhotoName = x.candidate.party.toLowerCase().split(" ").join(".");
+            const candidatePhotoName = x.candidate.name
+              .toLowerCase()
+              .split(" ")
+              .join(".");
+            const partyPhotoName = x.candidate.party
+              .toLowerCase()
+              .split(" ")
+              .join(".");
             return {
               id: index + 1,
               numVotes: x.numVotes.toString(),
@@ -70,7 +78,10 @@ function PublicAnnouncement() {
           });
 
           newData.sort((a: any, b: any) => b.percentage - a.percentage);
-          newData = newData.map((x: any, index: any) => ({ ...x, id: index + 1 }));
+          newData = newData.map((x: any, index: any) => ({
+            ...x,
+            id: index + 1,
+          }));
 
           setData([...newData]);
           setResults(res);
@@ -89,13 +100,21 @@ function PublicAnnouncement() {
     axios.defaults.headers.common.Authorization = `Bearer ${token}`;
 
     axios
-      .get(`http://${GLOBAL_VARIABLES.LOCALHOST}/api/blockchain/get-results`, { withCredentials: true })
+      .get(`http://${GLOBAL_VARIABLES.LOCALHOST}/api/blockchain/get-results`, {
+        withCredentials: true,
+      })
       .then((response) => {
         const res = response.data;
         if (res?.candidatesResult) {
           let newData = res.candidatesResult.map((x: any, index: any) => {
-            const candidatePhotoName = x.candidate.name.toLowerCase().split(" ").join(".");
-            const partyPhotoName = x.candidate.party.toLowerCase().split(" ").join(".");
+            const candidatePhotoName = x.candidate.name
+              .toLowerCase()
+              .split(" ")
+              .join(".");
+            const partyPhotoName = x.candidate.party
+              .toLowerCase()
+              .split(" ")
+              .join(".");
             return {
               id: index + 1,
               numVotes: x.numVotes.toString(),
@@ -107,7 +126,10 @@ function PublicAnnouncement() {
             };
           });
           newData.sort((a: any, b: any) => b.percentage - a.percentage);
-          newData = newData.map((x: any, index: any) => ({ ...x, id: index + 1 }));
+          newData = newData.map((x: any, index: any) => ({
+            ...x,
+            id: index + 1,
+          }));
           setData([...newData]);
           setResults(res);
         }
@@ -152,7 +174,10 @@ function PublicAnnouncement() {
       .get(`http://${GLOBAL_VARIABLES.LOCALHOST}/api/blockchain/clear-results`)
       .then((response) => {
         if (response.data !== undefined) {
-          toast({ title: "Feedback", description: "Success! Computed results erased ..." });
+          toast({
+            title: "Feedback",
+            description: "Success! Computed results erased ...",
+          });
           setResults(null);
           setData(undefined);
         }
@@ -164,7 +189,11 @@ function PublicAnnouncement() {
     try {
       if (results) {
         await UltimateSpeech(results);
-        toast({ title: "Feedback", description: "Success! New speech has been generated. Please play it ..." });
+        toast({
+          title: "Feedback",
+          description:
+            "Success! New speech has been generated. Please play it ...",
+        });
       }
     } catch (e) {
       console.log(e);
@@ -188,7 +217,9 @@ function PublicAnnouncement() {
       </span>
       <div className="md:items-center md:gap-2 md:flex-col w-full h-screen">
         <div className="flex justify-between mb-1">
-          <span className="font-inria-sans text-xl text-gray-400">2027 Election Results</span>
+          <span className="font-inria-sans text-xl text-gray-400">
+            2027 Election Results
+          </span>
           <div className="flex gap-10 items-center">
             <SoundButton type="on" />
             <SoundButton type="off" />
@@ -202,20 +233,29 @@ function PublicAnnouncement() {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Speech Options</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This action will generate a speech based on the current election's result
-                    and may incur a cost of approximately $1. Please double check your action!
+                    This action will generate a speech based on the current
+                    election's result and may incur a cost of approximately $1.
+                    Please double check your action!
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <div className="flex flex-col w-full gap-2">
                     <div className="flex flex-row gap-2 justify-between">
-                      <AlertDialogCancel className="w-full">Cancel</AlertDialogCancel>
-                      <AlertDialogAction className="w-full" onClick={onPlaySpeech}>
+                      <AlertDialogCancel className="w-full">
+                        Cancel
+                      </AlertDialogCancel>
+                      <AlertDialogAction
+                        className="w-full"
+                        onClick={onPlaySpeech}
+                      >
                         {isPlaying ? "Pause Speech" : "Play Old Speech"}
                       </AlertDialogAction>
                     </div>
                     <div className="flex items-center justify-center">
-                      <AlertDialogAction className="bg-red-800 w-auto" onClick={onGenerateSpeech}>
+                      <AlertDialogAction
+                        className="bg-red-800 w-auto"
+                        onClick={onGenerateSpeech}
+                      >
                         Generate and Play New Speech
                       </AlertDialogAction>
                     </div>
@@ -230,14 +270,19 @@ function PublicAnnouncement() {
           <div className="col-span-3 flex flex-col gap-5">
             <div className="flex flex-col gap-2 w-full">
               <div className="flex flex-row gap-2 py-1">
-                <Button className="max-w-lg" onClick={onClearResults}>Dump</Button>
+                <Button className="max-w-lg" onClick={onClearResults}>
+                  Dump
+                </Button>
                 <button
                   className={`max-w-lg inline-block text-sm text-white px-4 py-2 rounded-md cursor-pointer ${
-                    clicked ? "animate-explode" : "hover:shadow-lg animate-gradient"
+                    clicked
+                      ? "animate-explode"
+                      : "hover:shadow-lg animate-gradient"
                   }`}
                   onClick={handleClick}
                   style={{
-                    background: "linear-gradient(to right, #262626, #949435, #b72424)",
+                    background:
+                      "linear-gradient(to right, #262626, #949435, #b72424)",
                     border: "none",
                     boxShadow: "0px 8px 15px rgba(0, 0, 0, 0.2)",
                     transition: "transform 0.2s ease, box-shadow 0.2s ease",
@@ -250,8 +295,12 @@ function PublicAnnouncement() {
             </div>
             <div className="grid grid-cols-2 h-full">
               <div className="flex flex-col gap-1 sm:gap-2 items-center justify-center">
-                <span className="font-inria-sans text-xl text-gray-500">Progress</span>
-                <span className="font-bold font-inria-sans text-6xl text-gray-600">{counter}%</span>
+                <span className="font-inria-sans text-xl text-gray-500">
+                  Progress
+                </span>
+                <span className="font-bold font-inria-sans text-6xl text-gray-600">
+                  {counter}%
+                </span>
               </div>
               <div>
                 <Waveform

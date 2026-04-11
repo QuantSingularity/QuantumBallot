@@ -19,13 +19,19 @@ vi.mock("@/context/AuthContext", () => ({
   }),
 }));
 vi.mock("@/geomap/GoogleMap", () => ({ default: () => <div>Map</div> }));
-vi.mock("@/components/dashboard-components/vertical-bar", () => ({ default: () => <div>Bar</div> }));
-vi.mock("@/components/dashboard-components/line-chart", () => ({ default: () => <div>Line</div> }));
+vi.mock("@/components/dashboard-components/vertical-bar", () => ({
+  default: () => <div>Bar</div>,
+}));
+vi.mock("@/components/dashboard-components/line-chart", () => ({
+  default: () => <div>Line</div>,
+}));
 vi.mock("@mui/joy/CircularProgress", () => ({
   default: ({ children }: any) => <div data-testid="progress">{children}</div>,
 }));
 vi.mock("@mui/material/LinearProgress", () => ({ default: () => <div /> }));
-vi.mock("@mui/material/Stack", () => ({ default: ({ children }: any) => <div>{children}</div> }));
+vi.mock("@mui/material/Stack", () => ({
+  default: ({ children }: any) => <div>{children}</div>,
+}));
 vi.mock("@mui/material/styles", () => ({
   createTheme: () => ({}),
   ThemeProvider: ({ children }: any) => <>{children}</>,
@@ -36,7 +42,14 @@ const mockData = {
     {
       numVotes: 500,
       percentage: 60.0,
-      candidate: { code: 1, name: "John Doe", party: "Party A", acronym: "PA", status: "active", toast: vi.fn() },
+      candidate: {
+        code: 1,
+        name: "John Doe",
+        party: "Party A",
+        acronym: "PA",
+        status: "active",
+        toast: vi.fn(),
+      },
     },
   ],
   expectedTotalVotes: 1000,
@@ -45,7 +58,14 @@ const mockData = {
   votesPerProvince: { Luanda: { sum: 300 }, Benguela: { sum: 200 } },
   startTime: 0,
   endTime: 100,
-  winner: { code: 1, name: "John Doe", party: "Party A", acronym: "PA", status: "active", toast: vi.fn() },
+  winner: {
+    code: 1,
+    name: "John Doe",
+    party: "Party A",
+    acronym: "PA",
+    status: "active",
+    toast: vi.fn(),
+  },
   averageTimePerVote: 2.5,
   averageVotePerProvince: 250,
   votesPerDay: {},
@@ -55,7 +75,9 @@ const mockData = {
 function wrap(ui: React.ReactElement) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
-    <QueryClientProvider client={qc}><MemoryRouter>{ui}</MemoryRouter></QueryClientProvider>
+    <QueryClientProvider client={qc}>
+      <MemoryRouter>{ui}</MemoryRouter>
+    </QueryClientProvider>,
   );
 }
 
@@ -66,7 +88,9 @@ describe("Dashboard Component", () => {
 
   it("renders Votes Received section", async () => {
     wrap(<Dashboard />);
-    await waitFor(() => expect(screen.getByText(/Votes Received/i)).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText(/Votes Received/i)).toBeInTheDocument(),
+    );
   });
 
   it("renders Total Voters and Candidates", async () => {
@@ -79,31 +103,43 @@ describe("Dashboard Component", () => {
 
   it("renders Top Parties section", async () => {
     wrap(<Dashboard />);
-    await waitFor(() => expect(screen.getByText(/Top Parties/i)).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText(/Top Parties/i)).toBeInTheDocument(),
+    );
   });
 
   it("renders Top Provinces section", async () => {
     wrap(<Dashboard />);
-    await waitFor(() => expect(screen.getByText(/Top Provinces/i)).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText(/Top Provinces/i)).toBeInTheDocument(),
+    );
   });
 
   it("renders Avg Time section", async () => {
     wrap(<Dashboard />);
-    await waitFor(() => expect(screen.getByText(/Avg Time/i)).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText(/Avg Time/i)).toBeInTheDocument(),
+    );
   });
 
   it("renders Statistics section", async () => {
     wrap(<Dashboard />);
-    await waitFor(() => expect(screen.getByText(/Statistics by Province/i)).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText(/Statistics by Province/i)).toBeInTheDocument(),
+    );
   });
 
   it("renders Daily Vote Increment section", async () => {
     wrap(<Dashboard />);
-    await waitFor(() => expect(screen.getByText(/Daily Vote Increment/i)).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText(/Daily Vote Increment/i)).toBeInTheDocument(),
+    );
   });
 
   it("renders Coverage Region", async () => {
     wrap(<Dashboard />);
-    await waitFor(() => expect(screen.getByText(/Coverage Region/i)).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText(/Coverage Region/i)).toBeInTheDocument(),
+    );
   });
 });

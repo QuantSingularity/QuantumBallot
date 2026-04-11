@@ -1,9 +1,13 @@
 import * as CryptoJS from "crypto-js";
 
-const SECRET_KEY_TOKEN: string = import.meta.env.VITE_SECRET_KEY_TOKEN ?? "quantumballot-default-secret-key";
+const SECRET_KEY_TOKEN: string =
+  import.meta.env.VITE_SECRET_KEY_TOKEN ?? "quantumballot-default-secret-key";
 
 const setItemAsync = async (key: string, value: string): Promise<void> => {
-  const encryptedData = CryptoJS.AES.encrypt(value, SECRET_KEY_TOKEN).toString();
+  const encryptedData = CryptoJS.AES.encrypt(
+    value,
+    SECRET_KEY_TOKEN,
+  ).toString();
   sessionStorage.setItem(key, encryptedData);
 };
 

@@ -69,8 +69,14 @@ function Dashboard() {
       if (results?.candidatesResult) {
         let newDataCandidates = results.candidatesResult.map(
           (x: any, index: any) => {
-            const candidateName = x.candidate.name.toLowerCase().split(" ").join(".");
-            const partyName = x.candidate.party.toLowerCase().split(" ").join(".");
+            const candidateName = x.candidate.name
+              .toLowerCase()
+              .split(" ")
+              .join(".");
+            const partyName = x.candidate.party
+              .toLowerCase()
+              .split(" ")
+              .join(".");
 
             return {
               id: index + 1,
@@ -96,7 +102,8 @@ function Dashboard() {
 
         const total_expected: number = results.expectedTotalVotes;
         const total_received: number = results.totalVotesReceived;
-        let perc: number = total_expected > 0 ? (total_received * 100) / total_expected : 0;
+        let perc: number =
+          total_expected > 0 ? (total_received * 100) / total_expected : 0;
         perc = Number(perc.toFixed(2));
 
         setPercentage(perc);
@@ -104,17 +111,15 @@ function Dashboard() {
         setMapData(results.votesPerProvince);
         setPartiesData(newParties);
 
-        let newsTopVotesPerProvinces = provinces.map(
-          (x: any, index: any) => ({
-            id: index + 1,
-            province: x,
-            percentage:
-              results.votesPerProvince[x]
-                ? (100 * results.votesPerProvince[x].sum) / results.totalVotesReceived
-                : 0,
-            number: `${results.votesPerProvince[x]?.sum ?? 0}K`,
-          }),
-        );
+        let newsTopVotesPerProvinces = provinces.map((x: any, index: any) => ({
+          id: index + 1,
+          province: x,
+          percentage: results.votesPerProvince[x]
+            ? (100 * results.votesPerProvince[x].sum) /
+              results.totalVotesReceived
+            : 0,
+          number: `${results.votesPerProvince[x]?.sum ?? 0}K`,
+        }));
 
         newsTopVotesPerProvinces = newsTopVotesPerProvinces.sort(
           (a: any, b: any) => b.percentage - a.percentage,
@@ -125,7 +130,13 @@ function Dashboard() {
     } catch (_error) {
       // Silently handle API errors when backend is not available
     }
-  }, [imageList, provinces, setMapData, setPartiesData, setTopVotesPerProvinces]);
+  }, [
+    imageList,
+    provinces,
+    setMapData,
+    setPartiesData,
+    setTopVotesPerProvinces,
+  ]);
 
   useEffect(() => {
     onPressLoadResultsComputed();
@@ -155,7 +166,9 @@ function Dashboard() {
                 determinate
                 value={percentage}
               >
-                <span className="text-xs font-bold text-white">{percentage}%</span>
+                <span className="text-xs font-bold text-white">
+                  {percentage}%
+                </span>
               </CircularProgress>
               {dataResults?.totalVotesReceived > 0 && (
                 <div className="flex flex-col items-end">
@@ -223,7 +236,9 @@ function Dashboard() {
                 </div>
               ))}
               {(!data || data.length === 0) && (
-                <span className="text-sm text-gray-400 italic">No data available</span>
+                <span className="text-sm text-gray-400 italic">
+                  No data available
+                </span>
               )}
             </div>
           </div>

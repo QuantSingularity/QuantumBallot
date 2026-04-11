@@ -34,14 +34,46 @@ function SideBarComponent() {
   }, [authState, imageList]);
 
   const navItems = [
-    { to: "dashboard", icon: <HiChartPie className="w-5 h-5" />, label: "Dashboard" },
-    { to: "announce-election", icon: <HiSpeakerphone className="w-5 h-5" />, label: "Announce Election" },
-    { to: "candidates", icon: <FaUsers className="w-5 h-5" />, label: "Candidates" },
-    { to: "voters", icon: <BsClipboardData className="w-5 h-5" />, label: "Voters" },
-    { to: "population-data", icon: <VscRepoPull className="w-5 h-5" />, label: "Population Data" },
-    { to: "election-results", icon: <MdOutlineOutput className="w-5 h-5" />, label: "Election Results" },
-    { to: "public-announcement", icon: <GiPublicSpeaker className="w-5 h-5" />, label: "Public Announcement" },
-    { to: "blockchain", icon: <SiHiveBlockchain className="w-5 h-5" />, label: "Blockchain" },
+    {
+      to: "dashboard",
+      icon: <HiChartPie className="w-5 h-5" />,
+      label: "Dashboard",
+    },
+    {
+      to: "announce-election",
+      icon: <HiSpeakerphone className="w-5 h-5" />,
+      label: "Announce Election",
+    },
+    {
+      to: "candidates",
+      icon: <FaUsers className="w-5 h-5" />,
+      label: "Candidates",
+    },
+    {
+      to: "voters",
+      icon: <BsClipboardData className="w-5 h-5" />,
+      label: "Voters",
+    },
+    {
+      to: "population-data",
+      icon: <VscRepoPull className="w-5 h-5" />,
+      label: "Population Data",
+    },
+    {
+      to: "election-results",
+      icon: <MdOutlineOutput className="w-5 h-5" />,
+      label: "Election Results",
+    },
+    {
+      to: "public-announcement",
+      icon: <GiPublicSpeaker className="w-5 h-5" />,
+      label: "Public Announcement",
+    },
+    {
+      to: "blockchain",
+      icon: <SiHiveBlockchain className="w-5 h-5" />,
+      label: "Blockchain",
+    },
   ];
 
   const isActive = (to: string) => location.pathname.includes(to);
@@ -75,12 +107,15 @@ function SideBarComponent() {
             key={to}
             to={to}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150
-              ${isActive(to)
-                ? "bg-red-600/15 text-red-400 border border-red-600/20"
-                : "text-gray-400 hover:text-white hover:bg-white/5"
+              ${
+                isActive(to)
+                  ? "bg-red-600/15 text-red-400 border border-red-600/20"
+                  : "text-gray-400 hover:text-white hover:bg-white/5"
               }`}
           >
-            <span className={isActive(to) ? "text-red-400" : "text-gray-500"}>{icon}</span>
+            <span className={isActive(to) ? "text-red-400" : "text-gray-500"}>
+              {icon}
+            </span>
             <span>{label}</span>
             {isActive(to) && (
               <div className="ml-auto w-1.5 h-1.5 rounded-full bg-red-400" />
@@ -88,20 +123,26 @@ function SideBarComponent() {
           </Link>
         ))}
 
-        {authState?.authenticated && authState?.role === Role.ADMIN.toString() && (
-          <Link
-            to="user"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150
-              ${isActive("user")
-                ? "bg-red-600/15 text-red-400 border border-red-600/20"
-                : "text-gray-400 hover:text-white hover:bg-white/5"
+        {authState?.authenticated &&
+          authState?.role === Role.ADMIN.toString() && (
+            <Link
+              to="user"
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150
+              ${
+                isActive("user")
+                  ? "bg-red-600/15 text-red-400 border border-red-600/20"
+                  : "text-gray-400 hover:text-white hover:bg-white/5"
               }`}
-          >
-            <HiChartPie className={`w-5 h-5 ${isActive("user") ? "text-red-400" : "text-gray-500"}`} />
-            <span>User Management</span>
-            {isActive("user") && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-red-400" />}
-          </Link>
-        )}
+            >
+              <HiChartPie
+                className={`w-5 h-5 ${isActive("user") ? "text-red-400" : "text-gray-500"}`}
+              />
+              <span>User Management</span>
+              {isActive("user") && (
+                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-red-400" />
+              )}
+            </Link>
+          )}
       </nav>
 
       {/* Dark mode toggle (disabled) */}
@@ -117,7 +158,12 @@ function SideBarComponent() {
 
       {/* Blockchain icon */}
       <div className="flex justify-center px-4 py-3">
-        <img src={BlockchainIcon} width={100} alt="Blockchain" className="opacity-30" />
+        <img
+          src={BlockchainIcon}
+          width={100}
+          alt="Blockchain"
+          className="opacity-30"
+        />
       </div>
 
       {/* Profile section */}
@@ -133,7 +179,8 @@ function SideBarComponent() {
               {authState?.name ?? "Unknown user"}
             </p>
             <p className="text-xs text-gray-500 truncate capitalize">
-              {authState?.role === "0" || authState?.role?.toString() === Role.ADMIN.toString()
+              {authState?.role === "0" ||
+              authState?.role?.toString() === Role.ADMIN.toString()
                 ? "Administrator"
                 : "Standard account"}
             </p>

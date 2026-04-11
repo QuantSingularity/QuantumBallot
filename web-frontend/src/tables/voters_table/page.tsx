@@ -58,9 +58,12 @@ function TableVoters({ toast }: { toast: (...params: any[]) => void }) {
     axios.defaults.headers.common.Authorization = `Bearer ${token}`;
 
     axios
-      .get(`http://${GLOBAL_VARIABLES.LOCALHOST}/api/committee/generate-identifiers`, {
-        withCredentials: true,
-      })
+      .get(
+        `http://${GLOBAL_VARIABLES.LOCALHOST}/api/committee/generate-identifiers`,
+        {
+          withCredentials: true,
+        },
+      )
       .then((response) => {
         const votersGenerated = response.data.voters;
         const newData = votersGenerated.map((element: any, index: number) => ({
@@ -90,10 +93,16 @@ function TableVoters({ toast }: { toast: (...params: any[]) => void }) {
           secret: element.secret,
         }));
         setData([...newData]);
-        toast({ title: "Feedback", description: "Success! Data deployed successfully ..." });
+        toast({
+          title: "Feedback",
+          description: "Success! Data deployed successfully ...",
+        });
       })
       .catch(() => {
-        toast({ title: "Feedback", description: "Error! Something went wrong." });
+        toast({
+          title: "Feedback",
+          description: "Error! Something went wrong.",
+        });
       });
   };
 
@@ -116,13 +125,15 @@ function TableVoters({ toast }: { toast: (...params: any[]) => void }) {
             <AlertDialogHeader>
               <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
               <AlertDialogDescription>
-                This action cannot be undone. This will permanently erase all data
-                stored in the smart-contract and register the new data.
+                This action cannot be undone. This will permanently erase all
+                data stored in the smart-contract and register the new data.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={onPressDeployBlockchain}>Continue</AlertDialogAction>
+              <AlertDialogAction onClick={onPressDeployBlockchain}>
+                Continue
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

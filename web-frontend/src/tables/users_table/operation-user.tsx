@@ -15,8 +15,6 @@ import { useAuth } from "@/context/AuthContext";
 import type { User } from "@/data_types";
 import { uploadImage } from "@/services/firebase";
 
-
-
 interface UserModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;

@@ -9,8 +9,7 @@ const sound = new Howl({
   autoplay: false,
   loop: true,
   volume: 0.3,
-  onend: () => {
-},
+  onend: () => {},
 });
 
 function SoundButton({ type }: { type: string }) {

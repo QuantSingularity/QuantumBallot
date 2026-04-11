@@ -40,8 +40,20 @@ export default class LineChartCustomized extends PureComponent {
             <XAxis dataKey="name" tick={{ fontSize: 11 }} />
             <YAxis />
             <Tooltip />
-            <Line type="monotone" dataKey="pv" stroke="#DE0031" fill="#DE0031" dot={false} />
-            <Line type="monotone" dataKey="uv" stroke="#82ca9d" fill="#82ca9d" dot={false} />
+            <Line
+              type="monotone"
+              dataKey="pv"
+              stroke="#DE0031"
+              fill="#DE0031"
+              dot={false}
+            />
+            <Line
+              type="monotone"
+              dataKey="uv"
+              stroke="#82ca9d"
+              fill="#82ca9d"
+              dot={false}
+            />
             <Brush />
           </LineChart>
         </ResponsiveContainer>
@@ -56,7 +68,12 @@ export default class LineChartCustomized extends PureComponent {
             <XAxis dataKey="name" tick={{ fontSize: 11 }} />
             <YAxis />
             <Tooltip />
-            <Area type="monotone" dataKey="pv" stroke="#DE0031" fill="#F29EB0" />
+            <Area
+              type="monotone"
+              dataKey="pv"
+              stroke="#DE0031"
+              fill="#F29EB0"
+            />
           </AreaChart>
         </ResponsiveContainer>
       </div>

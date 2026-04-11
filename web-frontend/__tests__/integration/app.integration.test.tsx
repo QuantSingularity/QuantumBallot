@@ -24,7 +24,9 @@ vi.mock("@/global/globalVariables", () => ({
 vi.mock("axios");
 
 const TestApp = ({ children }: { children: React.ReactNode }) => {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return (
     <ErrorBoundary>
       <AuthProvider>
@@ -47,18 +49,20 @@ describe("App Integration", () => {
     render(
       <TestApp>
         <div data-testid="app-content">App Content</div>
-      </TestApp>
+      </TestApp>,
     );
     expect(screen.getByTestId("app-content")).toBeInTheDocument();
   });
 
   it("ErrorBoundary wraps the app correctly", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
-    const CrashingComponent = () => { throw new Error("Test crash"); };
+    const CrashingComponent = () => {
+      throw new Error("Test crash");
+    };
     render(
       <TestApp>
         <CrashingComponent />
-      </TestApp>
+      </TestApp>,
     );
     expect(screen.getByText(/Something went wrong/i)).toBeInTheDocument();
   });
@@ -72,7 +76,7 @@ describe("App Integration", () => {
             <span data-testid="nested-child">nested</span>
           </QueryClientProvider>
         </MemoryRouter>
-      </AuthProvider>
+      </AuthProvider>,
     );
     expect(screen.getByTestId("nested-child")).toBeInTheDocument();
   });

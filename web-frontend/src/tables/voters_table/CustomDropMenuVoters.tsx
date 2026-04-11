@@ -16,7 +16,9 @@ type CustomDropMenuVotersProps = {
   voter: Voter;
 };
 
-export default function CustomDropMenuVoters({ voter }: CustomDropMenuVotersProps) {
+export default function CustomDropMenuVoters({
+  voter,
+}: CustomDropMenuVotersProps) {
   const [isRevealOpen, setIsRevealOpen] = useState(false);
 
   return (
@@ -37,7 +39,9 @@ export default function CustomDropMenuVoters({ voter }: CustomDropMenuVotersProp
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuItem
             onClick={() =>
-              navigator.clipboard.writeText(voter.identifier ?? "").catch(() => {})
+              navigator.clipboard
+                .writeText(voter.identifier ?? "")
+                .catch(() => {})
             }
           >
             Copy Identifier

@@ -31,12 +31,16 @@ vi.mock("@/components/dashboard-components/line-chart", () => ({
 
 vi.mock("@mui/joy/CircularProgress", () => ({
   default: ({ children, value }: any) => (
-    <div data-testid="circular-progress" data-value={value}>{children}</div>
+    <div data-testid="circular-progress" data-value={value}>
+      {children}
+    </div>
   ),
 }));
 
 vi.mock("@mui/material/LinearProgress", () => ({
-  default: ({ value }: any) => <div data-testid="linear-progress" data-value={value} />,
+  default: ({ value }: any) => (
+    <div data-testid="linear-progress" data-value={value} />
+  ),
 }));
 
 vi.mock("@mui/material/Stack", () => ({
@@ -53,12 +57,26 @@ const mockResultsData = {
     {
       numVotes: 100,
       percentage: 45.5,
-      candidate: { code: 1, name: "Candidate One", party: "Party A", acronym: "PA", status: "active", toast: vi.fn() },
+      candidate: {
+        code: 1,
+        name: "Candidate One",
+        party: "Party A",
+        acronym: "PA",
+        status: "active",
+        toast: vi.fn(),
+      },
     },
     {
       numVotes: 80,
       percentage: 36.4,
-      candidate: { code: 2, name: "Candidate Two", party: "Party B", acronym: "PB", status: "active", toast: vi.fn() },
+      candidate: {
+        code: 2,
+        name: "Candidate Two",
+        party: "Party B",
+        acronym: "PB",
+        status: "active",
+        toast: vi.fn(),
+      },
     },
   ],
   expectedTotalVotes: 220,
@@ -70,7 +88,14 @@ const mockResultsData = {
   },
   startTime: 1640000000,
   endTime: 1640086400,
-  winner: { code: 1, name: "Candidate One", party: "Party A", acronym: "PA", status: "active", toast: vi.fn() },
+  winner: {
+    code: 1,
+    name: "Candidate One",
+    party: "Party A",
+    acronym: "PA",
+    status: "active",
+    toast: vi.fn(),
+  },
   averageTimePerVote: 5,
   averageVotePerProvince: 90,
   votesPerDay: {},
@@ -78,8 +103,12 @@ const mockResultsData = {
 };
 
 function renderWithClient(ui: React.ReactElement) {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
+  );
 }
 
 describe("Dashboard Integration Tests", () => {
@@ -97,7 +126,7 @@ describe("Dashboard Integration Tests", () => {
     renderWithClient(<Dashboard />);
     await waitFor(() => {
       expect(axios.get).toHaveBeenCalledWith(
-        expect.stringContaining("/api/blockchain/get-results-computed")
+        expect.stringContaining("/api/blockchain/get-results-computed"),
       );
     });
   });

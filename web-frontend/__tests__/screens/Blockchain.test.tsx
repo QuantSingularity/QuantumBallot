@@ -21,7 +21,9 @@ vi.mock("@/tables/transactions_table/page", () => ({
   default: () => <div data-testid="transactions-table">Transactions Table</div>,
 }));
 vi.mock("@/tables/pending_transactions_table/page", () => ({
-  default: () => <div data-testid="pending-transactions-table">Pending Transactions</div>,
+  default: () => (
+    <div data-testid="pending-transactions-table">Pending Transactions</div>
+  ),
 }));
 vi.mock("@/components/ui/toaster", () => ({
   Toaster: () => <div data-testid="toaster" />,
@@ -31,11 +33,13 @@ vi.mock("@/components/ui/use-toast", () => ({
 }));
 
 function renderWithClient(ui: React.ReactElement) {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter>{ui}</MemoryRouter>
-    </QueryClientProvider>
+    </QueryClientProvider>,
   );
 }
 
@@ -66,12 +70,16 @@ describe("Blockchain Component", () => {
 
   it("renders Pending Transactions section", () => {
     renderWithClient(<Blockchain />);
-    expect(screen.getByTestId("pending-transactions-table")).toBeInTheDocument();
+    expect(
+      screen.getByTestId("pending-transactions-table"),
+    ).toBeInTheDocument();
   });
 
   it("renders Mine Block button", () => {
     renderWithClient(<Blockchain />);
-    expect(screen.getByRole("button", { name: /Mine Block/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Mine Block/i }),
+    ).toBeInTheDocument();
   });
 
   it("renders the range input field", () => {

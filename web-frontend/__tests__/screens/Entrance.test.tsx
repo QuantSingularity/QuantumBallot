@@ -35,7 +35,11 @@ describe("Entrance Component", () => {
       }),
     }));
 
-    render(<MemoryRouter><Entrance /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <Entrance />
+      </MemoryRouter>,
+    );
     expect(screen.getByTestId("login-page")).toBeInTheDocument();
   });
 
@@ -49,7 +53,11 @@ describe("Entrance Component", () => {
     }));
 
     const { default: EntranceFresh } = await import("@/screens/Entrance");
-    render(<MemoryRouter><EntranceFresh /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <EntranceFresh />
+      </MemoryRouter>,
+    );
     // The sidebar and container are conditionally rendered
     expect(screen.queryByTestId("login-page")).not.toBeInTheDocument();
   });
@@ -63,7 +71,11 @@ describe("Entrance Component", () => {
       }),
     }));
     expect(() =>
-      render(<MemoryRouter><Entrance /></MemoryRouter>)
+      render(
+        <MemoryRouter>
+          <Entrance />
+        </MemoryRouter>,
+      ),
     ).not.toThrow();
   });
 });

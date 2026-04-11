@@ -16,7 +16,11 @@ vi.mock("@/context/AuthContext", () => ({
 vi.mock("@/components/ui/calendar", () => ({
   Calendar: ({ onSelect }: any) => (
     <div data-testid="calendar">
-      <button onClick={() => onSelect({ from: new Date("2027-01-01"), to: new Date("2027-01-15") })}>
+      <button
+        onClick={() =>
+          onSelect({ from: new Date("2027-01-01"), to: new Date("2027-01-15") })
+        }
+      >
         Select Range
       </button>
     </div>
@@ -29,53 +33,95 @@ describe("AnnounceElection Component", () => {
   });
 
   it("renders the form card", () => {
-    render(<MemoryRouter><AnnounceElection /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <AnnounceElection />
+      </MemoryRouter>,
+    );
     expect(screen.getByText("Announce Election")).toBeInTheDocument();
-    expect(screen.getByText("Create a new election announcement")).toBeInTheDocument();
+    expect(
+      screen.getByText("Create a new election announcement"),
+    ).toBeInTheDocument();
   });
 
   it("renders Title input", () => {
-    render(<MemoryRouter><AnnounceElection /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <AnnounceElection />
+      </MemoryRouter>,
+    );
     expect(screen.getByLabelText(/Title/i)).toBeInTheDocument();
   });
 
   it("renders Description textarea", () => {
-    render(<MemoryRouter><AnnounceElection /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <AnnounceElection />
+      </MemoryRouter>,
+    );
     expect(screen.getByLabelText(/Description/i)).toBeInTheDocument();
   });
 
   it("renders the submit button", () => {
-    render(<MemoryRouter><AnnounceElection /></MemoryRouter>);
-    expect(screen.getByRole("button", { name: /Announce Election/i })).toBeInTheDocument();
+    render(
+      <MemoryRouter>
+        <AnnounceElection />
+      </MemoryRouter>,
+    );
+    expect(
+      screen.getByRole("button", { name: /Announce Election/i }),
+    ).toBeInTheDocument();
   });
 
   it("allows typing in Title field", () => {
-    render(<MemoryRouter><AnnounceElection /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <AnnounceElection />
+      </MemoryRouter>,
+    );
     const titleInput = screen.getByLabelText(/Title/i);
-    fireEvent.change(titleInput, { target: { value: "Presidential Election 2027" } });
+    fireEvent.change(titleInput, {
+      target: { value: "Presidential Election 2027" },
+    });
     expect(titleInput).toHaveValue("Presidential Election 2027");
   });
 
   it("allows typing in Description field", () => {
-    render(<MemoryRouter><AnnounceElection /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <AnnounceElection />
+      </MemoryRouter>,
+    );
     const descInput = screen.getByLabelText(/Description/i);
-    fireEvent.change(descInput, { target: { value: "Annual presidential election" } });
+    fireEvent.change(descInput, {
+      target: { value: "Annual presidential election" },
+    });
     expect(descInput).toHaveValue("Annual presidential election");
   });
 
   it("shows error toast when submitting empty form", async () => {
-    render(<MemoryRouter><AnnounceElection /></MemoryRouter>);
-    const submitBtn = screen.getByRole("button", { name: /Announce Election/i });
+    render(
+      <MemoryRouter>
+        <AnnounceElection />
+      </MemoryRouter>,
+    );
+    const submitBtn = screen.getByRole("button", {
+      name: /Announce Election/i,
+    });
     fireEvent.click(submitBtn);
     await waitFor(() => {
       expect(toastMock).toHaveBeenCalledWith(
-        expect.objectContaining({ variant: "destructive" })
+        expect.objectContaining({ variant: "destructive" }),
       );
     });
   });
 
   it("shows success toast when form is complete", async () => {
-    render(<MemoryRouter><AnnounceElection /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <AnnounceElection />
+      </MemoryRouter>,
+    );
 
     fireEvent.change(screen.getByLabelText(/Title/i), {
       target: { value: "Presidential Election 2027" },
@@ -90,13 +136,17 @@ describe("AnnounceElection Component", () => {
 
     await waitFor(() => {
       expect(toastMock).toHaveBeenCalledWith(
-        expect.objectContaining({ title: "Success" })
+        expect.objectContaining({ title: "Success" }),
       );
     });
   });
 
   it("resets form after successful submission", async () => {
-    render(<MemoryRouter><AnnounceElection /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <AnnounceElection />
+      </MemoryRouter>,
+    );
 
     const titleInput = screen.getByLabelText(/Title/i);
     fireEvent.change(titleInput, { target: { value: "Test Election" } });
@@ -112,12 +162,20 @@ describe("AnnounceElection Component", () => {
   });
 
   it("renders the Voting Period label", () => {
-    render(<MemoryRouter><AnnounceElection /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <AnnounceElection />
+      </MemoryRouter>,
+    );
     expect(screen.getByText("Voting Period")).toBeInTheDocument();
   });
 
   it("renders the calendar for date selection", () => {
-    render(<MemoryRouter><AnnounceElection /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <AnnounceElection />
+      </MemoryRouter>,
+    );
     expect(screen.getByTestId("calendar")).toBeInTheDocument();
   });
 });

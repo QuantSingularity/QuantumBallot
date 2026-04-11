@@ -15,7 +15,11 @@ type RevealVoterProps = {
   voter?: Voter;
 };
 
-export default function RevealVoter({ isOpen, onOpenChange, voter }: RevealVoterProps) {
+export default function RevealVoter({
+  isOpen,
+  onOpenChange,
+  voter,
+}: RevealVoterProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -68,7 +72,9 @@ export default function RevealVoter({ isOpen, onOpenChange, voter }: RevealVoter
               </div>
             </>
           ) : (
-            <p className="text-sm text-gray-400">No voter information available.</p>
+            <p className="text-sm text-gray-400">
+              No voter information available.
+            </p>
           )}
         </div>
         <DialogFooter>

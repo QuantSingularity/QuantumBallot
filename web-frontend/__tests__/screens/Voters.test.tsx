@@ -16,7 +16,9 @@ vi.mock("@/components/toast/use-toast", () => ({
 
 vi.mock("@/tables/voters_table/page", () => ({
   default: ({ toast }: any) => (
-    <div data-testid="voters-table">Voters Table {toast ? "with-toast" : ""}</div>
+    <div data-testid="voters-table">
+      Voters Table {toast ? "with-toast" : ""}
+    </div>
   ),
 }));
 
@@ -28,22 +30,38 @@ describe("Voters Component", () => {
   });
 
   it("renders the Voters heading", () => {
-    render(<MemoryRouter><Voters /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <Voters />
+      </MemoryRouter>,
+    );
     expect(screen.getByText("Voters")).toBeInTheDocument();
   });
 
   it("renders the voters table", () => {
-    render(<MemoryRouter><Voters /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <Voters />
+      </MemoryRouter>,
+    );
     expect(screen.getByTestId("voters-table")).toBeInTheDocument();
   });
 
   it("renders toaster", () => {
-    render(<MemoryRouter><Voters /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <Voters />
+      </MemoryRouter>,
+    );
     expect(screen.getByTestId("toaster")).toBeInTheDocument();
   });
 
   it("passes toast to table", () => {
-    render(<MemoryRouter><Voters /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <Voters />
+      </MemoryRouter>,
+    );
     expect(screen.getByText(/with-toast/)).toBeInTheDocument();
   });
 });

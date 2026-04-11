@@ -16,7 +16,7 @@ describe("ErrorBoundary Component", () => {
     render(
       <ErrorBoundary>
         <ThrowingComponent shouldThrow={false} />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
     expect(screen.getByTestId("child")).toBeInTheDocument();
   });
@@ -25,7 +25,7 @@ describe("ErrorBoundary Component", () => {
     render(
       <ErrorBoundary>
         <ThrowingComponent shouldThrow={true} />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
     expect(screen.getByText(/Something went wrong/i)).toBeInTheDocument();
   });
@@ -34,25 +34,31 @@ describe("ErrorBoundary Component", () => {
     render(
       <ErrorBoundary>
         <ThrowingComponent shouldThrow={true} />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
-    expect(screen.getByRole("button", { name: /Try Again/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Try Again/i }),
+    ).toBeInTheDocument();
   });
 
   it("shows go home button on error", () => {
     render(
       <ErrorBoundary>
         <ThrowingComponent shouldThrow={true} />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
-    expect(screen.getByRole("button", { name: /Go Home/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Go Home/i }),
+    ).toBeInTheDocument();
   });
 
   it("renders custom fallback when provided", () => {
     render(
-      <ErrorBoundary fallback={<div data-testid="custom-fallback">Custom error</div>}>
+      <ErrorBoundary
+        fallback={<div data-testid="custom-fallback">Custom error</div>}
+      >
         <ThrowingComponent shouldThrow={true} />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
     expect(screen.getByTestId("custom-fallback")).toBeInTheDocument();
   });
@@ -61,16 +67,16 @@ describe("ErrorBoundary Component", () => {
     const { rerender } = render(
       <ErrorBoundary>
         <ThrowingComponent shouldThrow={true} />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
     expect(screen.getByText(/Something went wrong/i)).toBeInTheDocument();
-    
+
     fireEvent.click(screen.getByRole("button", { name: /Try Again/i }));
-    
+
     rerender(
       <ErrorBoundary>
         <ThrowingComponent shouldThrow={false} />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
     // After reset, child renders again
     expect(screen.queryByText(/Something went wrong/i)).not.toBeInTheDocument();

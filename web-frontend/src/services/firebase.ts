@@ -69,7 +69,11 @@ export const uploadImage = async (
 };
 
 export const loadImages = async (
-  setImageList: (updater: (prev: Record<string, string> | undefined) => Record<string, string>) => void,
+  setImageList: (
+    updater: (
+      prev: Record<string, string> | undefined,
+    ) => Record<string, string>,
+  ) => void,
 ): Promise<void> => {
   try {
     const storage = getStorage(app);
@@ -90,7 +94,11 @@ export const loadImages = async (
 export const uploadImageWithName = async (
   file: File | null | undefined,
   filename: string,
-  setImageList: (updater: (prev: Record<string, string> | undefined) => Record<string, string>) => void,
+  setImageList: (
+    updater: (
+      prev: Record<string, string> | undefined,
+    ) => Record<string, string>,
+  ) => void,
 ): Promise<void> => {
   if (!file || filename === "") return;
   try {

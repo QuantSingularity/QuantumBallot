@@ -46,7 +46,9 @@ describe("Logger", () => {
   });
 
   it("accepts additional context data", () => {
-    expect(() => logger.info("Message with data", { key: "value" })).not.toThrow();
+    expect(() =>
+      logger.info("Message with data", { key: "value" }),
+    ).not.toThrow();
   });
 
   it("handles error objects in error method", () => {

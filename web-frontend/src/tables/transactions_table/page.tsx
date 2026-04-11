@@ -27,7 +27,9 @@ export default function TableTransactions() {
   }
 
   if (error || !data) {
-    return <p className="text-sm text-gray-400 py-2">Unable to load transactions.</p>;
+    return (
+      <p className="text-sm text-gray-400 py-2">Unable to load transactions.</p>
+    );
   }
 
   return (

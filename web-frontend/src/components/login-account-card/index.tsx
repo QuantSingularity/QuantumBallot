@@ -34,7 +34,9 @@ export function LoginAccountCard() {
     try {
       const result = await onLogin?.(username.trim(), password);
       if (result?.error) {
-        setErrors({ general: "Invalid username or password. Please try again." });
+        setErrors({
+          general: "Invalid username or password. Please try again.",
+        });
       } else {
         navigate("/dashboard", { replace: true });
       }
@@ -50,7 +52,9 @@ export function LoginAccountCard() {
       <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl shadow-black/50">
         <div className="mb-6">
           <h2 className="text-xl font-bold text-white">Welcome back</h2>
-          <p className="text-gray-400 text-sm mt-1">Sign in to your account to continue</p>
+          <p className="text-gray-400 text-sm mt-1">
+            Sign in to your account to continue
+          </p>
         </div>
 
         <form className="space-y-5">
@@ -61,7 +65,10 @@ export function LoginAccountCard() {
           )}
 
           <div className="space-y-1.5">
-            <label htmlFor="username" className="block text-sm font-medium text-gray-300">
+            <label
+              htmlFor="username"
+              className="block text-sm font-medium text-gray-300"
+            >
               Username
             </label>
             <input
@@ -71,7 +78,10 @@ export function LoginAccountCard() {
               autoComplete="username"
               autoFocus
               onChange={(e) => setUsername(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && document.getElementById("password")?.focus()}
+              onKeyDown={(e) =>
+                e.key === "Enter" &&
+                document.getElementById("password")?.focus()
+              }
               placeholder="Enter your username"
               className={`w-full px-4 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-500 text-sm
                 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all
@@ -83,7 +93,10 @@ export function LoginAccountCard() {
           </div>
 
           <div className="space-y-1.5">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-300">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-300"
+            >
               Password
             </label>
             <input
@@ -92,7 +105,12 @@ export function LoginAccountCard() {
               value={password}
               autoComplete="current-password"
               onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") { const btn = document.getElementById("login-btn"); btn?.click(); } }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  const btn = document.getElementById("login-btn");
+                  btn?.click();
+                }
+              }}
               placeholder="Enter your password"
               className={`w-full px-4 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-500 text-sm
                 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all
@@ -113,9 +131,25 @@ export function LoginAccountCard() {
           >
             {isLoading ? (
               <>
-                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                <svg
+                  className="animate-spin h-4 w-4 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                  />
                 </svg>
                 Signing in...
               </>

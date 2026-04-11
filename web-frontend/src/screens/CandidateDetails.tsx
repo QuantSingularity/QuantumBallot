@@ -36,7 +36,7 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
   useEffect(() => {
     // In a real app, fetch candidate data by id
     if (id) {
-}
+    }
   }, [id]);
 
   if (isLoading) {
@@ -68,9 +68,12 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
               )}
             </div>
             <div className="w-full md:w-2/3">
-              <h3 className="text-lg font-medium mb-2">Candidate Information</h3>
+              <h3 className="text-lg font-medium mb-2">
+                Candidate Information
+              </h3>
               <p className="text-gray-500 mb-4">
-                This candidate is running for office with the {candidate.party} party.
+                This candidate is running for office with the {candidate.party}{" "}
+                party.
               </p>
               {speechUrl && (
                 <div className="mt-6">

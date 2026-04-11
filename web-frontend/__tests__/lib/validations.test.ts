@@ -11,12 +11,18 @@ import {
 
 describe("loginSchema", () => {
   it("validates correct login data", () => {
-    const result = loginSchema.safeParse({ username: "testuser", password: "password123" });
+    const result = loginSchema.safeParse({
+      username: "testuser",
+      password: "password123",
+    });
     expect(result.success).toBe(true);
   });
 
   it("rejects username shorter than 3 characters", () => {
-    const result = loginSchema.safeParse({ username: "ab", password: "password123" });
+    const result = loginSchema.safeParse({
+      username: "ab",
+      password: "password123",
+    });
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.errors[0].message).toContain("at least 3 characters");
@@ -24,7 +30,10 @@ describe("loginSchema", () => {
   });
 
   it("rejects password shorter than 6 characters", () => {
-    const result = loginSchema.safeParse({ username: "testuser", password: "12345" });
+    const result = loginSchema.safeParse({
+      username: "testuser",
+      password: "12345",
+    });
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.errors[0].message).toContain("at least 6 characters");
@@ -32,7 +41,10 @@ describe("loginSchema", () => {
   });
 
   it("rejects empty username", () => {
-    const result = loginSchema.safeParse({ username: "", password: "password123" });
+    const result = loginSchema.safeParse({
+      username: "",
+      password: "password123",
+    });
     expect(result.success).toBe(false);
   });
 
@@ -73,12 +85,18 @@ describe("registerUserSchema", () => {
   });
 
   it("rejects invalid role", () => {
-    const result = registerUserSchema.safeParse({ ...validData, role: "SUPERUSER" });
+    const result = registerUserSchema.safeParse({
+      ...validData,
+      role: "SUPERUSER",
+    });
     expect(result.success).toBe(false);
   });
 
   it("accepts NORMAL role", () => {
-    const result = registerUserSchema.safeParse({ ...validData, role: "NORMAL" });
+    const result = registerUserSchema.safeParse({
+      ...validData,
+      role: "NORMAL",
+    });
     expect(result.success).toBe(true);
   });
 });
@@ -108,7 +126,10 @@ describe("candidateSchema", () => {
   });
 
   it("rejects acronym longer than 10 characters", () => {
-    const result = candidateSchema.safeParse({ ...validCandidate, acronym: "TOOLONGACRONYM" });
+    const result = candidateSchema.safeParse({
+      ...validCandidate,
+      acronym: "TOOLONGACRONYM",
+    });
     expect(result.success).toBe(false);
   });
 
@@ -120,7 +141,10 @@ describe("candidateSchema", () => {
   });
 
   it("rejects invalid status", () => {
-    const result = candidateSchema.safeParse({ ...validCandidate, status: "unknown" });
+    const result = candidateSchema.safeParse({
+      ...validCandidate,
+      status: "unknown",
+    });
     expect(result.success).toBe(false);
   });
 });
@@ -140,7 +164,10 @@ describe("citizenSchema", () => {
   });
 
   it("rejects invalid email", () => {
-    const result = citizenSchema.safeParse({ ...validCitizen, email: "not-an-email" });
+    const result = citizenSchema.safeParse({
+      ...validCitizen,
+      email: "not-an-email",
+    });
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.errors[0].message).toContain("Invalid email");
@@ -148,7 +175,10 @@ describe("citizenSchema", () => {
   });
 
   it("rejects short electoral ID", () => {
-    const result = citizenSchema.safeParse({ ...validCitizen, electoralId: "EL1" });
+    const result = citizenSchema.safeParse({
+      ...validCitizen,
+      electoralId: "EL1",
+    });
     expect(result.success).toBe(false);
   });
 
@@ -196,19 +226,27 @@ describe("electionAnnouncementSchema", () => {
     });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.errors[0].message).toContain("End date must be after");
+      expect(result.error.errors[0].message).toContain(
+        "End date must be after",
+      );
     }
   });
 });
 
 describe("voteSchema", () => {
   it("validates correct vote data", () => {
-    const result = voteSchema.safeParse({ identifier: "VOTER12345", choiceCode: 1 });
+    const result = voteSchema.safeParse({
+      identifier: "VOTER12345",
+      choiceCode: 1,
+    });
     expect(result.success).toBe(true);
   });
 
   it("rejects non-positive choiceCode", () => {
-    const result = voteSchema.safeParse({ identifier: "VOTER12345", choiceCode: 0 });
+    const result = voteSchema.safeParse({
+      identifier: "VOTER12345",
+      choiceCode: 0,
+    });
     expect(result.success).toBe(false);
   });
 

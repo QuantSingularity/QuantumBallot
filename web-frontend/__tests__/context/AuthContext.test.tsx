@@ -25,10 +25,18 @@ const TestConsumer = () => {
   const auth = useAuth();
   return (
     <div>
-      <span data-testid="authenticated">{String(auth.authState?.authenticated)}</span>
-      <span data-testid="has-login">{typeof auth.onLogin === "function" ? "yes" : "no"}</span>
-      <span data-testid="has-logout">{typeof auth.onLogOut === "function" ? "yes" : "no"}</span>
-      <span data-testid="has-provinces">{auth.provinces?.length > 0 ? "yes" : "no"}</span>
+      <span data-testid="authenticated">
+        {String(auth.authState?.authenticated)}
+      </span>
+      <span data-testid="has-login">
+        {typeof auth.onLogin === "function" ? "yes" : "no"}
+      </span>
+      <span data-testid="has-logout">
+        {typeof auth.onLogOut === "function" ? "yes" : "no"}
+      </span>
+      <span data-testid="has-provinces">
+        {auth.provinces?.length > 0 ? "yes" : "no"}
+      </span>
     </div>
   );
 };
@@ -42,7 +50,7 @@ describe("AuthContext", () => {
     render(
       <AuthProvider>
         <TestConsumer />
-      </AuthProvider>
+      </AuthProvider>,
     );
     await waitFor(() => {
       expect(screen.getByTestId("authenticated").textContent).toBe("null");
@@ -53,7 +61,7 @@ describe("AuthContext", () => {
     render(
       <AuthProvider>
         <TestConsumer />
-      </AuthProvider>
+      </AuthProvider>,
     );
     await waitFor(() => {
       expect(screen.getByTestId("has-login").textContent).toBe("yes");
@@ -64,7 +72,7 @@ describe("AuthContext", () => {
     render(
       <AuthProvider>
         <TestConsumer />
-      </AuthProvider>
+      </AuthProvider>,
     );
     await waitFor(() => {
       expect(screen.getByTestId("has-logout").textContent).toBe("yes");
@@ -75,7 +83,7 @@ describe("AuthContext", () => {
     render(
       <AuthProvider>
         <TestConsumer />
-      </AuthProvider>
+      </AuthProvider>,
     );
     await waitFor(() => {
       expect(screen.getByTestId("has-provinces").textContent).toBe("yes");
@@ -87,7 +95,11 @@ describe("AuthContext", () => {
       const { provinces } = useAuth();
       return <span data-testid="count">{provinces?.length}</span>;
     };
-    render(<AuthProvider><ProvincesCount /></AuthProvider>);
+    render(
+      <AuthProvider>
+        <ProvincesCount />
+      </AuthProvider>,
+    );
     await waitFor(() => {
       expect(screen.getByTestId("count").textContent).toBe("18");
     });
@@ -103,7 +115,11 @@ describe("AuthContext", () => {
         </div>
       );
     };
-    render(<AuthProvider><LogoutTest /></AuthProvider>);
+    render(
+      <AuthProvider>
+        <LogoutTest />
+      </AuthProvider>,
+    );
     await act(async () => {
       screen.getByText("Logout").click();
     });
@@ -116,7 +132,7 @@ describe("AuthContext", () => {
     render(
       <AuthProvider>
         <div data-testid="child">Child component</div>
-      </AuthProvider>
+      </AuthProvider>,
     );
     expect(screen.getByTestId("child")).toBeInTheDocument();
   });

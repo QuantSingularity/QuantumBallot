@@ -24,7 +24,9 @@ const Waveform: React.FC<WaveformBaseProps> = ({
 
   const audioSrc = url ?? audio ?? "";
   const isControlled = soundSpeech !== undefined;
-  const isPlaying = isControlled ? (externalIsPlaying ?? false) : internalIsPlaying;
+  const isPlaying = isControlled
+    ? (externalIsPlaying ?? false)
+    : internalIsPlaying;
 
   useEffect(() => {
     if (!waveformRef.current || !audioSrc || isControlled) return;
@@ -72,7 +74,10 @@ const Waveform: React.FC<WaveformBaseProps> = ({
   return (
     <div className="flex flex-col gap-2 w-full">
       {!isControlled && (
-        <div ref={waveformRef} className="w-full rounded-lg overflow-hidden bg-gray-50" />
+        <div
+          ref={waveformRef}
+          className="w-full rounded-lg overflow-hidden bg-gray-50"
+        />
       )}
       <button
         onClick={handlePlayPause}

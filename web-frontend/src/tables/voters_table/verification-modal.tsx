@@ -42,13 +42,19 @@ export default function VerificationDialog({
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>Voter Verification</DialogTitle>
-          <DialogDescription>Scan the QR Code to verify this voter.</DialogDescription>
+          <DialogDescription>
+            Scan the QR Code to verify this voter.
+          </DialogDescription>
         </DialogHeader>
         <div className="flex justify-center items-center py-4">
           {error ? (
             <p className="text-sm text-red-500">Failed to generate QR code.</p>
           ) : qrCodeURL ? (
-            <img src={qrCodeURL} alt="QR Code" className="w-56 h-56 rounded-lg" />
+            <img
+              src={qrCodeURL}
+              alt="QR Code"
+              className="w-56 h-56 rounded-lg"
+            />
           ) : (
             <div className="w-56 h-56 bg-gray-100 rounded-lg flex items-center justify-center">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-400" />

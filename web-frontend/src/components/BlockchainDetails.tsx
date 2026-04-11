@@ -62,7 +62,7 @@ function BlockchainDetails() {
   }, [data, handleRefresh]);
 
   useEffect(() => {
-setBlockHash(id ?? "");
+    setBlockHash(id ?? "");
     refetch();
   }, [id, refetch]);
 

@@ -45,7 +45,13 @@ Object.assign(navigator, {
 // Mock window.location
 Object.defineProperty(window, "location", {
   writable: true,
-  value: { href: "/", pathname: "/", assign: vi.fn(), replace: vi.fn(), reload: vi.fn() },
+  value: {
+    href: "/",
+    pathname: "/",
+    assign: vi.fn(),
+    replace: vi.fn(),
+    reload: vi.fn(),
+  },
 });
 
 // Suppress console.error for known React warnings in tests

@@ -55,7 +55,9 @@ export function TabsEditAccountCard() {
               <Label htmlFor="role">Role</Label>
               <Input
                 id="role"
-                value={authState?.role === "0" ? "Administrator" : "Standard User"}
+                value={
+                  authState?.role === "0" ? "Administrator" : "Standard User"
+                }
                 readOnly
                 className="bg-gray-50 cursor-default"
               />

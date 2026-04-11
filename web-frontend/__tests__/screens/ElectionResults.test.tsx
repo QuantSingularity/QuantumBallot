@@ -10,9 +10,7 @@ vi.mock("@/context/AuthContext", () => ({
 }));
 vi.mock("@/tables/election_results_table/page", () => ({
   default: ({ data }: any) => (
-    <div data-testid="election-results-table">
-      {data?.length ?? 0} results
-    </div>
+    <div data-testid="election-results-table">{data?.length ?? 0} results</div>
   ),
 }));
 
@@ -44,13 +42,21 @@ describe("ElectionResults Component", () => {
 
   it("renders the title", () => {
     (axios.get as any) = vi.fn().mockResolvedValue({ data: mockResults });
-    render(<MemoryRouter><ElectionResults /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <ElectionResults />
+      </MemoryRouter>,
+    );
     expect(screen.getByText(/Election Results/i)).toBeInTheDocument();
   });
 
   it("shows loading spinner initially", () => {
     (axios.get as any) = vi.fn().mockReturnValue(new Promise(() => {}));
-    render(<MemoryRouter><ElectionResults /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <ElectionResults />
+      </MemoryRouter>,
+    );
     // Loading spinners are rendered (animate-spin class)
     const spinners = document.querySelectorAll(".animate-spin");
     expect(spinners.length).toBeGreaterThan(0);
@@ -58,7 +64,11 @@ describe("ElectionResults Component", () => {
 
   it("renders results table after data loads", async () => {
     (axios.get as any) = vi.fn().mockResolvedValue({ data: mockResults });
-    render(<MemoryRouter><ElectionResults /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <ElectionResults />
+      </MemoryRouter>,
+    );
     await waitFor(() => {
       expect(screen.getByTestId("election-results-table")).toBeInTheDocument();
     });
@@ -66,7 +76,11 @@ describe("ElectionResults Component", () => {
 
   it("displays total votes summary", async () => {
     (axios.get as any) = vi.fn().mockResolvedValue({ data: mockResults });
-    render(<MemoryRouter><ElectionResults /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <ElectionResults />
+      </MemoryRouter>,
+    );
     await waitFor(() => {
       expect(screen.getByText("2,750")).toBeInTheDocument();
     });
@@ -74,7 +88,11 @@ describe("ElectionResults Component", () => {
 
   it("displays the current leader", async () => {
     (axios.get as any) = vi.fn().mockResolvedValue({ data: mockResults });
-    render(<MemoryRouter><ElectionResults /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <ElectionResults />
+      </MemoryRouter>,
+    );
     await waitFor(() => {
       expect(screen.getByText(/Alice Johnson/i)).toBeInTheDocument();
     });
@@ -82,7 +100,11 @@ describe("ElectionResults Component", () => {
 
   it("displays candidate count", async () => {
     (axios.get as any) = vi.fn().mockResolvedValue({ data: mockResults });
-    render(<MemoryRouter><ElectionResults /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <ElectionResults />
+      </MemoryRouter>,
+    );
     await waitFor(() => {
       expect(screen.getByText("3")).toBeInTheDocument();
     });
@@ -90,7 +112,11 @@ describe("ElectionResults Component", () => {
 
   it("renders pie chart when data is available", async () => {
     (axios.get as any) = vi.fn().mockResolvedValue({ data: mockResults });
-    render(<MemoryRouter><ElectionResults /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <ElectionResults />
+      </MemoryRouter>,
+    );
     await waitFor(() => {
       expect(screen.getByText("Vote Distribution")).toBeInTheDocument();
     });
@@ -98,7 +124,11 @@ describe("ElectionResults Component", () => {
 
   it("handles API error gracefully", async () => {
     (axios.get as any) = vi.fn().mockRejectedValue(new Error("Network error"));
-    render(<MemoryRouter><ElectionResults /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <ElectionResults />
+      </MemoryRouter>,
+    );
     await waitFor(() => {
       // Should show empty state, not crash
       expect(screen.getByText(/Election Results/i)).toBeInTheDocument();
@@ -107,13 +137,23 @@ describe("ElectionResults Component", () => {
 
   it("renders the Refresh button", () => {
     (axios.get as any) = vi.fn().mockResolvedValue({ data: mockResults });
-    render(<MemoryRouter><ElectionResults /></MemoryRouter>);
-    expect(screen.getByRole("button", { name: /Refresh/i })).toBeInTheDocument();
+    render(
+      <MemoryRouter>
+        <ElectionResults />
+      </MemoryRouter>,
+    );
+    expect(
+      screen.getByRole("button", { name: /Refresh/i }),
+    ).toBeInTheDocument();
   });
 
   it("shows Election Summary section", async () => {
     (axios.get as any) = vi.fn().mockResolvedValue({ data: mockResults });
-    render(<MemoryRouter><ElectionResults /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <ElectionResults />
+      </MemoryRouter>,
+    );
     await waitFor(() => {
       expect(screen.getByText("Election Summary")).toBeInTheDocument();
     });

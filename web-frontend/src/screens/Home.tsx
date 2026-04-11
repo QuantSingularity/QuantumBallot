@@ -109,7 +109,9 @@ const Home = () => {
             <Button variant="outline" onClick={() => navigate("/candidates")}>
               View Candidates
             </Button>
-            <Button onClick={() => navigate("/blockchain")}>View Blockchain</Button>
+            <Button onClick={() => navigate("/blockchain")}>
+              View Blockchain
+            </Button>
           </CardFooter>
         </Card>
 
