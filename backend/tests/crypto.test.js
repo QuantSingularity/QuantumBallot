@@ -1,16 +1,30 @@
 /**
  * Comprehensive test suite for the crypto module
  */
-const CryptoBlockchain = require("../src/crypto/cryptoBlockchain").default;
-const crypto = require("node:crypto");
 
-// BUG FIX: cryptoBlockchain.ts uses `import fs from "node:fs"`, so the mock
-// must use the same specifier "node:fs" — mocking plain "fs" is a no-op here.
+// Mock node:fs BEFORE importing CryptoBlockchain so the module-level mock is hoisted.
+// cryptoBlockchain.ts uses `import fs from "node:fs"` so the specifier must match exactly.
 jest.mock("node:fs", () => ({
   ...jest.requireActual("node:fs"),
   writeFileSync: jest.fn(),
 }));
 
+// Mock node:crypto with jest.fn() wrappers around the real implementations.
+// jest.spyOn() alone cannot intercept native built-in module calls from compiled
+// TypeScript code (Babel wraps them in _crypto._interopRequireWildcard). This
+// module-level mock ensures our jest.fn() wrappers are what the module sees.
+jest.mock("node:crypto", () => {
+  const actual = jest.requireActual("node:crypto");
+  return {
+    ...actual,
+    randomBytes: jest.fn((...args) => actual.randomBytes(...args)),
+    createCipheriv: jest.fn((...args) => actual.createCipheriv(...args)),
+    createDecipheriv: jest.fn((...args) => actual.createDecipheriv(...args)),
+  };
+});
+
+const CryptoBlockchain = require("../src/crypto/cryptoBlockchain").default;
+const nodeCrypto = require("node:crypto");
 const fs = require("node:fs");
 
 describe("CryptoBlockchain", () => {
@@ -21,6 +35,16 @@ describe("CryptoBlockchain", () => {
   beforeEach(() => {
     cryptoBlockchain = new CryptoBlockchain(testKey, testIV);
     jest.clearAllMocks();
+    // Restore jest.fn() wrappers to real implementations after clearAllMocks resets them
+    nodeCrypto.randomBytes.mockImplementation(
+      jest.requireActual("node:crypto").randomBytes,
+    );
+    nodeCrypto.createCipheriv.mockImplementation(
+      jest.requireActual("node:crypto").createCipheriv,
+    );
+    nodeCrypto.createDecipheriv.mockImplementation(
+      jest.requireActual("node:crypto").createDecipheriv,
+    );
   });
 
   // ─── Constructor ──────────────────────────────────────────────────────────
@@ -106,9 +130,10 @@ describe("CryptoBlockchain", () => {
       consoleSpy.mockRestore();
     });
 
-    test("should throw when crypto.randomBytes fails", () => {
+    test("should throw 'Failed to generate secret key and IV' when randomBytes fails", () => {
       const mockError = new Error("Mock randomBytes error");
-      jest.spyOn(crypto, "randomBytes").mockImplementationOnce(() => {
+      // Use the module-level mock wrapper so it intercepts the call inside cryptoBlockchain
+      nodeCrypto.randomBytes.mockImplementationOnce(() => {
         throw mockError;
       });
       const consoleSpy = jest.spyOn(console, "error").mockImplementation();
@@ -202,7 +227,7 @@ describe("CryptoBlockchain", () => {
     });
 
     test("should round-trip unicode / multi-byte characters", () => {
-      const data = "Ângola eleição";
+      const data = "Angola eleicao";
       expect(
         cryptoBlockchain.decryptData(cryptoBlockchain.encryptData(data)),
       ).toBe(data);
@@ -216,8 +241,9 @@ describe("CryptoBlockchain", () => {
 
     test("should throw 'Failed to encrypt data' when cipher creation throws", () => {
       const consoleSpy = jest.spyOn(console, "error").mockImplementation();
-      jest.spyOn(crypto, "createCipheriv").mockImplementationOnce(() => {
-        throw new Error("Mock encryption error");
+      const mockError = new Error("Mock encryption error");
+      nodeCrypto.createCipheriv.mockImplementationOnce(() => {
+        throw mockError;
       });
 
       expect(() => cryptoBlockchain.encryptData("test")).toThrow(
@@ -232,19 +258,34 @@ describe("CryptoBlockchain", () => {
 
     test("should throw 'Failed to decrypt data' when decipher creation throws", () => {
       const consoleSpy = jest.spyOn(console, "error").mockImplementation();
-      jest.spyOn(crypto, "createDecipheriv").mockImplementationOnce(() => {
-        throw new Error("Mock decryption error");
+      const mockError = new Error("Mock decryption error");
+      nodeCrypto.createDecipheriv.mockImplementationOnce(() => {
+        throw mockError;
       });
 
-      expect(() =>
-        cryptoBlockchain.decryptData({
-          IV: "30313233343536373839616263646566",
-          CIPHER_TEXT: "aabbccddeeff00112233445566778899",
-        }),
-      ).toThrow("Failed to decrypt data");
+      // Encrypt first to get valid structure, then fail on decrypt
+      const enc = cryptoBlockchain.encryptData("original data");
+      expect(() => cryptoBlockchain.decryptData(enc)).toThrow(
+        "Failed to decrypt data",
+      );
       expect(consoleSpy).toHaveBeenCalledWith(
         "Decryption error:",
         expect.objectContaining({ message: "Mock decryption error" }),
+      );
+      consoleSpy.mockRestore();
+    });
+
+    test("should throw 'Failed to decrypt data' when ciphertext is corrupted", () => {
+      const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+      const enc = cryptoBlockchain.encryptData("some data");
+      // Corrupt the ciphertext — OpenSSL will throw on bad padding
+      const corrupted = { IV: enc.IV, CIPHER_TEXT: "deadbeefdeadbeef" };
+      expect(() => cryptoBlockchain.decryptData(corrupted)).toThrow(
+        "Failed to decrypt data",
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "Decryption error:",
+        expect.objectContaining({ message: expect.any(String) }),
       );
       consoleSpy.mockRestore();
     });

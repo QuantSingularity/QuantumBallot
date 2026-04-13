@@ -5,7 +5,11 @@ const BlockChain = require("../src/blockchain/blockchain").default;
 const SmartContract = require("../src/smart_contract/smart_contract").default;
 const leveldb = require("../src/leveldb");
 
+// __esModule: true is REQUIRED — blockchain.ts does `import SmartContract from "..."`
+// which Babel compiles with _interopRequireDefault. Without __esModule:true the mock
+// object itself becomes the module and `.default` is a plain object, not a constructor.
 jest.mock("../src/smart_contract/smart_contract", () => ({
+  __esModule: true,
   default: jest.fn().mockImplementation(() => ({
     update: jest.fn(),
     isValidElectionTime: jest.fn().mockReturnValue(true),
@@ -55,7 +59,6 @@ describe("BlockChain", () => {
         "Error initializing smart contract:",
         expect.objectContaining({ message: "SC init error" }),
       );
-      // chain still created despite the error
       expect(bc.chain).toHaveLength(1);
       consoleSpy.mockRestore();
     });
@@ -157,8 +160,7 @@ describe("BlockChain", () => {
     test("getTransactions should return all transactions across all blocks", () => {
       const txs = blockchain.getTransactions();
       expect(Array.isArray(txs)).toBe(true);
-      // genesis block has 2 seed transactions
-      expect(txs.length).toBe(2);
+      expect(txs.length).toBe(2); // genesis has 2 seed transactions
       txs.forEach((tx) => {
         expect(tx).toHaveProperty("id");
         expect(tx).toHaveProperty("transactionHash");
@@ -205,7 +207,6 @@ describe("BlockChain", () => {
     });
 
     test("should reject chain that is not longer than current", () => {
-      // newChain same length as current (1) → not longer
       jest.spyOn(blockchain, "isValidChain").mockReturnValueOnce(true);
       const result = blockchain.replaceChain([{ blockIndex: 0 }]);
       expect(result).toBe(false);
@@ -341,18 +342,14 @@ describe("BlockChain", () => {
 
   describe("isSHA256", () => {
     test("should return true for a valid 64-char hex string", () => {
-      const valid = "0".repeat(64);
-      expect(blockchain.isSHA256(valid)).toBe(true);
+      expect(blockchain.isSHA256("0".repeat(64))).toBe(true);
     });
-
     test("should return false for strings that are too short", () => {
       expect(blockchain.isSHA256("abc")).toBe(false);
     });
-
     test("should return false for strings with non-hex chars", () => {
       expect(blockchain.isSHA256("g".repeat(64))).toBe(false);
     });
-
     test("should return false for empty string", () => {
       expect(blockchain.isSHA256("")).toBe(false);
     });
@@ -368,7 +365,6 @@ describe("BlockChain", () => {
         }),
       ).toBe(true);
     });
-
     test("should reject vote where identifier is too short (≤5 chars)", () => {
       expect(
         blockchain.isValidVote({
@@ -378,7 +374,6 @@ describe("BlockChain", () => {
         }),
       ).toBe(false);
     });
-
     test("should reject vote with empty choiceCode", () => {
       expect(
         blockchain.isValidVote({
@@ -388,7 +383,6 @@ describe("BlockChain", () => {
         }),
       ).toBe(false);
     });
-
     test("should reject vote with empty secret", () => {
       expect(
         blockchain.isValidVote({
@@ -404,11 +398,9 @@ describe("BlockChain", () => {
     test("should return false for an empty array", () => {
       expect(blockchain.isValidTransactionPool([])).toBe(false);
     });
-
     test("should return false for null/undefined", () => {
       expect(blockchain.isValidTransactionPool(null)).toBe(false);
     });
-
     test("should return false when any transaction is invalid", () => {
       jest
         .spyOn(blockchain, "isValidTransaction")
@@ -443,12 +435,10 @@ describe("BlockChain", () => {
       expect(blockchain.isValidChain(null)).toBe(false);
       expect(blockchain.isValidChain([])).toBe(false);
     });
-
     test("should return false when genesis block does not match", () => {
       const tampered = [{ ...blockchain.getGenesisBlock(), blockIndex: 99 }];
       expect(blockchain.isValidChain(tampered)).toBe(false);
     });
-
     test("should return true for a fresh single-block chain", () => {
       expect(blockchain.isValidChain([blockchain.getGenesisBlock()])).toBe(
         true,
@@ -482,7 +472,6 @@ describe("BlockChain", () => {
     test("should return null when transaction pool is empty", () => {
       expect(blockchain.mineBlock()).toBeNull();
     });
-
     test("should return null when transaction pool is invalid", () => {
       jest
         .spyOn(blockchain, "isValidTransactionPool")
@@ -523,7 +512,7 @@ describe("BlockChain", () => {
     test("deployVoters should call deployVotersGenerated and re-create SmartContract", async () => {
       const result = await blockchain.deployVoters();
       expect(leveldb.deployVotersGenerated).toHaveBeenCalled();
-      // constructor called once in beforeEach + once inside deployVoters
+      // SmartContract was called once in beforeEach and once inside deployVoters
       expect(SmartContract).toHaveBeenCalledTimes(2);
       expect(result).toEqual([]);
     });
