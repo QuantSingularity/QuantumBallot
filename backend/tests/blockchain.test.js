@@ -1,27 +1,24 @@
 /**
  * Comprehensive test suite for the blockchain module
  */
-const BlockChain = require("../dist/blockchain/blockchain").default;
-const SmartContract = require("../dist/smart_contract/smart_contract").default;
-const leveldb = require("../dist/leveldb");
+const BlockChain = require("../src/blockchain/blockchain").default;
+const SmartContract = require("../src/smart_contract/smart_contract").default;
+const leveldb = require("../src/leveldb");
 
-// Mock dependencies
-jest.mock("../dist/smart_contract/smart_contract", () => {
-  return {
-    default: jest.fn().mockImplementation(() => ({
-      update: jest.fn(),
-      isValidElectionTime: jest.fn().mockReturnValue(true),
-      getVoters: jest.fn().mockResolvedValue([]),
-      getCandidates: jest.fn().mockResolvedValue([]),
-    })),
-  };
-});
+jest.mock("../src/smart_contract/smart_contract", () => ({
+  default: jest.fn().mockImplementation(() => ({
+    update: jest.fn(),
+    isValidElectionTime: jest.fn().mockReturnValue(true),
+    getVoters: jest.fn().mockResolvedValue([]),
+    getCandidates: jest.fn().mockResolvedValue([]),
+  })),
+}));
 
-jest.mock("../dist/leveldb", () => ({
+jest.mock("../src/leveldb", () => ({
   readChain: jest.fn().mockResolvedValue([]),
-  writeChain: jest.fn(),
+  writeChain: jest.fn().mockResolvedValue(undefined),
   clearChains: jest.fn().mockResolvedValue([]),
-  updateVoter: jest.fn(),
+  updateVoter: jest.fn().mockResolvedValue(undefined),
   deployVotersGenerated: jest.fn().mockResolvedValue([]),
   deployCandidates: jest.fn().mockResolvedValue([]),
   readVoterCitizenRelation: jest.fn().mockResolvedValue("test-identifier"),
@@ -35,339 +32,531 @@ describe("BlockChain", () => {
     blockchain = new BlockChain();
   });
 
+  // ─── Constructor & Initialization ─────────────────────────────────────────
+
   describe("Constructor and Initialization", () => {
-    test("should initialize with genesis block", () => {
+    test("should initialize with a single genesis block", () => {
       expect(blockchain.chain).toHaveLength(1);
       expect(blockchain.chain[0].blockIndex).toBe(0);
       expect(blockchain.transactionPool).toEqual([]);
     });
 
-    test("should initialize smart contract", () => {
+    test("should instantiate the smart contract", () => {
       expect(SmartContract).toHaveBeenCalled();
     });
 
-    test("should handle errors during smart contract initialization", () => {
+    test("should log and recover when smart contract initialization throws", () => {
       const consoleSpy = jest.spyOn(console, "error").mockImplementation();
       SmartContract.mockImplementationOnce(() => {
-        throw new Error("Smart contract initialization error");
+        throw new Error("SC init error");
       });
-
-      const _newBlockchain = new BlockChain();
+      const bc = new BlockChain();
       expect(consoleSpy).toHaveBeenCalledWith(
         "Error initializing smart contract:",
-        expect.objectContaining({
-          message: "Smart contract initialization error",
-        }),
+        expect.objectContaining({ message: "SC init error" }),
       );
-
+      // chain still created despite the error
+      expect(bc.chain).toHaveLength(1);
       consoleSpy.mockRestore();
     });
   });
 
+  // ─── Chain Management ─────────────────────────────────────────────────────
+
   describe("Chain Management", () => {
-    test("should set node address and load chain", async () => {
+    test("setNodeAddress should assign address and load chain", async () => {
       await blockchain.setNodeAddress("test-node");
       expect(blockchain.nodeAddress).toBe("test-node");
       expect(leveldb.readChain).toHaveBeenCalled();
     });
 
-    test("should handle errors during chain loading", async () => {
+    test("loadChain should replace chain when storage returns a non-empty array", async () => {
+      const stored = [
+        { blockIndex: 0, blockHeader: { blockHash: "-" } },
+        { blockIndex: 1, blockHeader: { blockHash: "abc" } },
+      ];
+      leveldb.readChain.mockResolvedValueOnce(stored);
+      await blockchain.loadChain();
+      expect(blockchain.chain).toEqual(stored);
+    });
+
+    test("loadChain should not replace chain when storage returns empty array", async () => {
+      leveldb.readChain.mockResolvedValueOnce([]);
+      const originalChain = [...blockchain.chain];
+      await blockchain.loadChain();
+      expect(blockchain.chain).toEqual(originalChain);
+    });
+
+    test("loadChain should log error and keep chain on failure", async () => {
       const consoleSpy = jest.spyOn(console, "error").mockImplementation();
       leveldb.readChain.mockRejectedValueOnce(new Error("Chain loading error"));
-
       await blockchain.loadChain();
       expect(consoleSpy).toHaveBeenCalledWith(
         "Error loading chain:",
         expect.objectContaining({ message: "Chain loading error" }),
       );
-
       consoleSpy.mockRestore();
     });
 
-    test("should clear chains from storage", async () => {
+    test("clearChainsFromStorage should reset state and call clearChains", async () => {
       await blockchain.clearChainsFromStorage();
       expect(leveldb.clearChains).toHaveBeenCalled();
+      expect(blockchain.chain).toHaveLength(1);
+      expect(blockchain.transactionPool).toEqual([]);
     });
 
-    test("should save chain to storage", () => {
+    test("saveChain should call writeChain with current chain", () => {
       blockchain.saveChain();
       expect(leveldb.writeChain).toHaveBeenCalledWith(blockchain.chain);
     });
 
-    test("should handle errors during chain saving", () => {
+    test("saveChain should log error when writeChain throws", () => {
       const consoleSpy = jest.spyOn(console, "error").mockImplementation();
       leveldb.writeChain.mockImplementationOnce(() => {
-        throw new Error("Chain saving error");
+        throw new Error("Write error");
       });
-
       blockchain.saveChain();
       expect(consoleSpy).toHaveBeenCalledWith(
         "Error saving chain:",
-        expect.objectContaining({ message: "Chain saving error" }),
+        expect.objectContaining({ message: "Write error" }),
       );
-
       consoleSpy.mockRestore();
     });
   });
 
-  describe("Block Operations", () => {
-    test("should get genesis block", () => {
-      const genesisBlock = blockchain.getGenesisBlock();
-      expect(genesisBlock.blockIndex).toBe(0);
-      expect(genesisBlock.blockHeader.previousBlockHash).toBe("-");
+  // ─── Block Accessors ─────────────────────────────────────────────────────
+
+  describe("Block Accessors", () => {
+    test("getGenesisBlock should return block with index 0 and previousHash '-'", () => {
+      const genesis = blockchain.getGenesisBlock();
+      expect(genesis.blockIndex).toBe(0);
+      expect(genesis.blockHeader.previousBlockHash).toBe("-");
     });
 
-    test("should get chain", () => {
-      const chain = blockchain.getChain();
-      expect(chain).toEqual(blockchain.chain);
+    test("getChain should return the chain array", () => {
+      expect(blockchain.getChain()).toEqual(blockchain.chain);
     });
 
-    test("should get chain length", () => {
+    test("getLengthChain should return 1 for a fresh chain", () => {
       expect(blockchain.getLengthChain()).toBe(1);
     });
 
-    test("should replace chain if valid", () => {
-      // Mock isValidChain to return true
-      jest.spyOn(blockchain, "isValidChain").mockReturnValueOnce(true);
+    test("getBlocks should return formatted block summaries", () => {
+      const blocks = blockchain.getBlocks();
+      expect(Array.isArray(blocks)).toBe(true);
+      expect(blocks).toHaveLength(1);
+      const b = blocks[0];
+      expect(b).toHaveProperty("id", 1);
+      expect(b).toHaveProperty("hashBlock");
+      expect(b).toHaveProperty("nonce");
+      expect(b).toHaveProperty("numOfTransactions");
+      expect(b).toHaveProperty("dateAndTime");
+      expect(b).toHaveProperty("size");
+    });
 
+    test("getTransactions should return all transactions across all blocks", () => {
+      const txs = blockchain.getTransactions();
+      expect(Array.isArray(txs)).toBe(true);
+      // genesis block has 2 seed transactions
+      expect(txs.length).toBe(2);
+      txs.forEach((tx) => {
+        expect(tx).toHaveProperty("id");
+        expect(tx).toHaveProperty("transactionHash");
+        expect(tx).toHaveProperty("identifier");
+      });
+    });
+
+    test("getPendingTransactions should return empty array initially", () => {
+      expect(blockchain.getPendingTransactions()).toEqual([]);
+    });
+
+    test("getBlockDetails should find a block by its hash", () => {
+      const genesisHash = blockchain.chain[0].blockHeader.blockHash;
+      const found = blockchain.getBlockDetails(genesisHash);
+      expect(found).toBeDefined();
+      expect(found.blockIndex).toBe(0);
+    });
+
+    test("getBlockDetails should return undefined for unknown hash", () => {
+      expect(blockchain.getBlockDetails("nonexistent-hash")).toBeUndefined();
+    });
+  });
+
+  // ─── replaceChain ────────────────────────────────────────────────────────
+
+  describe("replaceChain", () => {
+    test("should replace chain when new chain is longer and valid", () => {
+      jest.spyOn(blockchain, "isValidChain").mockReturnValueOnce(true);
       const newChain = [{ blockIndex: 0 }, { blockIndex: 1 }];
       const result = blockchain.replaceChain(newChain);
-
       expect(result).toBe(true);
       expect(blockchain.chain).toEqual(newChain);
     });
 
-    test("should not replace chain if invalid", () => {
-      // Mock isValidChain to return false
+    test("should reject chain that is invalid", () => {
       jest.spyOn(blockchain, "isValidChain").mockReturnValueOnce(false);
-
-      const originalChain = [...blockchain.chain];
-      const newChain = [{ blockIndex: 0 }, { blockIndex: 1 }];
-      const result = blockchain.replaceChain(newChain);
-
+      const original = [...blockchain.chain];
+      const result = blockchain.replaceChain([
+        { blockIndex: 0 },
+        { blockIndex: 1 },
+      ]);
       expect(result).toBe(false);
-      expect(blockchain.chain).toEqual(originalChain);
+      expect(blockchain.chain).toEqual(original);
     });
 
-    test("should add valid block to chain", () => {
-      // Mock isValidBlock to return true
-      jest.spyOn(blockchain, "isValidBlock").mockReturnValueOnce(true);
+    test("should reject chain that is not longer than current", () => {
+      // newChain same length as current (1) → not longer
+      jest.spyOn(blockchain, "isValidChain").mockReturnValueOnce(true);
+      const result = blockchain.replaceChain([{ blockIndex: 0 }]);
+      expect(result).toBe(false);
+    });
+  });
 
+  // ─── addBlock ────────────────────────────────────────────────────────────
+
+  describe("addBlock", () => {
+    test("should add a valid block and update voters + smart contract", () => {
+      jest.spyOn(blockchain, "isValidBlock").mockReturnValueOnce(true);
       const block = {
         blockIndex: 1,
-        blockHeader: { blockHash: "test-hash" },
-        transactions: [{ data: { identifier: "test-id" } }],
+        blockHeader: { blockHash: "abc123" },
+        transactions: [{ data: { identifier: "voter-id" } }],
       };
-
       const result = blockchain.addBlock(block);
-
       expect(result).toBe(true);
       expect(blockchain.chain).toHaveLength(2);
-      expect(blockchain.chain[1]).toEqual(block);
       expect(blockchain.transactionPool).toEqual([]);
       expect(blockchain.smartContract.update).toHaveBeenCalled();
-      expect(leveldb.updateVoter).toHaveBeenCalledWith("test-id", {
-        identifier: "test-id",
+      expect(leveldb.updateVoter).toHaveBeenCalledWith("voter-id", {
+        identifier: "voter-id",
       });
     });
 
-    test("should not add invalid block to chain", () => {
-      // Mock isValidBlock to return false
+    test("should reject an invalid block", () => {
       jest.spyOn(blockchain, "isValidBlock").mockReturnValueOnce(false);
-
-      const block = { blockIndex: 1 };
-      const originalChain = [...blockchain.chain];
-
-      const result = blockchain.addBlock(block);
-
+      const originalLen = blockchain.chain.length;
+      const result = blockchain.addBlock({ blockIndex: 1 });
       expect(result).toBe(false);
-      expect(blockchain.chain).toEqual(originalChain);
+      expect(blockchain.chain).toHaveLength(originalLen);
     });
 
-    test("should handle errors during block addition", () => {
+    test("should return false and log error when isValidBlock throws", () => {
       const consoleSpy = jest.spyOn(console, "error").mockImplementation();
       jest.spyOn(blockchain, "isValidBlock").mockImplementationOnce(() => {
-        throw new Error("Block validation error");
+        throw new Error("Validation error");
       });
-
-      const block = { blockIndex: 1 };
-      const result = blockchain.addBlock(block);
-
+      const result = blockchain.addBlock({ blockIndex: 1 });
       expect(result).toBe(false);
       expect(consoleSpy).toHaveBeenCalledWith(
         "Error adding block:",
-        expect.objectContaining({ message: "Block validation error" }),
+        expect.objectContaining({ message: "Validation error" }),
       );
-
       consoleSpy.mockRestore();
     });
   });
 
-  describe("Transaction Operations", () => {
-    test("should add valid pending transaction to pool", () => {
-      // Mock isValidTransaction to return true
+  // ─── addPendingTransaction ────────────────────────────────────────────────
+
+  describe("addPendingTransaction", () => {
+    test("should add a valid transaction to the pool", () => {
       jest.spyOn(blockchain, "isValidTransaction").mockReturnValueOnce(true);
-
-      const transaction = blockchain.addPendingTransaction(
-        "test-id",
+      const tx = blockchain.addPendingTransaction(
+        "valid-id-123456",
         "electoral-id",
         "iv",
         "choice",
         "choice-iv",
         "secret",
       );
-
-      expect(transaction).toBeDefined();
+      expect(tx).not.toBeNull();
       expect(blockchain.transactionPool).toHaveLength(1);
-      expect(blockchain.transactionPool[0]).toEqual(transaction);
     });
 
-    test("should not add invalid pending transaction to pool", () => {
-      // Mock isValidTransaction to return false
+    test("should return null and skip pool when transaction is invalid", () => {
       jest.spyOn(blockchain, "isValidTransaction").mockReturnValueOnce(false);
-
-      const transaction = blockchain.addPendingTransaction(
-        "test-id",
+      const tx = blockchain.addPendingTransaction(
+        "id",
         "electoral-id",
         "iv",
         "choice",
         "choice-iv",
         "secret",
       );
-
-      expect(transaction).toBeNull();
+      expect(tx).toBeNull();
       expect(blockchain.transactionPool).toHaveLength(0);
     });
 
-    test("should not add transaction if election time is invalid", () => {
-      // Mock isValidElectionTime to return false
+    test("should return null when election time is invalid", () => {
       blockchain.smartContract.isValidElectionTime.mockReturnValueOnce(false);
-
-      const transaction = blockchain.addPendingTransaction(
-        "test-id",
+      const tx = blockchain.addPendingTransaction(
+        "valid-id-123456",
         "electoral-id",
         "iv",
         "choice",
         "choice-iv",
         "secret",
       );
+      expect(tx).toBeNull();
+    });
 
-      expect(transaction).toBeNull();
-      expect(blockchain.transactionPool).toHaveLength(0);
+    test("should return null when smartContract is missing", () => {
+      blockchain.smartContract = null;
+      const tx = blockchain.addPendingTransaction(
+        "valid-id-123456",
+        "electoral-id",
+        "iv",
+        "choice",
+        "choice-iv",
+        "secret",
+      );
+      expect(tx).toBeNull();
     });
   });
 
-  describe("Validation Methods", () => {
-    test("should validate SHA256 hash", () => {
-      const validHash =
-        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
-      const invalidHash = "not-a-valid-hash";
+  // ─── Hashing ──────────────────────────────────────────────────────────────
 
-      expect(blockchain.isSHA256(validHash)).toBe(true);
-      expect(blockchain.isSHA256(invalidHash)).toBe(false);
+  describe("hashData and hashBlock", () => {
+    test("hashData should return a 64-char hex string", () => {
+      const hash = blockchain.hashData("hello world");
+      expect(hash).toMatch(/^[0-9a-fA-F]{64}$/);
     });
 
-    test("should validate vote", () => {
-      const validVote = {
-        identifier: "valid-id-123456",
-        choiceCode: "choice",
-        secret: "secret",
-      };
+    test("hashData should be deterministic", () => {
+      expect(blockchain.hashData("abc")).toBe(blockchain.hashData("abc"));
+    });
 
-      const invalidVote1 = {
-        identifier: "id", // Too short
-        choiceCode: "choice",
-        secret: "secret",
-      };
+    test("hashBlock should return a 64-char hex string", () => {
+      const h = blockchain.hashBlock("prevHash", "merkleRoot", 42);
+      expect(h).toMatch(/^[0-9a-fA-F]{64}$/);
+    });
 
-      const invalidVote2 = {
-        identifier: "valid-id",
-        choiceCode: "", // Empty choice
-        secret: "secret",
-      };
-
-      const invalidVote3 = {
-        identifier: "valid-id",
-        choiceCode: "choice",
-        secret: "", // Empty secret
-      };
-
-      expect(blockchain.isValidVote(validVote)).toBe(true);
-      expect(blockchain.isValidVote(invalidVote1)).toBe(false);
-      expect(blockchain.isValidVote(invalidVote2)).toBe(false);
-      expect(blockchain.isValidVote(invalidVote3)).toBe(false);
+    test("hashBlock with different nonces should produce different hashes", () => {
+      const h1 = blockchain.hashBlock("prev", "root", 0);
+      const h2 = blockchain.hashBlock("prev", "root", 1);
+      expect(h1).not.toBe(h2);
     });
   });
+
+  // ─── Validation Helpers ───────────────────────────────────────────────────
+
+  describe("isSHA256", () => {
+    test("should return true for a valid 64-char hex string", () => {
+      const valid = "0".repeat(64);
+      expect(blockchain.isSHA256(valid)).toBe(true);
+    });
+
+    test("should return false for strings that are too short", () => {
+      expect(blockchain.isSHA256("abc")).toBe(false);
+    });
+
+    test("should return false for strings with non-hex chars", () => {
+      expect(blockchain.isSHA256("g".repeat(64))).toBe(false);
+    });
+
+    test("should return false for empty string", () => {
+      expect(blockchain.isSHA256("")).toBe(false);
+    });
+  });
+
+  describe("isValidVote", () => {
+    test("should validate a well-formed vote", () => {
+      expect(
+        blockchain.isValidVote({
+          identifier: "validid-123456",
+          choiceCode: "X",
+          secret: "s",
+        }),
+      ).toBe(true);
+    });
+
+    test("should reject vote where identifier is too short (≤5 chars)", () => {
+      expect(
+        blockchain.isValidVote({
+          identifier: "short",
+          choiceCode: "X",
+          secret: "s",
+        }),
+      ).toBe(false);
+    });
+
+    test("should reject vote with empty choiceCode", () => {
+      expect(
+        blockchain.isValidVote({
+          identifier: "valid-id-123456",
+          choiceCode: "",
+          secret: "s",
+        }),
+      ).toBe(false);
+    });
+
+    test("should reject vote with empty secret", () => {
+      expect(
+        blockchain.isValidVote({
+          identifier: "valid-id-123456",
+          choiceCode: "X",
+          secret: "",
+        }),
+      ).toBe(false);
+    });
+  });
+
+  describe("isValidTransactionPool", () => {
+    test("should return false for an empty array", () => {
+      expect(blockchain.isValidTransactionPool([])).toBe(false);
+    });
+
+    test("should return false for null/undefined", () => {
+      expect(blockchain.isValidTransactionPool(null)).toBe(false);
+    });
+
+    test("should return false when any transaction is invalid", () => {
+      jest
+        .spyOn(blockchain, "isValidTransaction")
+        .mockReturnValueOnce(true)
+        .mockReturnValueOnce(false);
+      const result = blockchain.isValidTransactionPool([
+        {
+          transactionHash: "a",
+          data: {
+            identifier: "id1",
+            choiceCode: "c",
+            secret: "s",
+            state: true,
+          },
+        },
+        {
+          transactionHash: "b",
+          data: {
+            identifier: "id2",
+            choiceCode: "c",
+            secret: "s",
+            state: true,
+          },
+        },
+      ]);
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("isValidChain", () => {
+    test("should return false for null or empty chain", () => {
+      expect(blockchain.isValidChain(null)).toBe(false);
+      expect(blockchain.isValidChain([])).toBe(false);
+    });
+
+    test("should return false when genesis block does not match", () => {
+      const tampered = [{ ...blockchain.getGenesisBlock(), blockIndex: 99 }];
+      expect(blockchain.isValidChain(tampered)).toBe(false);
+    });
+
+    test("should return true for a fresh single-block chain", () => {
+      expect(blockchain.isValidChain([blockchain.getGenesisBlock()])).toBe(
+        true,
+      );
+    });
+  });
+
+  // ─── Encryption Wrappers ──────────────────────────────────────────────────
+
+  describe("Encryption wrappers", () => {
+    test("encryptDataIdentifier / decryptDataIdentifier should round-trip", () => {
+      const data = "electoral-id-value";
+      const enc = blockchain.encryptDataIdentifier(data);
+      expect(enc).toHaveProperty("IV");
+      expect(enc).toHaveProperty("CIPHER_TEXT");
+      expect(blockchain.decryptDataIdentifier(enc)).toBe(data);
+    });
+
+    test("encryptDataVoter / decryptDataVoter should round-trip", () => {
+      const data = "vote-choice-code";
+      const enc = blockchain.encryptDataVoter(data);
+      expect(enc).toHaveProperty("IV");
+      expect(enc).toHaveProperty("CIPHER_TEXT");
+      expect(blockchain.decryptDataVoter(enc)).toBe(data);
+    });
+  });
+
+  // ─── mineBlock ───────────────────────────────────────────────────────────
+
+  describe("mineBlock", () => {
+    test("should return null when transaction pool is empty", () => {
+      expect(blockchain.mineBlock()).toBeNull();
+    });
+
+    test("should return null when transaction pool is invalid", () => {
+      jest
+        .spyOn(blockchain, "isValidTransactionPool")
+        .mockReturnValueOnce(false);
+      expect(blockchain.mineBlock()).toBeNull();
+    });
+  });
+
+  // ─── Smart Contract Integration ───────────────────────────────────────────
 
   describe("Smart Contract Integration", () => {
-    test("should get voters from smart contract", async () => {
+    test("getSmartContractVoters should return voters from smart contract", async () => {
       const voters = await blockchain.getSmartContractVoters();
       expect(blockchain.smartContract.getVoters).toHaveBeenCalled();
       expect(voters).toEqual([]);
     });
 
-    test("should handle errors when getting voters", async () => {
+    test("getSmartContractVoters should return null and log on error", async () => {
       const consoleSpy = jest.spyOn(console, "error").mockImplementation();
       blockchain.smartContract.getVoters.mockRejectedValueOnce(
         new Error("Voters error"),
       );
-
       const voters = await blockchain.getSmartContractVoters();
-
       expect(voters).toBeNull();
       expect(consoleSpy).toHaveBeenCalledWith(
         "Error getting smart contract voters:",
         expect.objectContaining({ message: "Voters error" }),
       );
-
       consoleSpy.mockRestore();
     });
 
-    test("should get candidates from smart contract", async () => {
+    test("getSmartContractCandidates should return candidates", async () => {
       const candidates = await blockchain.getSmartContractCandidates();
       expect(blockchain.smartContract.getCandidates).toHaveBeenCalled();
       expect(candidates).toEqual([]);
     });
 
-    test("should deploy voters to blockchain", async () => {
+    test("deployVoters should call deployVotersGenerated and re-create SmartContract", async () => {
       const result = await blockchain.deployVoters();
       expect(leveldb.deployVotersGenerated).toHaveBeenCalled();
-      expect(SmartContract).toHaveBeenCalledTimes(2); // Once in constructor, once in deployVoters
+      // constructor called once in beforeEach + once inside deployVoters
+      expect(SmartContract).toHaveBeenCalledTimes(2);
       expect(result).toEqual([]);
     });
 
-    test("should deploy candidates to blockchain", async () => {
+    test("deployCandidatesBlockchain should call deployCandidates and return result", async () => {
       const result = await blockchain.deployCandidatesBlockchain();
       expect(leveldb.deployCandidates).toHaveBeenCalled();
       expect(result).toEqual([]);
     });
   });
 
-  describe("Citizen Identifier Relation", () => {
-    test("should get citizen-related identifier", async () => {
-      const identifier =
-        await blockchain.getCitizenRelatedIdentifier("test-electoral-id");
+  // ─── getCitizenRelatedIdentifier ─────────────────────────────────────────
+
+  describe("getCitizenRelatedIdentifier", () => {
+    test("should return the identifier from storage", async () => {
+      const id = await blockchain.getCitizenRelatedIdentifier("electoral-123");
       expect(leveldb.readVoterCitizenRelation).toHaveBeenCalledWith(
-        "test-electoral-id",
+        "electoral-123",
       );
-      expect(identifier).toBe("test-identifier");
+      expect(id).toBe("test-identifier");
     });
 
-    test("should handle errors when getting citizen identifier", async () => {
+    test("should return null and log on storage error", async () => {
       const consoleSpy = jest.spyOn(console, "error").mockImplementation();
       leveldb.readVoterCitizenRelation.mockRejectedValueOnce(
         new Error("Relation error"),
       );
-
-      const identifier =
-        await blockchain.getCitizenRelatedIdentifier("test-electoral-id");
-
-      expect(identifier).toBeNull();
+      const id = await blockchain.getCitizenRelatedIdentifier("electoral-123");
+      expect(id).toBeNull();
       expect(consoleSpy).toHaveBeenCalledWith(
         "Error getting citizen identifier:",
         expect.objectContaining({ message: "Relation error" }),
       );
-
       consoleSpy.mockRestore();
     });
   });

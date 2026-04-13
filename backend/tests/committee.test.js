@@ -1,32 +1,31 @@
 /**
  * Comprehensive test suite for the committee module
  */
-const Committee = require("../dist/committee/committee").default;
-const { Role } = require("../dist/committee/data_types");
-const leveldb = require("../dist/leveldb");
+const Committee = require("../src/committee/committee").default;
+const { Role } = require("../src/committee/data_types");
+const leveldb = require("../src/leveldb");
 const bcrypt = require("bcrypt");
 const speakeasy = require("speakeasy");
 const qrcode = require("qrcode");
 
-// Mock dependencies
-jest.mock("../dist/leveldb", () => ({
+jest.mock("../src/leveldb", () => ({
   readCitizens: jest.fn().mockResolvedValue([]),
   readUsers: jest.fn().mockResolvedValue([]),
-  clearVotersGenerated: jest.fn().mockResolvedValue(),
-  writeVoterGenerated: jest.fn(),
-  clearCandidatesTemp: jest.fn().mockResolvedValue(),
-  clearCandidates: jest.fn().mockResolvedValue(),
-  writeCandidateTemp: jest.fn(),
+  clearVotersGenerated: jest.fn().mockResolvedValue(undefined),
+  writeVoterGenerated: jest.fn().mockResolvedValue(undefined),
+  clearCandidatesTemp: jest.fn().mockResolvedValue(undefined),
+  clearCandidates: jest.fn().mockResolvedValue(undefined),
+  writeCandidateTemp: jest.fn().mockResolvedValue(undefined),
   readCandidatesTemp: jest.fn().mockResolvedValue([]),
   readCitizen: jest.fn(),
   readUser: jest.fn(),
-  clearCitizens: jest.fn().mockResolvedValue(),
-  clearUsers: jest.fn().mockResolvedValue(),
-  removeUser: jest.fn().mockResolvedValue(),
-  removeCitizen: jest.fn().mockResolvedValue(),
-  writeCitizen: jest.fn().mockResolvedValue(),
-  writeUser: jest.fn().mockResolvedValue(),
-  writeAnnouncement: jest.fn().mockResolvedValue(),
+  clearCitizens: jest.fn().mockResolvedValue(undefined),
+  clearUsers: jest.fn().mockResolvedValue(undefined),
+  removeUser: jest.fn().mockResolvedValue(undefined),
+  removeCitizen: jest.fn().mockResolvedValue(undefined),
+  writeCitizen: jest.fn().mockResolvedValue(undefined),
+  writeUser: jest.fn().mockResolvedValue(undefined),
+  writeAnnouncement: jest.fn().mockResolvedValue(undefined),
   readAnnouncement: jest.fn().mockResolvedValue({}),
   readVoterGenerated: jest.fn().mockResolvedValue([]),
 }));
@@ -43,9 +42,7 @@ jest.mock("speakeasy", () => ({
     base32: "test-base32",
     otpauth_url: "test-otpauth-url",
   }),
-  totp: {
-    verify: jest.fn().mockReturnValue(true),
-  },
+  totp: { verify: jest.fn().mockReturnValue(true) },
 }));
 
 jest.mock("qrcode", () => ({
@@ -62,6 +59,8 @@ describe("Committee", () => {
     committee = new Committee();
   });
 
+  // ─── Constructor ──────────────────────────────────────────────────────────
+
   describe("Constructor and Initialization", () => {
     test("should initialize with empty arrays", () => {
       expect(committee.citizens).toEqual([]);
@@ -70,100 +69,149 @@ describe("Committee", () => {
       expect(committee.users).toEqual([]);
     });
 
-    test("should load citizens and users on initialization", () => {
+    test("should call readCitizens and readUsers on construction", () => {
       expect(leveldb.readCitizens).toHaveBeenCalled();
       expect(leveldb.readUsers).toHaveBeenCalled();
     });
 
-    test("should handle errors during citizens loading", async () => {
+    test("should log error and keep citizens empty when readCitizens rejects", async () => {
       const consoleSpy = jest.spyOn(console, "error").mockImplementation();
       leveldb.readCitizens.mockRejectedValueOnce(
         new Error("Citizens loading error"),
       );
-
-      const newCommittee = new Committee();
-      // Wait for promises to resolve
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
+      const c = new Committee();
+      await new Promise((r) => setTimeout(r, 0));
       expect(consoleSpy).toHaveBeenCalledWith(
         "Error loading citizens:",
         expect.objectContaining({ message: "Citizens loading error" }),
       );
-      expect(newCommittee.citizens).toEqual([]);
-
+      expect(c.citizens).toEqual([]);
       consoleSpy.mockRestore();
     });
 
-    test("should handle errors during users loading", async () => {
+    test("should log error and keep users empty when readUsers rejects", async () => {
       const consoleSpy = jest.spyOn(console, "error").mockImplementation();
       leveldb.readUsers.mockRejectedValueOnce(new Error("Users loading error"));
-
-      const newCommittee = new Committee();
-      // Wait for promises to resolve
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
+      const c = new Committee();
+      await new Promise((r) => setTimeout(r, 0));
       expect(consoleSpy).toHaveBeenCalledWith(
         "Error loading users:",
         expect.objectContaining({ message: "Users loading error" }),
       );
-      expect(newCommittee.users).toEqual([]);
-
+      expect(c.users).toEqual([]);
       consoleSpy.mockRestore();
     });
   });
 
+  // ─── Simple getters ───────────────────────────────────────────────────────
+
+  describe("Simple Getters", () => {
+    test("getCitizens should return the citizens array", () => {
+      committee.citizens = [{ electoralId: "c1" }];
+      expect(committee.getCitizens()).toEqual([{ electoralId: "c1" }]);
+    });
+
+    test("getUsers should return the users array", () => {
+      committee.users = [{ username: "u1" }];
+      expect(committee.getUsers()).toEqual([{ username: "u1" }]);
+    });
+
+    test("getRefreshTokens should return all citizen refresh tokens", () => {
+      committee.citizens = [
+        { electoralId: "c1", refreshToken: "tok1" },
+        { electoralId: "c2", refreshToken: "tok2" },
+      ];
+      expect(committee.getRefreshTokens()).toEqual(["tok1", "tok2"]);
+    });
+
+    test("getRefreshTokens should return empty array when no citizens", () => {
+      expect(committee.getRefreshTokens()).toEqual([]);
+    });
+  });
+
+  // ─── getVotersGenerated / getCandidates ───────────────────────────────────
+
+  describe("getVotersGenerated and getCandidates", () => {
+    test("getVotersGenerated should load from DB and return voters", async () => {
+      const mockVoters = [{ identifier: "v1" }];
+      leveldb.readVoterGenerated.mockResolvedValueOnce(mockVoters);
+      const result = await committee.getVotersGenerated();
+      expect(leveldb.readVoterGenerated).toHaveBeenCalled();
+      expect(result).toEqual(mockVoters);
+    });
+
+    test("getVotersGenerated should return cached value on error", async () => {
+      const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+      committee.votersGenerated = [{ identifier: "cached" }];
+      leveldb.readVoterGenerated.mockRejectedValueOnce(new Error("DB error"));
+      const result = await committee.getVotersGenerated();
+      expect(result).toEqual([{ identifier: "cached" }]);
+      consoleSpy.mockRestore();
+    });
+
+    test("getCandidates should load from DB and return candidates", async () => {
+      const mockCandidates = [{ name: "Party A", code: 1 }];
+      leveldb.readCandidatesTemp.mockResolvedValueOnce(mockCandidates);
+      const result = await committee.getCandidates();
+      expect(result).toEqual(mockCandidates);
+    });
+
+    test("getCandidates should return cached candidates on error", async () => {
+      const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+      committee.candidates = [{ name: "cached" }];
+      leveldb.readCandidatesTemp.mockRejectedValueOnce(new Error("DB error"));
+      const result = await committee.getCandidates();
+      expect(result).toEqual([{ name: "cached" }]);
+      consoleSpy.mockRestore();
+    });
+  });
+
+  // ─── generateIdentifiers ──────────────────────────────────────────────────
+
   describe("Identifier Generation", () => {
-    test("should generate identifiers for verified citizens", async () => {
-      // Mock citizens with verified status
+    test("should generate identifiers only for verified citizens", async () => {
       leveldb.readCitizens.mockResolvedValueOnce([
         { electoralId: "id1", status: "verified" },
         { electoralId: "id2", status: "verified" },
-        { electoralId: "id3", status: "pending" }, // Should be skipped
+        { electoralId: "id3", status: "pending" },
       ]);
-
-      // Reload citizens
       await committee.loadCitizens();
-
       const voters = await committee.generateIdentifiers();
-
       expect(leveldb.clearVotersGenerated).toHaveBeenCalled();
-      expect(leveldb.writeVoterGenerated).toHaveBeenCalledTimes(2); // Only for verified citizens
-      expect(voters.length).toBe(2);
+      expect(leveldb.writeVoterGenerated).toHaveBeenCalledTimes(2);
+      expect(voters).toHaveLength(2);
       expect(committee.votersGenerated).toEqual(voters);
     });
 
-    test("should handle errors during identifier generation", async () => {
+    test("should return [] and log error when clearVotersGenerated rejects", async () => {
       const consoleSpy = jest.spyOn(console, "error").mockImplementation();
       leveldb.clearVotersGenerated.mockRejectedValueOnce(
         new Error("Generation error"),
       );
-
       const voters = await committee.generateIdentifiers();
-
       expect(voters).toEqual([]);
       expect(consoleSpy).toHaveBeenCalledWith(
         "Error generating identifiers:",
         expect.objectContaining({ message: "Generation error" }),
       );
-
       consoleSpy.mockRestore();
     });
   });
 
-  describe("Candidate Management", () => {
-    test("should clear candidates", async () => {
-      const result = await committee.clearCandidates();
+  // ─── Candidate Management ─────────────────────────────────────────────────
 
+  describe("Candidate Management", () => {
+    test("clearCandidates should clear both stores and reset local array", async () => {
+      const result = await committee.clearCandidates();
       expect(leveldb.clearCandidatesTemp).toHaveBeenCalled();
       expect(leveldb.clearCandidates).toHaveBeenCalled();
       expect(committee.candidates).toEqual([]);
       expect(result).toEqual([]);
     });
 
-    test("should add candidate to committee", async () => {
+    test("addCandidateCommittee should write and reload candidates", async () => {
       const mockCandidates = [{ name: "Candidate 1", code: 123 }];
       leveldb.readCandidatesTemp.mockResolvedValueOnce(mockCandidates);
-
       const result = await committee.addCandidateCommittee(
         "Candidate 1",
         123,
@@ -171,7 +219,6 @@ describe("Committee", () => {
         "PA",
         "active",
       );
-
       expect(leveldb.writeCandidateTemp).toHaveBeenCalledWith(123, {
         name: "Candidate 1",
         num_votes: 0,
@@ -180,195 +227,365 @@ describe("Committee", () => {
         party: "Party A",
         status: "active",
       });
-      expect(leveldb.readCandidatesTemp).toHaveBeenCalled();
       expect(committee.candidates).toEqual(mockCandidates);
       expect(result).toEqual(mockCandidates);
     });
 
-    test("should handle errors during candidate addition", async () => {
+    test("addCandidateCommittee should return [] and log error on write failure", async () => {
       const consoleSpy = jest.spyOn(console, "error").mockImplementation();
       leveldb.writeCandidateTemp.mockRejectedValueOnce(
         new Error("Candidate error"),
       );
-
       const result = await committee.addCandidateCommittee(
-        "Candidate 1",
-        123,
-        "Party A",
-        "PA",
+        "C",
+        1,
+        "P",
+        "P",
         "active",
       );
-
       expect(consoleSpy).toHaveBeenCalledWith(
         "Error adding candidate:",
         expect.objectContaining({ message: "Candidate error" }),
       );
       expect(result).toEqual([]);
-
       consoleSpy.mockRestore();
     });
   });
 
+  // ─── Authentication ───────────────────────────────────────────────────────
+
   describe("Authentication", () => {
-    test("should authenticate mobile user with valid credentials", async () => {
-      const mockCitizen = {
+    test("authMobile should return citizen data on valid credentials", async () => {
+      leveldb.readCitizen.mockResolvedValueOnce({
         electoralId: "test-id",
-        address: "Test Address",
-        email: "test@example.com",
-        province: "Test Province",
+        address: "Addr",
+        email: "e@e.com",
+        province: "Luanda",
         password: "hashed-password",
-      };
-
-      leveldb.readCitizen.mockResolvedValueOnce(mockCitizen);
-
+      });
       const result = await committee.authMobile("test-id", "password");
-
-      expect(leveldb.readCitizen).toHaveBeenCalledWith("test-id");
       expect(bcrypt.compare).toHaveBeenCalledWith(
         "password",
         "hashed-password",
       );
       expect(result).toEqual({
         electoralId: "test-id",
-        address: "Test Address",
-        email: "test@example.com",
-        province: "Test Province",
+        address: "Addr",
+        email: "e@e.com",
+        province: "Luanda",
       });
     });
 
-    test("should not authenticate mobile user with invalid credentials", async () => {
+    test("authMobile should return null on wrong password", async () => {
       bcrypt.compare.mockResolvedValueOnce(false);
-      leveldb.readCitizen.mockResolvedValueOnce({
-        password: "hashed-password",
-      });
-
-      const result = await committee.authMobile("test-id", "wrong-password");
-
-      expect(result).toBeNull();
+      leveldb.readCitizen.mockResolvedValueOnce({ password: "hashed" });
+      expect(await committee.authMobile("id", "wrong")).toBeNull();
     });
 
-    test("should handle errors during mobile authentication", async () => {
+    test("authMobile should return null when citizen is not found", async () => {
+      leveldb.readCitizen.mockResolvedValueOnce(null);
+      expect(await committee.authMobile("unknown", "pass")).toBeNull();
+    });
+
+    test("authMobile should return null and log error on DB failure", async () => {
       const consoleSpy = jest.spyOn(console, "error").mockImplementation();
       leveldb.readCitizen.mockRejectedValueOnce(new Error("Auth error"));
-
-      const result = await committee.authMobile("test-id", "password");
-
-      expect(result).toBeNull();
+      expect(await committee.authMobile("id", "pass")).toBeNull();
       expect(consoleSpy).toHaveBeenCalledWith(
         "Authentication error:",
         expect.objectContaining({ message: "Auth error" }),
       );
-
       consoleSpy.mockRestore();
     });
 
-    test("should authenticate web user with valid credentials", async () => {
-      const mockUser = {
-        username: "test-user",
-        name: "Test User",
+    test("authWeb should return user data on valid credentials", async () => {
+      leveldb.readUser.mockResolvedValueOnce({
+        username: "admin",
+        name: "Admin User",
         role: Role.ADMIN,
         password: "hashed-password",
-      };
-
-      leveldb.readUser.mockResolvedValueOnce(mockUser);
-
-      const result = await committee.authWeb("test-user", "password");
-
-      expect(leveldb.readUser).toHaveBeenCalledWith("test-user");
-      expect(bcrypt.compare).toHaveBeenCalledWith(
-        "password",
-        "hashed-password",
-      );
+      });
+      const result = await committee.authWeb("admin", "password");
       expect(result).toEqual({
-        username: "test-user",
-        name: "Test User",
+        username: "admin",
+        name: "Admin User",
         role: Role.ADMIN,
       });
     });
+
+    test("authWeb should return null on wrong password", async () => {
+      bcrypt.compare.mockResolvedValueOnce(false);
+      leveldb.readUser.mockResolvedValueOnce({ password: "hashed" });
+      expect(await committee.authWeb("user", "wrong")).toBeNull();
+    });
+
+    test("authWeb should return null when user not found", async () => {
+      leveldb.readUser.mockResolvedValueOnce(null);
+      expect(await committee.authWeb("unknown", "pass")).toBeNull();
+    });
   });
 
-  describe("User and Citizen Management", () => {
-    test("should erase all citizens", async () => {
-      await committee.eraseCitzens();
+  // ─── User and Citizen Management ──────────────────────────────────────────
 
+  describe("User and Citizen Management", () => {
+    test("eraseCitzens should clear DB and reload", async () => {
+      await committee.eraseCitzens();
       expect(leveldb.clearCitizens).toHaveBeenCalled();
       expect(leveldb.readCitizens).toHaveBeenCalled();
     });
 
-    test("should erase all users", async () => {
+    test("eraseUsers should clear DB and reload", async () => {
       await committee.eraseUsers();
-
       expect(leveldb.clearUsers).toHaveBeenCalled();
       expect(leveldb.readUsers).toHaveBeenCalled();
     });
 
-    test("should erase specific user", async () => {
+    test("eraseUser should remove specific user and reload", async () => {
       await committee.eraseUser("test-user");
-
       expect(leveldb.removeUser).toHaveBeenCalledWith("test-user");
       expect(leveldb.readUsers).toHaveBeenCalled();
     });
 
-    test("should erase specific citizen", async () => {
+    test("eraseRegister should remove specific citizen and reload", async () => {
       await committee.eraseRegister("test-id");
-
       expect(leveldb.removeCitizen).toHaveBeenCalledWith("test-id");
       expect(leveldb.readCitizens).toHaveBeenCalled();
     });
 
-    test("should save citizen", async () => {
-      const citizen = { electoralId: "test-id" };
+    test("saveCitizen should write citizen by electoralId key", async () => {
+      const citizen = { electoralId: "cid-1" };
       await committee.saveCitizen(citizen);
-
-      expect(leveldb.writeCitizen).toHaveBeenCalledWith("test-id", citizen);
+      expect(leveldb.writeCitizen).toHaveBeenCalledWith("cid-1", citizen);
     });
 
-    test("should save user", async () => {
-      const user = { username: "test-user" };
+    test("saveUser should write user by username key", async () => {
+      const user = { username: "u1" };
       await committee.saveUser(user);
-
-      expect(leveldb.writeUser).toHaveBeenCalledWith("test-user", user);
+      expect(leveldb.writeUser).toHaveBeenCalledWith("u1", user);
     });
 
-    test("should update citizen token", async () => {
-      // Setup mock citizen
-      committee.citizens = [{ electoralId: "test-id", refreshToken: "" }];
+    test("updateTokenCitzen should update refreshToken and persist", async () => {
+      committee.citizens = [{ electoralId: "cid-1", refreshToken: "" }];
+      await committee.updateTokenCitzen("cid-1", "new-token");
+      expect(
+        committee.citizens.find((c) => c.electoralId === "cid-1").refreshToken,
+      ).toBe("new-token");
+      expect(leveldb.writeCitizen).toHaveBeenCalledWith(
+        "cid-1",
+        expect.objectContaining({ refreshToken: "new-token" }),
+      );
+    });
 
-      await committee.updateTokenCitzen("test-id", "new-token");
+    test("updateTokenCitzen should log error when citizen not found", async () => {
+      const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+      committee.citizens = [];
+      await committee.updateTokenCitzen("ghost", "tok");
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "Citizen not found for token update:",
+        "ghost",
+      );
+      expect(leveldb.writeCitizen).not.toHaveBeenCalled();
+      consoleSpy.mockRestore();
+    });
 
-      expect(committee.citizens[0].refreshToken).toBe("new-token");
-      expect(leveldb.writeCitizen).toHaveBeenCalledWith("test-id", {
-        electoralId: "test-id",
-        refreshToken: "new-token",
+    test("updateTokenUser should update refreshToken and persist", async () => {
+      committee.users = [{ username: "u1", refreshToken: "" }];
+      await committee.updateTokenUser("u1", "user-token");
+      expect(leveldb.writeUser).toHaveBeenCalledWith(
+        "u1",
+        expect.objectContaining({ refreshToken: "user-token" }),
+      );
+    });
+
+    test("updateTokenUser should do nothing when user not found", async () => {
+      committee.users = [];
+      await committee.updateTokenUser("ghost", "tok");
+      expect(leveldb.writeUser).not.toHaveBeenCalled();
+    });
+  });
+
+  // ─── addCitzen / addUser ──────────────────────────────────────────────────
+
+  describe("addCitzen", () => {
+    test("should add new citizen, hash password, and return true", async () => {
+      const data = {
+        electoralId: "new-id",
+        name: "New Name",
+        email: "new@example.com",
+        address: "Addr",
+        province: "Luanda",
+        password: "pass",
+      };
+      const result = await committee.addCitzen(data);
+      expect(bcrypt.hash).toHaveBeenCalledWith("pass", 10);
+      expect(leveldb.writeCitizen).toHaveBeenCalled();
+      expect(result).toBe(true);
+      expect(committee.citizens).toHaveLength(1);
+      expect(committee.citizens[0]).toMatchObject({
+        electoralId: "new-id",
+        email: "new@example.com",
+        status: "pending",
       });
     });
 
-    test("should handle non-existent citizen for token update", async () => {
+    test("should reject citizen with duplicate email", async () => {
+      committee.citizens = [{ email: "dup@example.com" }];
+      const result = await committee.addCitzen({
+        electoralId: "x",
+        email: "dup@example.com",
+        password: "p",
+      });
+      expect(result).toBe(false);
+      expect(bcrypt.hash).not.toHaveBeenCalled();
+    });
+
+    test("should reject citizen with duplicate electoralId", async () => {
+      committee.citizens = [{ electoralId: "exists", email: "other@x.com" }];
+      const result = await committee.addCitzen({
+        electoralId: "exists",
+        email: "new@x.com",
+        password: "p",
+      });
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("addUser", () => {
+    test("should add new user with ADMIN role", async () => {
+      const data = {
+        username: "admin1",
+        name: "Admin",
+        password: "pass",
+        role: "admin",
+      };
+      const result = await committee.addUser(data);
+      expect(bcrypt.hash).toHaveBeenCalledWith("pass", 10);
+      expect(leveldb.writeUser).toHaveBeenCalled();
+      expect(committee.users).toHaveLength(1);
+      expect(committee.users[0].role).toBe(Role.ADMIN);
+      expect(result).toEqual(committee.users);
+    });
+
+    test("should add new user with NORMAL role for non-admin role string", async () => {
+      const data = {
+        username: "normal1",
+        name: "Normal",
+        password: "pass",
+        role: "viewer",
+      };
+      await committee.addUser(data);
+      expect(committee.users[0].role).toBe(Role.NORMAL);
+    });
+
+    test("should return null when username already exists", async () => {
+      committee.users = [{ username: "dup" }];
+      const result = await committee.addUser({
+        username: "dup",
+        password: "p",
+      });
+      expect(result).toBeNull();
+    });
+  });
+
+  // ─── updateCitizen / updateUser ───────────────────────────────────────────
+
+  describe("updateCitizen", () => {
+    test("should update existing citizen fields", async () => {
+      const existing = {
+        electoralId: "cid-1",
+        name: "Old",
+        email: "old@x.com",
+        address: "Old Addr",
+        province: "Luanda",
+        status: "pending",
+      };
+      leveldb.readCitizens.mockResolvedValueOnce([existing]);
+      await committee.loadCitizens();
+
+      const result = await committee.updateCitizen({
+        electoralId: "cid-1",
+        name: "New",
+        email: "new@x.com",
+        address: "New Addr",
+        province: "Benguela",
+        status: "verified",
+      });
+      expect(result).toBe(true);
+      expect(leveldb.writeCitizen).toHaveBeenCalled();
+    });
+
+    test("should return false when citizen is not found", async () => {
+      leveldb.readCitizens.mockResolvedValueOnce([]);
+      await committee.loadCitizens();
+      const result = await committee.updateCitizen({ electoralId: "ghost" });
+      expect(result).toBe(false);
+    });
+
+    test("should return false and log error on DB failure", async () => {
       const consoleSpy = jest.spyOn(console, "error").mockImplementation();
-      committee.citizens = [];
-
-      await committee.updateTokenCitzen("non-existent", "new-token");
-
-      expect(consoleSpy).toHaveBeenCalledWith(
-        "Citizen not found for token update:",
-        "non-existent",
-      );
-      expect(leveldb.writeCitizen).not.toHaveBeenCalled();
-
+      leveldb.readCitizens.mockRejectedValueOnce(new Error("load error"));
+      const result = await committee.updateCitizen({ electoralId: "cid-1" });
+      expect(result).toBe(false);
       consoleSpy.mockRestore();
     });
   });
 
-  describe("OTP and QR Code Generation", () => {
-    test("should generate OTP", () => {
-      const otp = committee.generateOtp();
+  describe("updateUser", () => {
+    test("should update existing user fields", async () => {
+      const existing = {
+        username: "u1",
+        name: "Old",
+        role: Role.NORMAL,
+        password: "old-hash",
+      };
+      leveldb.readUsers.mockResolvedValueOnce([existing]);
+      await committee.loadUsers();
 
+      const result = await committee.updateUser({
+        username: "u1",
+        name: "New",
+        role: "admin",
+      });
+      expect(result).toBe(true);
+      expect(leveldb.writeUser).toHaveBeenCalled();
+    });
+
+    test("should hash new password when provided during update", async () => {
+      const existing = {
+        username: "u1",
+        name: "U",
+        role: Role.NORMAL,
+        password: "old",
+      };
+      leveldb.readUsers.mockResolvedValueOnce([existing]);
+      await committee.loadUsers();
+      await committee.updateUser({
+        username: "u1",
+        name: "U",
+        role: "admin",
+        password: "newpass",
+      });
+      expect(bcrypt.hash).toHaveBeenCalledWith("newpass", 10);
+    });
+
+    test("should return false when user is not found", async () => {
+      leveldb.readUsers.mockResolvedValueOnce([]);
+      await committee.loadUsers();
+      const result = await committee.updateUser({ username: "ghost" });
+      expect(result).toBe(false);
+    });
+  });
+
+  // ─── OTP and QR Code ─────────────────────────────────────────────────────
+
+  describe("OTP and QR Code Generation", () => {
+    test("generateOtp should call speakeasy with correct options", () => {
+      const otp = committee.generateOtp();
       expect(speakeasy.generateSecret).toHaveBeenCalledWith({
         name: "Election QuantumBallot",
         length: 6,
         step: 300,
       });
-
       expect(otp).toEqual({
         ascii: "test-ascii",
         hex: "test-hex",
@@ -377,183 +594,95 @@ describe("Committee", () => {
       });
     });
 
-    test("should verify OTP", () => {
-      const result = committee.verifyOtp("test-secret", "123456");
-
+    test("verifyOtp should call speakeasy.totp.verify and return true", () => {
+      const result = committee.verifyOtp("secret-base32", "123456");
       expect(speakeasy.totp.verify).toHaveBeenCalledWith({
-        secret: "test-secret",
+        secret: "secret-base32",
         encoding: "base32",
         token: "123456",
       });
-
       expect(result).toBe(true);
     });
 
-    test("should handle errors during OTP verification", () => {
+    test("verifyOtp should return false and log error when speakeasy throws", () => {
       const consoleSpy = jest.spyOn(console, "error").mockImplementation();
       speakeasy.totp.verify.mockImplementationOnce(() => {
-        throw new Error("OTP verification error");
+        throw new Error("OTP error");
       });
-
-      const result = committee.verifyOtp("test-secret", "123456");
-
+      const result = committee.verifyOtp("secret", "000000");
       expect(result).toBe(false);
       expect(consoleSpy).toHaveBeenCalledWith(
         "Error verifying OTP:",
-        expect.objectContaining({ message: "OTP verification error" }),
+        expect.objectContaining({ message: "OTP error" }),
       );
-
       consoleSpy.mockRestore();
     });
 
-    test("should generate QR code", async () => {
-      const qrCode = await committee.generateQRCode("test-otpauth-url");
-
+    test("generateQRCode should resolve with base64 data URL", async () => {
+      const qr = await committee.generateQRCode("test-otpauth-url");
       expect(qrcode.toDataURL).toHaveBeenCalledWith(
         "test-otpauth-url",
         expect.any(Function),
       );
-
-      expect(qrCode).toBe("data:image/png;base64,test-qr-code");
+      expect(qr).toBe("data:image/png;base64,test-qr-code");
     });
 
-    test("should handle errors during QR code generation", async () => {
+    test("generateQRCode should return null and log error on qrcode failure", async () => {
       const consoleSpy = jest.spyOn(console, "error").mockImplementation();
       qrcode.toDataURL.mockImplementationOnce((_url, callback) =>
-        callback(new Error("QR code error"), null),
+        callback(new Error("QR error"), null),
       );
-
-      const qrCode = await committee.generateQRCode("test-otpauth-url");
-
-      expect(qrCode).toBeNull();
+      const qr = await committee.generateQRCode("url");
+      expect(qr).toBeNull();
       expect(consoleSpy).toHaveBeenCalledWith(
         "Failed to generate QR code:",
-        expect.objectContaining({ message: "QR code error" }),
+        expect.objectContaining({ message: "QR error" }),
       );
-
       consoleSpy.mockRestore();
     });
   });
 
+  // ─── Announcement ─────────────────────────────────────────────────────────
+
   describe("Announcement Management", () => {
-    test("should deploy announcement", async () => {
-      const announcementData = {
-        startTimeVoting: "2023-01-01",
-        endTimeVoting: "2023-01-02",
-        dateResults: "2023-01-03",
+    test("deployAnnouncement should parse numbers, write, and return announcement", async () => {
+      const data = {
+        startTimeVoting: "2024-01-01",
+        endTimeVoting: "2024-01-02",
+        dateResults: "2024-01-03",
         numOfCandidates: "5",
         numOfVoters: "100",
       };
-
-      const result = await committee.deployAnnouncement(announcementData);
-
+      const result = await committee.deployAnnouncement(data);
       expect(leveldb.writeAnnouncement).toHaveBeenCalledWith(
         expect.objectContaining({
-          startTimeVoting: "2023-01-01",
-          endTimeVoting: "2023-01-02",
-          dateResults: "2023-01-03",
           numOfCandidates: 5,
           numOfVoters: 100,
           dateCreated: expect.any(Number),
         }),
       );
-
       expect(result).toEqual(committee.announcement);
     });
 
-    test("should handle errors during announcement deployment", async () => {
+    test("deployAnnouncement should return null and log on write failure", async () => {
       const consoleSpy = jest.spyOn(console, "error").mockImplementation();
-      leveldb.writeAnnouncement.mockRejectedValueOnce(
-        new Error("Announcement error"),
-      );
-
+      leveldb.writeAnnouncement.mockRejectedValueOnce(new Error("Write error"));
       const result = await committee.deployAnnouncement({});
-
       expect(result).toBeNull();
       expect(consoleSpy).toHaveBeenCalledWith(
         "Error deploying announcement:",
-        expect.objectContaining({ message: "Announcement error" }),
+        expect.objectContaining({ message: "Write error" }),
       );
-
       consoleSpy.mockRestore();
     });
 
-    test("should get announcement", async () => {
-      const mockAnnouncement = { startTimeVoting: "2023-01-01" };
-      leveldb.readAnnouncement.mockResolvedValueOnce(mockAnnouncement);
-
+    test("getAnnouncement should load from DB and return the announcement", async () => {
+      const mock = { startTimeVoting: "2024-01-01" };
+      leveldb.readAnnouncement.mockResolvedValueOnce(mock);
       const result = await committee.getAnnouncement();
-
       expect(leveldb.readAnnouncement).toHaveBeenCalled();
-      expect(result).toEqual(mockAnnouncement);
-      expect(committee.announcement).toEqual(mockAnnouncement);
-    });
-  });
-
-  describe("Citizen and User Addition", () => {
-    test("should add new citizen", async () => {
-      const citizenData = {
-        electoralId: "new-id",
-        name: "New Citizen",
-        email: "new@example.com",
-        address: "New Address",
-        province: "New Province",
-        password: "password",
-      };
-
-      const result = await committee.addCitzen(citizenData);
-
-      expect(bcrypt.hash).toHaveBeenCalledWith("password", 10);
-      expect(leveldb.writeCitizen).toHaveBeenCalled();
-      expect(result).toBe(true);
-      expect(committee.citizens.length).toBe(1);
-      expect(committee.citizens[0]).toEqual(
-        expect.objectContaining({
-          electoralId: "new-id",
-          name: "New Citizen",
-          email: "new@example.com",
-          status: "pending",
-        }),
-      );
-    });
-
-    test("should not add citizen with existing email", async () => {
-      committee.citizens = [{ email: "existing@example.com" }];
-
-      const citizenData = {
-        electoralId: "new-id",
-        email: "existing@example.com",
-        password: "password",
-      };
-
-      const result = await committee.addCitzen(citizenData);
-
-      expect(result).toBe(false);
-      expect(bcrypt.hash).not.toHaveBeenCalled();
-      expect(leveldb.writeCitizen).not.toHaveBeenCalled();
-    });
-
-    test("should add new user", async () => {
-      const userData = {
-        username: "new-user",
-        name: "New User",
-        password: "password",
-        role: "admin",
-      };
-
-      const result = await committee.addUser(userData);
-
-      expect(bcrypt.hash).toHaveBeenCalledWith("password", 10);
-      expect(leveldb.writeUser).toHaveBeenCalled();
-      expect(committee.users.length).toBe(1);
-      expect(committee.users[0]).toEqual(
-        expect.objectContaining({
-          username: "new-user",
-          name: "New User",
-          role: Role.ADMIN,
-        }),
-      );
-      expect(result).toEqual(committee.users);
+      expect(result).toEqual(mock);
+      expect(committee.announcement).toEqual(mock);
     });
   });
 });

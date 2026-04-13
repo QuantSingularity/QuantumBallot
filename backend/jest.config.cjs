@@ -13,10 +13,14 @@ module.exports = {
   setupFiles: ["./jest.setup.js"],
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
   testPathIgnorePatterns: ["/node_modules/"],
+  // Kept for any legacy references that still use dist/ paths (e.g. UnitTesting.test.ts)
   moduleNameMapper: {
     "^../dist/(.*)$": "<rootDir>/src/$1",
     "^../../dist/(.*)$": "<rootDir>/src/$1",
     "^../dist$": "<rootDir>/src",
     "^../../dist$": "<rootDir>/src",
   },
+  // Clear mock state between test files (not between tests – tests manage that themselves)
+  clearMocks: false,
+  restoreMocks: false,
 };

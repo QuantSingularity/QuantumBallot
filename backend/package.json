@@ -16,21 +16,6 @@
     "docker:logs": "docker compose logs -f backend",
     "docker:dev": "docker compose --profile dev up backend_dev"
   },
-  "jest": {
-    "testEnvironment": "node",
-    "collectCoverageFrom": [
-      "build/**/*.js",
-      "!build/tests/**"
-    ],
-    "coverageThreshold": {
-      "global": {
-        "branches": 70,
-        "functions": 80,
-        "lines": 80,
-        "statements": 80
-      }
-    }
-  },
   "dependencies": {
     "axios": "^1.6.0",
     "bcrypt": "^5.1.0",
