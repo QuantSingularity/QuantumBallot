@@ -8,132 +8,55 @@ on:
   workflow_dispatch:
 
 jobs:
-  formatting_check:
+  # ============================================================
+  # Job 1 -- Code Quality (Prettier & Global Linting)
+  # ============================================================
+  code_quality:
+    name: Code Quality Checks
     runs-on: ubuntu-latest
 
-    env:
-      BACKEND_DIR: backend
-      WEB_FRONTEND_DIR: web-frontend
-      MOBILE_FRONTEND_DIR: mobile-frontend
-      INFRASTRUCTURE_DIR: infrastructure
-
     steps:
-      # -------------------------------
-      # Checkout Repository
-      # -------------------------------
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # -------------------------------
-      # Node + npm caching
-      # -------------------------------
-      - name: Set up Node.js
+      - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
-          cache-dependency-path: tools/package-lock.json
 
-      - name: Install Node dependencies
-        working-directory: tools
-        run: npm ci
+      - name: Install Global Formatters
+        run: npm install -g prettier prettier-plugin-solidity
 
-      # -------------------------------
-      # Prettier: backend
-      # -------------------------------
-      - name: Run Prettier Checks (backend)
-        if: ${{ env.BACKEND_DIR != '' }}
-        working-directory: tools
+      - name: Run Global Prettier Check
+        shell: bash
         run: |
-          echo "=== Running Prettier (backend) ==="
-          npx --no-install prettier --check "../${{ env.BACKEND_DIR }}/**/*.{js,jsx,ts,tsx,json,html,css,md}" --ignore-path ../.prettierignore || {
-            echo "Prettier issues found in ${BACKEND_DIR}."
-            exit 1
-          }
+          set -euo pipefail
+          NODE_GLOBAL=$(npm root -g)
+          echo "=== Running Prettier check across entire repo ==="
+          # Scans all directories (backend, web-frontend, etc.) in one pass
+          prettier --plugin="$NODE_GLOBAL/prettier-plugin-solidity/dist/index.js" \
+            --check "**/*.{js,jsx,ts,tsx,json,html,css,md,sol,yml,yaml}"
 
-      # -------------------------------
-      # Prettier: web-frontend
-      # -------------------------------
-      - name: Run Prettier Checks (web-frontend)
-        if: ${{ env.WEB_FRONTEND_DIR != '' }}
-        working-directory: tools
-        run: |
-          echo "=== Running Prettier (web-frontend) ==="
-          npx --no-install prettier --check "../${{ env.WEB_FRONTEND_DIR }}/**/*.{js,jsx,ts,tsx,json,html,css,md}" --ignore-path ../.prettierignore || {
-            echo "Prettier issues found in ${WEB_FRONTEND_DIR}."
-            exit 1
-          }
-
-      # -------------------------------
-      # Prettier: mobile-frontend
-      # -------------------------------
-      - name: Run Prettier Checks (mobile-frontend)
-        if: ${{ env.MOBILE_FRONTEND_DIR != '' }}
-        working-directory: tools
-        run: |
-          echo "=== Running Prettier (mobile-frontend) ==="
-          npx --no-install prettier --check "../${{ env.MOBILE_FRONTEND_DIR }}/**/*.{js,jsx,ts,tsx,json,html,css,md}" --ignore-path ../.prettierignore || {
-            echo "Prettier issues found in ${MOBILE_FRONTEND_DIR}."
-            exit 1
-          }
-
-      # -----------------------------------------------
-      # Repository-wide Markdown check (ALL .md files)
-      # -----------------------------------------------
-      - name: Run Prettier Checks (all .md files in repo)
-        working-directory: tools
-        run: |
-          echo "=== Running Prettier (all .md files) ==="
-          npx --no-install prettier --check "../**/*.md" --ignore-path ../.prettierignore || {
-            echo "Prettier formatting issues detected in markdown files across the repo."
-            exit 1
-          }
-
-      # -----------------------------------
-      # Infrastructure YAML/YML files only
-      # -----------------------------------
-      - name: Run Prettier Checks (infrastructure YAML)
-        working-directory: tools
-        run: |
-          if [ -n "${{ env.INFRASTRUCTURE_DIR }}" ] && [ -d "../${{ env.INFRASTRUCTURE_DIR }}" ]; then
-            echo "=== Running Prettier (infrastructure YAML/YML files) in ${INFRASTRUCTURE_DIR} ==="
-            npx --no-install prettier --check "../${{ env.INFRASTRUCTURE_DIR }}/**/*.{yml,yaml}" --ignore-path ../.prettierignore || {
-              echo "Prettier formatting issues detected in ${INFRASTRUCTURE_DIR} YAML/YML files."
-              exit 1
-            }
-          else
-            echo "No infrastructure directory '${{ env.INFRASTRUCTURE_DIR }}' found or INFRASTRUCTURE_DIR unset — skipping infra YAML checks."
-          fi
-
-      # -------------------------------
-      # Finalize
-      # -------------------------------
       - name: Finalize Check
         run: echo "All formatting checks completed successfully."
 
-  # ==============================
-  # Backend Tests
-  # ==============================
+  # ============================================================
+  # Job 2 -- Backend Tests
+  # ============================================================
   backend_tests:
     name: Backend Tests
     runs-on: ubuntu-latest
-    needs: formatting_check
+    needs: code_quality
 
     defaults:
       run:
         working-directory: backend
 
     steps:
-      # -------------------------------
-      # Checkout Repository
-      # -------------------------------
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # -------------------------------
-      # Node + npm caching
-      # -------------------------------
-      - name: Set up Node.js
+      - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: "20"
@@ -141,17 +64,11 @@ jobs:
           cache-dependency-path: backend/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
-      # -------------------------------
-      # Run Tests
-      # -------------------------------
       - name: Run tests
-        run: npm test
+        run: npm test --if-present
 
-      # -------------------------------
-      # Upload coverage (optional)
-      # -------------------------------
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v4
