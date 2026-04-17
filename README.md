@@ -10,8 +10,6 @@ A full-stack Web and Mobile application for American elections using Blockchain 
   <img src="docs/images/QuantumBallot_dashboard.png" alt="QuantumBallot Election System" width="100%">
 </div>
 
-> **Note**: This Project is currently under active development. Features and functionalities are being added and improved continuously to enhance user experience.
-
 ## Table of Contents
 
 - [Overview](#overview)
