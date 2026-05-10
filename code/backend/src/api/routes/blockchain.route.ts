@@ -34,14 +34,12 @@ const successResponse = (
   data: any,
   message = "Operation successful",
 ) =>
-  res
-    .status(status)
-    .json({
-      success: true,
-      message,
-      data,
-      timestamp: new Date().toISOString(),
-    });
+  res.status(status).json({
+    success: true,
+    message,
+    data,
+    timestamp: new Date().toISOString(),
+  });
 
 const asyncHandler =
   (fn: Function) => (req: Request, res: Response, next: NextFunction) =>

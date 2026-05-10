@@ -207,12 +207,10 @@ router.post(
 
     const ans = await committee.eraseRegister(electoralId);
     if (ans != null)
-      return res
-        .status(200)
-        .json({
-          registers: committee.getCitizens(),
-          note: "Request accepted ...",
-        });
+      return res.status(200).json({
+        registers: committee.getCitizens(),
+        note: "Request accepted ...",
+      });
     return res.status(500).json({ note: "Rejected. Something went wrong ..." });
   }),
 );
@@ -376,13 +374,11 @@ router.post(
     });
 
     const province = ans.province as keyof typeof PROVINCES_PORT;
-    return res
-      .status(201)
-      .json({
-        accessToken,
-        email: ans.email,
-        port: PROVINCES_PORT[province] || null,
-      });
+    return res.status(201).json({
+      accessToken,
+      email: ans.email,
+      port: PROVINCES_PORT[province] || null,
+    });
   }),
 );
 
@@ -419,15 +415,13 @@ router.post(
       maxAge: 24 * 60 * 60 * 1000,
     });
 
-    return res
-      .status(201)
-      .json({
-        accessToken,
-        refreshToken,
-        username,
-        name: ans.name,
-        role: ans.role,
-      });
+    return res.status(201).json({
+      accessToken,
+      refreshToken,
+      username,
+      name: ans.name,
+      role: ans.role,
+    });
   }),
 );
 
