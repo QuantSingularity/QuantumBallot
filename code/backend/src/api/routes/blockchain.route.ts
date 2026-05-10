@@ -1,12 +1,9 @@
 import { setMaxListeners } from "node:events";
 import type { NextFunction, Request, Response } from "express";
-import BlockChain from "../../../../../blockchain/src/core/blockchain";
-import type { Block } from "../../../../../blockchain/src/core/data_types";
+import BlockChain from "../../../../blockchain/src/core/blockchain";
+import type { Block } from "../../../../blockchain/src/core/data_types";
 
 const axios = require("axios");
-const dotenv = require("dotenv");
-dotenv.config();
-
 const express = require("express");
 const router = express.Router();
 const verifyJWTWeb = require("../../middleware/verifyJWTWeb");
@@ -37,12 +34,14 @@ const successResponse = (
   data: any,
   message = "Operation successful",
 ) =>
-  res.status(status).json({
-    success: true,
-    message,
-    data,
-    timestamp: new Date().toISOString(),
-  });
+  res
+    .status(status)
+    .json({
+      success: true,
+      message,
+      data,
+      timestamp: new Date().toISOString(),
+    });
 
 const asyncHandler =
   (fn: Function) => (req: Request, res: Response, next: NextFunction) =>

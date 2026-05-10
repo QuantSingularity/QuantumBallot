@@ -62,11 +62,6 @@ const addNode = (node: any) => {
   allNodes = removeDuplicated([...allNodes, node]);
 };
 
-const removeAllNodes = () => {
-  allNodes = [NODE_ADDRESS];
-  return allNodes;
-};
-
 const isUpdated = (nodeList: any[]) => {
   const a = [...getAllNodes()].sort();
   const b = [...nodeList].sort();
@@ -124,14 +119,12 @@ const requestSingleConnection = (url: any, nodes: any) => {
 const requestConnection = (thisAllNodes: any, destines: any) => {
   thisAllNodes = removeDuplicated([...thisAllNodes, ...getAllNodes()]);
   const fullUpdated: Record<string, any> = {};
-  let nodesListed = [...thisAllNodes];
 
   const requests = destines.map((url: any) =>
     axios
       .post(`${LOCALHOST + url}/connect_node`, { urls: thisAllNodes })
       .then((r: any) => {
         fullUpdated[url] = r.data.myUrls;
-        nodesListed = removeDuplicated([...nodesListed, ...r.data.myUrls]);
       })
       .catch((e: any) => console.error(e)),
   );

@@ -1,9 +1,5 @@
 import * as crypto from "node:crypto";
 import fs from "node:fs";
-import dotenv from "dotenv";
-
-dotenv.config();
-
 const DEFAULT_KEY = "0123456789abcdef0123456789abcdef";
 const DEFAULT_IV = "0123456789abcdef";
 

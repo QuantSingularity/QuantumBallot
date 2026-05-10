@@ -54,16 +54,21 @@ const votercitizenrelationdb = db.sublevel(VOTER_CITIZEN_RELATION, {
 // ── Connection ────────────────────────────────────────────────────────────────
 
 export async function connectToDB(): Promise<void> {
+  // In level v8, db.open() on an already-open database is idempotent and
+  // resolves without error, so no special handling is needed for that case.
+  // We propagate all genuine errors (permissions, disk, lock conflicts, etc.)
   try {
     await db.open();
     console.log(`LevelDB connected at: ${dbPath}`);
   } catch (error: any) {
-    if ((error as any).code === "LEVEL_DATABASE_NOT_OPEN") {
+    // LEVEL_ALREADY_OPEN is returned if somehow open() is called concurrently;
+    // treat it as success. All other errors are fatal.
+    if ((error as any).code === "LEVEL_ALREADY_OPEN") {
       console.log(`LevelDB already open at: ${dbPath}`);
-    } else {
-      console.error("Failed to connect to LevelDB:", error);
-      throw error;
+      return;
     }
+    console.error("Failed to connect to LevelDB:", error);
+    throw error;
   }
 }
 

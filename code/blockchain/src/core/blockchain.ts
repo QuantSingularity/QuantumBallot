@@ -83,12 +83,12 @@ class BlockChain {
     return [];
   }
 
-  public saveChain() {
-    try {
-      writeChain(this.chain);
-    } catch (e: unknown) {
-      console.error("Error saving chain:", e);
-    }
+  public saveChain(): void {
+    // writeChain is async; we fire-and-forget but attach a rejection handler
+    // so errors surface in logs instead of becoming unhandled rejections
+    writeChain(this.chain).catch((e: unknown) =>
+      console.error("Error saving chain:", e),
+    );
   }
 
   public getGenesisBlock(): Block {
@@ -114,8 +114,10 @@ class BlockChain {
     try {
       if (this.isValidBlock(block)) {
         this.chain.push(block);
-        block.transactions.forEach((x) =>
-          updateVoter(x.data.identifier, x.data),
+        Promise.all(
+          block.transactions.map((x) => updateVoter(x.data.identifier, x.data)),
+        ).catch((e: unknown) =>
+          console.error("Error updating voters after block add:", e),
         );
         this.transactionPool = [];
         this.smartContract.update();

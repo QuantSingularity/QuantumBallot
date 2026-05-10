@@ -5,14 +5,10 @@ import emailTemplate from "../../email_center/emailTemplate";
 import sendEmail from "../../email_center/sendEmail";
 
 const jwt = require("jsonwebtoken");
-const dotenv = require("dotenv");
-dotenv.config();
-
 const express = require("express");
 const router = express.Router();
 const cookieParser = require("cookie-parser");
 const verifyJWT = require("../../middleware/verifyJWT");
-const verifyJWTWeb = require("../../middleware/verifyJWTWeb");
 const credentials = require("../../middleware/credentials");
 
 router.use(cookieParser());
@@ -211,10 +207,12 @@ router.post(
 
     const ans = await committee.eraseRegister(electoralId);
     if (ans != null)
-      return res.status(200).json({
-        registers: committee.getCitizens(),
-        note: "Request accepted ...",
-      });
+      return res
+        .status(200)
+        .json({
+          registers: committee.getCitizens(),
+          note: "Request accepted ...",
+        });
     return res.status(500).json({ note: "Rejected. Something went wrong ..." });
   }),
 );
@@ -378,11 +376,13 @@ router.post(
     });
 
     const province = ans.province as keyof typeof PROVINCES_PORT;
-    return res.status(201).json({
-      accessToken,
-      email: ans.email,
-      port: PROVINCES_PORT[province] || null,
-    });
+    return res
+      .status(201)
+      .json({
+        accessToken,
+        email: ans.email,
+        port: PROVINCES_PORT[province] || null,
+      });
   }),
 );
 
@@ -419,13 +419,15 @@ router.post(
       maxAge: 24 * 60 * 60 * 1000,
     });
 
-    return res.status(201).json({
-      accessToken,
-      refreshToken,
-      username,
-      name: ans.name,
-      role: ans.role,
-    });
+    return res
+      .status(201)
+      .json({
+        accessToken,
+        refreshToken,
+        username,
+        name: ans.name,
+        role: ans.role,
+      });
   }),
 );
 

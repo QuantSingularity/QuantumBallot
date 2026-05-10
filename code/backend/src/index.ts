@@ -98,11 +98,14 @@ const startServer = async () => {
     // BUG FIX: error handler and 404 must be registered AFTER all routes
     app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
       console.error("Error:", err.message);
-      res.status(500).json({
-        success: false,
-        message: "Internal server error",
-        error: process.env.NODE_ENV === "development" ? err.message : undefined,
-      });
+      res
+        .status(500)
+        .json({
+          success: false,
+          message: "Internal server error",
+          error:
+            process.env.NODE_ENV === "development" ? err.message : undefined,
+        });
     });
 
     app.use((_req: Request, res: Response) => {

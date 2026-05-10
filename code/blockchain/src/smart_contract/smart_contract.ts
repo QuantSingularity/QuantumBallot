@@ -75,7 +75,12 @@ class SmartContract {
   }
 
   public update() {
-    this.initVariables();
+    // initVariables is async; attach rejection handler so errors surface in logs.
+    // electionState is set synchronously so the blockchain can keep accepting
+    // transactions while data reloads in the background.
+    this.initVariables().catch((e: unknown) =>
+      console.error("Error reloading smart contract state:", e),
+    );
     this.electionState = ElectionState.Started;
   }
 

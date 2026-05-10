@@ -3,7 +3,7 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "outDir": "./dist",
-    "rootDir": "./",
+    "rootDir": "../",
     "target": "ES2019",
     "module": "CommonJS",
     "moduleResolution": "node",
@@ -21,6 +21,7 @@
     "dist",
     "tests",
     "../blockchain/tests",
-    "**/*.test.ts"
+    "**/*.test.ts",
+    "**/*.test.js"
   ]
 }
