@@ -84,11 +84,14 @@ class BlockChain {
   }
 
   public saveChain(): void {
-    // writeChain is async; we fire-and-forget but attach a rejection handler
-    // so errors surface in logs instead of becoming unhandled rejections
-    writeChain(this.chain).catch((e: unknown) =>
-      console.error("Error saving chain:", e),
-    );
+    // Handle both synchronous throws and async rejections from writeChain
+    try {
+      writeChain(this.chain).catch((e: unknown) =>
+        console.error("Error saving chain:", e),
+      );
+    } catch (e: unknown) {
+      console.error("Error saving chain:", e);
+    }
   }
 
   public getGenesisBlock(): Block {

@@ -4,7 +4,15 @@ module.exports = {
   rootDir: "..",
   testEnvironment: "node",
   transform: {
-    "^.+\\.(ts|tsx|js|jsx)$": "babel-jest",
+    "^.+\\.(ts|tsx|js|jsx)$": [
+      "babel-jest",
+      {
+        presets: [
+          ["@babel/preset-env", { targets: { node: "current" } }],
+          ["@babel/preset-typescript", { allowDeclareFields: true, allowNamespaces: true }],
+        ],
+      },
+    ],
   },
   testMatch: [
     "<rootDir>/backend/tests/**/*.test.js",
@@ -14,6 +22,7 @@ module.exports = {
     "<rootDir>/backend/simple.test.js",
   ],
   setupFiles: ["<rootDir>/backend/jest.setup.js"],
+  modulePaths: ["<rootDir>/backend/node_modules"],
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
   testPathIgnorePatterns: ["/node_modules/", "/dist/"],
   clearMocks: false,
